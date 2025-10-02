@@ -20,3 +20,10 @@ logging:
   level:
     org.springframework.web: debug
     org.springframework.web.client.DefaultRestClient: OFF
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: method
