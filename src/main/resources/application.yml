@@ -1,3 +1,22 @@
 spring:
   application:
     name: roome-be
+  datasource:
+    url: jdbc:mysql://${DB_URL}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      platform: mysql
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    show-sql: true
+
+logging:
+  level:
+    org.springframework.web: debug
+    org.springframework.web.client.DefaultRestClient: OFF
