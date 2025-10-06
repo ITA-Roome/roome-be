@@ -1,4 +1,4 @@
-package com.roome.roome.be.domain.user.dto.kakao;
+package com.roome.roome.be.domain.user.dto.social;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

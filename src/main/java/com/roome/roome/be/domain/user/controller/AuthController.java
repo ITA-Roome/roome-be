@@ -1,7 +1,7 @@
 package com.roome.roome.be.domain.user.controller;
 
 import com.roome.roome.be.common.response.ApiResponse;
-import com.roome.roome.be.common.service.JwtService;
+import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.user.dto.response.LoginResponse;
 import com.roome.roome.be.domain.user.entity.User;

@@ -1,7 +1,7 @@
 package com.roome.roome.be.domain.user.service;
 
-import com.roome.roome.be.domain.user.dto.google.GoogleInfoDto;
-import com.roome.roome.be.domain.user.dto.google.GoogleTokenResponse;
+import com.roome.roome.be.domain.user.dto.social.GoogleInfoDto;
+import com.roome.roome.be.domain.user.dto.social.GoogleTokenResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.repository.UserRepository;

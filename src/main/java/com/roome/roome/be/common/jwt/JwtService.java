@@ -1,4 +1,4 @@
-package com.roome.roome.be.common.service;
+package com.roome.roome.be.common.jwt;
 
 import com.roome.roome.be.domain.user.entity.User;
 import io.jsonwebtoken.Jwts;

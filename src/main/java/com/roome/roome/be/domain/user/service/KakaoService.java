@@ -1,7 +1,7 @@
 package com.roome.roome.be.domain.user.service;
 
-import com.roome.roome.be.domain.user.dto.kakao.KakaoInfoDto;
-import com.roome.roome.be.domain.user.dto.kakao.KakaoTokenResponse;
+import com.roome.roome.be.domain.user.dto.social.KakaoInfoDto;
+import com.roome.roome.be.domain.user.dto.social.KakaoTokenResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.repository.UserRepository;
