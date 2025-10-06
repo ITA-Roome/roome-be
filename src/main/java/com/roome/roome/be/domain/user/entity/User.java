@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class User  extends BaseEntity {
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,4 +25,6 @@ public class User  extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private LoginType loginType;
+
+    private String providerId;
 }
