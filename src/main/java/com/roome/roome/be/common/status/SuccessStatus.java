@@ -13,7 +13,7 @@ public enum SuccessStatus implements BaseStatus {
     SUCCESS_201("ROOME_201", HttpStatus.CREATED, "성공입니다."),
     SUCCESS_204("ROOME_204", HttpStatus.NO_CONTENT, "성공입니다."),
 
-    KAKAO_AUTH_URL_SUCCESS("SUCCESS_200", HttpStatus.OK, "카카오 로그인 URL 조회 성공"),
+    AUTH_URL_SUCCESS("SUCCESS_200", HttpStatus.OK, "로그인 URL 조회 성공"),
     LOGIN_SUCCESS("SUCCESS_200", HttpStatus.OK, "로그인 성공");
 
     private final String code;
