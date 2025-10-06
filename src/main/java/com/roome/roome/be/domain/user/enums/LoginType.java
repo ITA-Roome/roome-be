@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum LoginType {
     EMAIL("EMAIL"),
-    SOCIAL("SOCIAL");
+    GOOGLE("GOOGLE"),
+    KAKAO("KAKAO");
 
     private final String type;
 }
