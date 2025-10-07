@@ -1,10 +1,11 @@
 package com.roome.roome.be.domain.auth.service;
 
 import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.status.ErrorStatus;
-import com.roome.roome.be.domain.auth.dto.ConfirmEmailVerificationRequest;
-import com.roome.roome.be.domain.auth.dto.EmailVerificationRequest;
-import com.roome.roome.be.domain.auth.dto.SignUpRequest;
+import com.roome.roome.be.domain.auth.dto.*;
+import com.roome.roome.be.domain.auth.enums.PasswordValidationType;
+import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +19,7 @@ public class AuthService {
     private final EmailVerificationService emailVerificationService;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     // 회원가입
     @Transactional
@@ -31,6 +33,19 @@ public class AuthService {
         SignUpRequest signupRequest = request.withEncodedPassword(encodedPassword);
 
         userService.registerUser(signupRequest);
+    }
+
+    // 로그인
+    @Transactional
+    public EmailLoginResponse login(LoginRequest request) {
+        User user = userService.findUserByEmail(request.email());
+        checkPasswordMatch(request.password(), user.getPassword(), PasswordValidationType.LOGIN);
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        userService.updateRefreshToken(user, refreshToken);
+        return EmailLoginResponse.from(accessToken, refreshToken, user);
     }
 
     // 이메일 인증 코드 요청
@@ -63,6 +78,21 @@ public class AuthService {
         if (charTypeCount == 2 && password.length() >= 10) return;
 
         throw new GeneralException(ErrorStatus.INVALID_PASSWORD_FORMAT);
+    }
+
+    /** 비밀번호 매칭 검사 */
+    private void checkPasswordMatch(String rawPassword, String encodedPassword, PasswordValidationType type) {
+        boolean isMatch = passwordEncoder.matches(rawPassword, encodedPassword);
+
+        switch (type) {
+            case LOGIN -> {
+                if (!isMatch) throw new GeneralException(ErrorStatus.INVALID_PASSWORD);
+            }
+            case UPDATE -> {
+                if (isMatch) throw new GeneralException(ErrorStatus.PASSWORD_SAME_AS_OLD);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + type);
+        }
     }
 
 }

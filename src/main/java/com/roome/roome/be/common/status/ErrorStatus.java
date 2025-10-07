@@ -30,7 +30,6 @@ public enum ErrorStatus implements BaseStatus {
     EMAIL_AGREEMENT_REQUIRED("AUTH_400", HttpStatus.BAD_REQUEST, "카카오 이메일 동의가 필요합니다"),
     OAUTH_LOGIN_FAILED("AUTH_500", HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 처리 중 오류가 발생했습니다"),
 
-
     /**
      * Auth
      */
@@ -39,17 +38,28 @@ public enum ErrorStatus implements BaseStatus {
     VERIFICATION_CODE_EXPIRED("AUTH_400", HttpStatus.BAD_REQUEST, "인증 코드가 만료되었습니다."),
     INVALID_VERIFICATION_CODE("AUTH_400", HttpStatus.BAD_REQUEST, "인증 코드가 일치하지 않습니다."),
     PASSWORD_SAME_AS_OLD("AUTH_400", HttpStatus.BAD_REQUEST, "기존 비밀번호와 동일합니다."),
-
     INVALID_PASSWORD("AUTH_401", HttpStatus.UNAUTHORIZED, "비밀번호가 올바르지 않습니다."),
-
-    EMAIL_NOT_FOUND("AUTH_404", HttpStatus.NOT_FOUND, "인증 요청한 이메일이 아닙니다."),
-    USER_NOT_FOUND("AUTH_404", HttpStatus.NOT_FOUND, "존재하지 않는 유저아이디입니다."),
-    ID_NOT_FOUND("AUTH_404", HttpStatus.NOT_FOUND, "존재하지 않는 아이디입니다."),
-
+    EMAIL_NOT_FOUND_1("AUTH_404", HttpStatus.NOT_FOUND, "인증 요청한 이메일이 아닙니다."),
+    EMAIL_NOT_FOUND_2("AUTH_404", HttpStatus.NOT_FOUND, "존재하지 않는 유저 이메일입니다"),
+    USER_NOT_FOUND("AUTH_404", HttpStatus.NOT_FOUND, "존재하지 않는 유저 이메일입니다."),
     ID_ALREADY_EXISTS("AUTH_409", HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
     EMAIL_ALREADY_EXISTS("AUTH_409", HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
+    SEND_VERIFICATION_CODE_EMAIL_INTERNAL_SERVER_ERROR("500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 인증 코드 발송 중 오류가 발생했습니다."),
 
-    SEND_VERIFICATION_CODE_EMAIL_INTERNAL_SERVER_ERROR("500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 인증 코드 발송 중 오류가 발생했습니다.");
+    /**
+     * JWT
+     */
+    JWT_TOKEN_NOT_FOUND("JWT_401", HttpStatus.UNAUTHORIZED, "토큰이 존재하지 않습니다."),
+    JWT_INVALID_SIGNATURE("JWT_401", HttpStatus.UNAUTHORIZED, "잘못된 JWT 서명입니다."),
+    JWT_MALFORMED("JWT_401", HttpStatus.UNAUTHORIZED, "잘못된 JWT 형식입니다."),
+    JWT_EXPIRED("JWT_401", HttpStatus.UNAUTHORIZED, "만료된 JWT 토큰입니다."),
+    JWT_UNSUPPORTED("JWT_401", HttpStatus.UNAUTHORIZED, "지원되지 않는 JWT 토큰입니다."),
+    JWT_INVALID("JWT_401", HttpStatus.UNAUTHORIZED, "JWT 토큰이 잘못되었습니다."),
+    JWT_EXTRACT_ID_FAILED("JWT_401", HttpStatus.UNAUTHORIZED, "토큰에서 사용자 정보를 추출할 수 없습니다."),
+    JWT_GENERAL_ERROR("JWT_401", HttpStatus.UNAUTHORIZED, "JWT 토큰 처리 중 알 수 없는 오류가 발생했습니다."),
+    JWT_INVALID_TYPE("JWT_401", HttpStatus.UNAUTHORIZED, "토큰 타입이 유효하지 않습니다."),
+    REFRESH_TOKEN_NOT_FOUND("JWT_401", HttpStatus.UNAUTHORIZED, "DB에 저장된 토큰과 일치하지 않습니다."),
+    REFRESH_TOKEN_MISMATCH("JWT_401", HttpStatus.UNAUTHORIZED, "리프레시 토큰 정보가 사용자 정보와 일치하지 않습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;

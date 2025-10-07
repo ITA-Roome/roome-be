@@ -1,11 +1,9 @@
 package com.roome.roome.be.domain.auth.controller;
 
-import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.jwt.JwtService;
+import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
-import com.roome.roome.be.domain.auth.dto.ConfirmEmailVerificationRequest;
-import com.roome.roome.be.domain.auth.dto.EmailVerificationRequest;
-import com.roome.roome.be.domain.auth.dto.SignUpRequest;
+import com.roome.roome.be.domain.auth.dto.*;
 import com.roome.roome.be.domain.auth.service.AuthService;
 import com.roome.roome.be.domain.user.dto.response.LoginResponse;
 import com.roome.roome.be.domain.user.entity.User;
@@ -13,6 +11,7 @@ import com.roome.roome.be.domain.user.service.GoogleService;
 import com.roome.roome.be.domain.user.service.KakaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -111,6 +110,17 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignUpRequest request) {
         authService.signUp(request);
         return ApiResponse.success(SuccessStatus.CREATE_USER_SUCCESS);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "로그인")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "비밀번호가 일치하지 않는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않는 경우", content = @Content)
+    public ResponseEntity<ApiResponse<EmailLoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        EmailLoginResponse response = authService.login(request);
+        return ApiResponse.success(SuccessStatus.LOGIN_SUCCESS, response);
     }
 
     @PostMapping("/email-verification")

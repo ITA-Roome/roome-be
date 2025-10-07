@@ -75,7 +75,7 @@ public class EmailVerificationService {
     // 이메일 정보 조회 (없을 경우 예외 발생)
     private EmailVerification findEmailVerificationByEmail(String email) {
         return emailVerificationRepository.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_NOT_FOUND_1));
     }
 
     // 인증 코드 만료 검증(예: 5분 이상 지난 경우 만료 처리)

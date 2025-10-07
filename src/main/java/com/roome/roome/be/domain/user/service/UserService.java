@@ -39,4 +39,15 @@ public class UserService {
                 .build();
         userRepository.save(user);
     }
+
+    /** 이메일로 유저 찾기*/
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_NOT_FOUND_2));
+    }
+
+    /** RefreshToken 업데이트 */
+    public void updateRefreshToken(User user, String refreshToken) {
+        user.updateRefreshToken(refreshToken);
+    }
 }

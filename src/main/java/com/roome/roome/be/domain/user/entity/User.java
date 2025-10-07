@@ -27,4 +27,10 @@ public class User extends BaseEntity {
     private LoginType loginType;
 
     private String providerId;
+
+    private String refreshToken;
+
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }
