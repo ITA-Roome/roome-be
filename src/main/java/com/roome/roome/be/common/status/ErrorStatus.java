@@ -13,6 +13,16 @@ public enum ErrorStatus implements BaseStatus {
     ERROR_STATUS("ROOME_400", HttpStatus.BAD_REQUEST, "Bad Request"),
 
     /**
+     * Common
+     */
+    BAD_REQUEST("COMM_400", HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
+    UNAUTHORIZED("COMM_401", HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+    FORBIDDEN("COMM_403", HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    NOT_FOUND("COMM_404", HttpStatus.NOT_FOUND, "요청한 자원을 찾을 수 없습니다."),
+    METHOD_NOT_ALLOWED("COMM_405", HttpStatus.METHOD_NOT_ALLOWED, "허용되지 않은 메소드입니다."),
+    INTERNAL_SERVER_ERROR("COMM_500", HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
+
+    /**
      * Oauth2
      */
     KAKAO_TOKEN_FAILED("AUTH_400", HttpStatus.BAD_REQUEST, "카카오 토큰 발급에 실패했습니다"),
