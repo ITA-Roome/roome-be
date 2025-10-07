@@ -102,6 +102,11 @@ public class AuthService {
         throw new GeneralException(ErrorStatus.INVALID_PASSWORD_FORMAT);
     }
 
+    // 닉네임 중복 검사
+    public CheckNicknameResponse checkNickname(String nickname) {
+        return userService.checkNickname(nickname);
+    }
+
     /** 비밀번호 매칭 검사 */
     private void checkPasswordMatch(String rawPassword, String encodedPassword, PasswordValidationType type) {
         boolean isMatch = passwordEncoder.matches(rawPassword, encodedPassword);
