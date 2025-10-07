@@ -148,6 +148,16 @@ public class AuthController {
         return ApiResponse.success(SuccessStatus.LOGOUT_SUCCESS);
     }
 
+    @PatchMapping("/password")
+    @Operation(summary = "비밀번호 변경")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 변경 성공", content = @Content(mediaType = "application/json"))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "기존과 동일한 비밀번호를 입력한 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않는 경우", content = @Content)
+    public ResponseEntity<ApiResponse<Void>> updatePassword(@RequestBody @Valid UpdatePasswordRequest request) {
+        authService.updatePassword(request);
+        return ApiResponse.success(SuccessStatus.UPDATE_PASSWORD_SUCCESS);
+    }
+
     @PostMapping("/email-verification")
     @Operation(summary = "이메일 인증 코드 요청")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 인증 요청 성공", content = @Content(mediaType = "application/json")

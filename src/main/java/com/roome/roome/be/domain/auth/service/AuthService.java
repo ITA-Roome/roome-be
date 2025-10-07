@@ -61,6 +61,15 @@ public class AuthService {
         userService.clearRefreshToken(user);
     }
 
+    // Update Password
+    @Transactional
+    public void updatePassword(UpdatePasswordRequest request) {
+        User user = userService.findUserByEmail(request.email());
+        checkPasswordMatch(request.password(), user.getPassword(), PasswordValidationType.UPDATE);
+
+        userService.updatePassword(user, passwordEncoder.encode(request.password()));
+    }
+
     // 이메일 인증 코드 요청
     public void requestEmailVerificationCode(EmailVerificationRequest request) {
         emailVerificationService.requestEmailVerificationCode(request.email());

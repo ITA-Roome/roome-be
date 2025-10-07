@@ -67,4 +67,9 @@ public class UserService {
         user.clearRefreshToken();
     }
 
+    /** 비밀번호 수정 */
+    public void updatePassword(User user, String encryptedPassword) {
+        user.updatePassword(encryptedPassword);
+    }
+
 }

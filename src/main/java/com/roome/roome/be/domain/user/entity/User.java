@@ -37,4 +37,8 @@ public class User extends BaseEntity {
     public void clearRefreshToken() {
         this.refreshToken = null;
     }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 }
