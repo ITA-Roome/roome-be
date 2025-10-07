@@ -5,6 +5,7 @@ import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.auth.dto.ConfirmEmailVerificationRequest;
 import com.roome.roome.be.domain.auth.dto.EmailVerificationRequest;
+import com.roome.roome.be.domain.auth.dto.SignUpRequest;
 import com.roome.roome.be.domain.auth.service.AuthService;
 import com.roome.roome.be.domain.user.dto.response.LoginResponse;
 import com.roome.roome.be.domain.user.entity.User;
@@ -102,6 +103,16 @@ public class AuthController {
         return ApiResponse.success(SuccessStatus.LOGIN_SUCCESS, response);
     }
 
+    @PostMapping("/signup")
+    @Operation(summary = "회원가입")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "회원가입 성공", content = @Content(mediaType = "application/json"))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "비밀번호 양식이 올바르지 않거나 이메일 인증이 완료되지 않은 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 이메일이 존재하는 경우", content = @Content)
+    public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignUpRequest request) {
+        authService.signUp(request);
+        return ApiResponse.success(SuccessStatus.CREATE_USER_SUCCESS);
+    }
+
     @PostMapping("/email-verification")
     @Operation(summary = "이메일 인증 코드 요청")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -110,8 +121,8 @@ public class AuthController {
             content = @Content(mediaType = "application/json")
     )
     public ResponseEntity<ApiResponse<Void>> requestEmailVerificationCode(
-            @Valid @RequestBody EmailVerificationRequest request) {
-
+            @Valid @RequestBody EmailVerificationRequest request)
+    {
         authService.requestEmailVerificationCode(request);
         return ApiResponse.success(SuccessStatus.SEND_EMAIL_VERIFICATION_SUCCESS);
     }
@@ -122,8 +133,8 @@ public class AuthController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "인증 코드 시간이 만료되었거나 인증 코드가 일치하지 않는 경우",content =@Content)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "해당 이메일로 인증요청을 보내지 않은 경우",content = @Content)
     public ResponseEntity<ApiResponse<Void>> confirmEmailVerification(
-            @Valid @RequestBody ConfirmEmailVerificationRequest request) {
-
+            @Valid @RequestBody ConfirmEmailVerificationRequest request)
+    {
         authService.confirmEmailVerificationCode(request);
         return ApiResponse.success(SuccessStatus.CONFIRM_EMAIL_VERIFICATION_SUCCESS);
     }

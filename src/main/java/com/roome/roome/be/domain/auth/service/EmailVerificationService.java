@@ -45,6 +45,16 @@ public class EmailVerificationService {
         emailVerification.updateIsVerified(true);
     }
 
+    // 이메일 검증 여부 검사
+    public void isEmailVerified(String email) {
+        EmailVerification emailVerification = findEmailVerificationByEmail(email);
+
+        if (!emailVerification.isVerified()) {
+            throw new GeneralException(ErrorStatus.EMAIL_NOT_VERIFIED);
+        }
+        emailVerificationRepository.deleteById(emailVerification.getEmailVerificationId());
+    }
+
     // Update EmailVerification
     private void updateEmailVerification(EmailVerification emailVerification, String verificationCode) {
         emailVerification.updateIsVerified(false);
