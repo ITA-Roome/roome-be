@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.user.service;
 
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.status.ErrorStatus;
+import com.roome.roome.be.domain.auth.dto.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.SignUpRequest;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.enums.LoginType;
@@ -26,6 +27,12 @@ public class UserService {
         if (userRepository.existsByNickname(email)) {
             throw new GeneralException(ErrorStatus.EMAIL_ALREADY_EXISTS);
         }
+    }
+
+    /** 닉네임 중복 검사 */
+    public CheckNicknameResponse checkNickname(String nickname) {
+        boolean isExist = userRepository.existsByNickname(nickname);
+        return new CheckNicknameResponse(isExist);
     }
 
     /** 유저 등록 */

@@ -128,8 +128,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "로그인")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "비밀번호가 일치하지 않는 경우", content = @Content)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않는 경우", content = @Content)
     public ResponseEntity<ApiResponse<EmailLoginResponse>> login(@Valid @RequestBody LoginRequest request) {
@@ -146,6 +145,14 @@ public class AuthController {
     ) {
         authService.logout(userId);
         return ApiResponse.success(SuccessStatus.LOGOUT_SUCCESS);
+    }
+
+    @GetMapping("/check-nickname")
+    @Operation(summary = "닉네임 중복확인")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "아이디 중복 확인 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
+    public ResponseEntity<ApiResponse<CheckNicknameResponse>> checkNickname(@RequestParam String nickname) {
+        CheckNicknameResponse response = authService.checkNickname(nickname);
+        return ApiResponse.success(SuccessStatus.CHECK_NICKNAME_SUCCESS, response);
     }
 
     @PatchMapping("/password")
