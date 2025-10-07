@@ -50,4 +50,9 @@ public class UserService {
     public void updateRefreshToken(User user, String refreshToken) {
         user.updateRefreshToken(refreshToken);
     }
+
+    /** 회원 탈퇴*/
+    public void withdrawUser(Long userId) {
+        userRepository.deleteById(userId);
+    }
 }

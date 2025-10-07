@@ -35,6 +35,12 @@ public class AuthService {
         userService.registerUser(signupRequest);
     }
 
+    // 회원탈퇴
+    @Transactional
+    public void withdraw(Long userId) {
+        userService.withdrawUser(userId);
+    }
+
     // 로그인
     @Transactional
     public EmailLoginResponse login(LoginRequest request) {

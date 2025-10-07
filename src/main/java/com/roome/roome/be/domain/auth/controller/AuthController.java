@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -110,6 +111,18 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignUpRequest request) {
         authService.signUp(request);
         return ApiResponse.success(SuccessStatus.CREATE_USER_SUCCESS);
+    }
+
+    @DeleteMapping("")
+    @Operation(summary = "회원탈퇴")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "회원탈퇴 성공",
+            content = @Content(mediaType = "application/json"))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않는 경우",
+            content = @Content)
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+            @AuthenticationPrincipal Long userId) {
+        authService.withdraw(userId);
+        return ApiResponse.success(SuccessStatus.DELETE_USER_SUCCESS);
     }
 
     @PostMapping("/login")
