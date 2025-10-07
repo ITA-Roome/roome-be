@@ -1,14 +1,18 @@
-package com.roome.roome.be.domain.user.controller;
+package com.roome.roome.be.domain.auth.controller;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.status.SuccessStatus;
+import com.roome.roome.be.domain.auth.dto.EmailVerificationRequest;
+import com.roome.roome.be.domain.auth.service.AuthService;
 import com.roome.roome.be.domain.user.dto.response.LoginResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.service.GoogleService;
 import com.roome.roome.be.domain.user.service.KakaoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +28,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final KakaoService kakaoService;
     private final GoogleService googleService;
+    private final AuthService authService;
 
     @GetMapping("/kakao/authorize-uri")
     @Operation(summary = "카카오 로그인 URL 조회")
@@ -94,6 +99,20 @@ public class AuthController {
                         .build())
                 .build();
         return ApiResponse.success(SuccessStatus.LOGIN_SUCCESS, response);
+    }
+
+    @PostMapping("/email-verification")
+    @Operation(summary = "이메일 인증 코드 요청")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "이메일 인증 요청 성공",
+            content = @Content(mediaType = "application/json")
+    )
+    public ResponseEntity<ApiResponse<Void>> requestEmailVerificationCode(
+            @Valid @RequestBody EmailVerificationRequest request) {
+
+        authService.requestEmailVerificationCode(request);
+        return ApiResponse.success(SuccessStatus.SEND_EMAIL_VERIFICATION_SUCCESS);
     }
 
 }
