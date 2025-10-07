@@ -47,7 +47,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("JWT 인증 성공 - userId: {}", userId);
             }
 
             filterChain.doFilter(request, response);
@@ -59,7 +58,9 @@ public class JwtFilter extends OncePerRequestFilter {
         }
     }
 
-    /** Authorization 헤더에서 JWT 추출 */
+    /**
+     * Authorization 헤더에서 JWT 추출
+     */
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -68,14 +69,18 @@ public class JwtFilter extends OncePerRequestFilter {
         return null;
     }
 
-    /** JWT 관련 커스텀 예외 처리 */
+    /**
+     * JWT 관련 커스텀 예외 처리
+     */
     private void handleGeneralJwtError(BaseStatus errorStatus, HttpServletResponse response) throws IOException {
         log.error("[*] GeneralException in JWT Filter → {}", errorStatus.getMessage());
         ApiResponse<?> errorResponse = ApiResponse.error(errorStatus).getBody();
         setHttpServletResponse(errorStatus.getHttpStatus().value(), errorResponse, response);
     }
 
-    /** 내부 시스템 예외 처리 */
+    /**
+     * 내부 시스템 예외 처리
+     */
     private void handleJwtError(String msg, HttpServletResponse response) throws IOException {
         log.error("[*] Internal Exception in JWT Filter → {}", msg);
         ErrorStatus errorStatus = ErrorStatus.INTERNAL_SERVER_ERROR;
@@ -84,7 +89,9 @@ public class JwtFilter extends OncePerRequestFilter {
         setHttpServletResponse(errorStatus.getHttpStatus().value(), errorResponse, response);
     }
 
-    /** HTTP 응답 JSON 포맷 설정 */
+    /**
+     * HTTP 응답 JSON 포맷 설정
+     */
     private void setHttpServletResponse(int status, ApiResponse<?> errorResponse, HttpServletResponse response)
             throws IOException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

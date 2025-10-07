@@ -46,6 +46,12 @@ public class UserService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_NOT_FOUND_2));
     }
 
+    /** 아이디로 유저 찾기*/
+    public User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+    }
+
     /** RefreshToken 업데이트 */
     public void updateRefreshToken(User user, String refreshToken) {
         user.updateRefreshToken(refreshToken);
@@ -55,4 +61,10 @@ public class UserService {
     public void withdrawUser(Long userId) {
         userRepository.deleteById(userId);
     }
+
+    /** 로그아웃 시 RefreshToken 제거 */
+    public void clearRefreshToken(User user) {
+        user.clearRefreshToken();
+    }
+
 }

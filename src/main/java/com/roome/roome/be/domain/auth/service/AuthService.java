@@ -54,6 +54,13 @@ public class AuthService {
         return EmailLoginResponse.from(accessToken, refreshToken, user);
     }
 
+    // 로그아웃
+    @Transactional
+    public void logout(Long userId) {
+        User user = userService.findUserById(userId);
+        userService.clearRefreshToken(user);
+    }
+
     // 이메일 인증 코드 요청
     public void requestEmailVerificationCode(EmailVerificationRequest request) {
         emailVerificationService.requestEmailVerificationCode(request.email());
