@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 @JsonPropertyOrder({"isSuccess", "code", "message", "data"})
 public class ApiResponse<T> {
 
+    @JsonProperty("isSuccess")
     private boolean isSuccess;
     private String code;
     private String message;
