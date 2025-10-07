@@ -3,6 +3,7 @@ package com.roome.roome.be.domain.auth.controller;
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.status.SuccessStatus;
+import com.roome.roome.be.domain.auth.dto.ConfirmEmailVerificationRequest;
 import com.roome.roome.be.domain.auth.dto.EmailVerificationRequest;
 import com.roome.roome.be.domain.auth.service.AuthService;
 import com.roome.roome.be.domain.user.dto.response.LoginResponse;
@@ -115,4 +116,15 @@ public class AuthController {
         return ApiResponse.success(SuccessStatus.SEND_EMAIL_VERIFICATION_SUCCESS);
     }
 
+    @PostMapping("/email-verification/confirm")
+    @Operation(summary = "이메일 인증 코드 확인")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 인증 요청 성공", content = @Content(mediaType = "application/json"))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "인증 코드 시간이 만료되었거나 인증 코드가 일치하지 않는 경우",content =@Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "해당 이메일로 인증요청을 보내지 않은 경우",content = @Content)
+    public ResponseEntity<ApiResponse<Void>> confirmEmailVerification(
+            @Valid @RequestBody ConfirmEmailVerificationRequest request) {
+
+        authService.confirmEmailVerificationCode(request);
+        return ApiResponse.success(SuccessStatus.CONFIRM_EMAIL_VERIFICATION_SUCCESS);
+    }
 }
