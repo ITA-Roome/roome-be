@@ -1,5 +1,5 @@
 # 도커 이미지 지정
-FROM arm64v8/eclipse-temurin:17-jdk-focal
+FROM eclipse-temurin:17-jdk
 
 # build/libs/ 에 있는 jar 파일을 JAR_FILE 변수에 저장
 ARG JAR_FILE=build/libs/*.jar
