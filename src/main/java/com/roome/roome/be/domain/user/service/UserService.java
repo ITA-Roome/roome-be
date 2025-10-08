@@ -43,6 +43,7 @@ public class UserService {
                 .password(request.password())
                 .email(request.email())
                 .nickname(request.nickname())
+                .phoneNumber(request.phoneNumber())
                 .loginType(LoginType.EMAIL)
                 .providerId(null)
                 .build();
