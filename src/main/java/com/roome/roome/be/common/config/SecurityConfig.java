@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +25,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
-    /** ✅ Swagger 관련 경로 */
+    /** Swagger 관련 경로 */
     private static final String[] SWAGGER_URIS = {
             "/",
             "/swagger-ui/**",
@@ -34,7 +35,7 @@ public class SecurityConfig {
             "/swagger-ui.html"
     };
 
-    /** ✅ 인증(회원가입, 로그인 등) 관련 경로 */
+    /** 인증(회원가입, 로그인 등) 관련 경로 */
     private static final String[] AUTH_URIS = {
             "/api/auth/signup",
             "/api/auth/login",
@@ -50,7 +51,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_URIS).permitAll()
                         .requestMatchers(AUTH_URIS).permitAll()

@@ -7,6 +7,7 @@ import com.roome.roome.be.domain.auth.dto.request.*;
 import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.response.EmailLoginResponse;
 import com.roome.roome.be.domain.auth.dto.response.FindEmailResponse;
+import com.roome.roome.be.domain.auth.dto.response.ReissueAccessTokenResponse;
 import com.roome.roome.be.domain.auth.enums.PasswordValidationType;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.service.UserService;
@@ -135,6 +136,20 @@ public class AuthService {
             }
             default -> throw new IllegalStateException("Unexpected value: " + type);
         }
+    }
+
+    // 토큰 재발급
+    @Transactional
+    public ReissueAccessTokenResponse reissueAccessToken(String refreshToken) {
+        var claims = jwtService.validateRefreshToken(refreshToken);
+        User user = userService.findUserByRefreshToken(claims, refreshToken);
+
+        String newAccessToken = jwtService.generateAccessToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        userService.updateRefreshToken(user, newRefreshToken);
+
+        return new ReissueAccessTokenResponse(newAccessToken, newRefreshToken);
     }
 
 }

@@ -7,6 +7,7 @@ import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,6 +79,18 @@ public class UserService {
     // 비밀번호 수정
     public void updatePassword(User user, String encryptedPassword) {
         user.updatePassword(encryptedPassword);
+    }
+
+    public User findUserByRefreshToken(Claims claims, String refreshToken) {
+        String id = claims.getSubject();
+
+        User user = userRepository.findById(Long.parseLong(id))
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REFRESH_TOKEN_NOT_FOUND));
+
+        if (!refreshToken.equals(user.getRefreshToken())) {
+            throw new GeneralException(ErrorStatus.REFRESH_TOKEN_MISMATCH);
+        }
+        return user;
     }
 
 }
