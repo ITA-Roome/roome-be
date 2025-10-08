@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 적용
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/swagger-ui/**", "/api-docs/**", "/api/auth/email-verification","/api/auth/email-verification/confirm","/api/auth/signup", "/api/auth/password", "/api/auth/check-nickname").permitAll()
+                        .requestMatchers("/", "/swagger-ui/**", "/api-docs/**", "/api/auth/email-verification","/api/auth/email-verification/confirm","/api/auth/signup", "/api/auth/password", "/api/auth/check-nickname", "/api/auth/find-email").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )

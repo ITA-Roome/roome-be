@@ -165,6 +165,15 @@ public class AuthController {
         return ApiResponse.success(SuccessStatus.UPDATE_PASSWORD_SUCCESS);
     }
 
+    @PostMapping("/find-email")
+    @Operation(summary = "이메일 찾기")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 찾기 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "전화번호 형식이 틀린 경우",content = @Content)
+    public ResponseEntity<ApiResponse<FindEmailResponse>> findId(@RequestBody @Valid FindEmailRequest request) {
+        FindEmailResponse response = authService.findEmail(request);
+        return ApiResponse.success(SuccessStatus.FIND_EMAIL_SUCCESS, response);
+    }
+
     @PostMapping("/email-verification")
     @Operation(summary = "이메일 인증 코드 요청")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 인증 요청 성공", content = @Content(mediaType = "application/json")

@@ -70,6 +70,13 @@ public class AuthService {
         userService.updatePassword(user, passwordEncoder.encode(request.password()));
     }
 
+    // 전화번호로 이메일 찾기
+    public FindEmailResponse findEmail(FindEmailRequest request) {
+        return userService.findUserByPhoneNumber(request.phoneNumber())
+                .map(user -> new FindEmailResponse(user.getEmail()))
+                .orElseGet(() -> new FindEmailResponse(null));
+    }
+
     // 이메일 인증 코드 요청
     public void requestEmailVerificationCode(EmailVerificationRequest request) {
         emailVerificationService.requestEmailVerificationCode(request.email());

@@ -21,7 +21,7 @@ public enum SuccessStatus implements BaseStatus {
     LOGOUT_SUCCESS("AUTH_200", HttpStatus.OK, "로그아웃 성공"),
     DELETE_USER_SUCCESS("AUTH_200", HttpStatus.OK, "회원탈퇴 성공"),
     CHECK_ID_SUCCESS("AUTH_200", HttpStatus.OK, "아이디 중복 확인 성공"),
-    FIND_ID_SUCCESS("AUTH_200", HttpStatus.OK, "아이디 찾기 성공"),
+    FIND_EMAIL_SUCCESS("AUTH_200", HttpStatus.OK, "이메일 찾기 성공"),
     CHECK_NICKNAME_SUCCESS("AUTH_200", HttpStatus.OK, "닉네임 중복 확인 성공"),
     UPDATE_PASSWORD_SUCCESS("AUTH_200", HttpStatus.OK, "비밀번호 변경 성공"),
     SEND_EMAIL_VERIFICATION_SUCCESS("AUTH_200", HttpStatus.OK, "이메일 인증 코드 발송 성공"),
