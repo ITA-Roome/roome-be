@@ -4,12 +4,16 @@ import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
+import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.entity.User;
+import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.enums.LoginType;
+import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -17,6 +21,45 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final UserOnboardingRepository userOnboardingRepository;
+
+    // 유저 온보딩 저장
+    @Transactional
+    public void saveUserOnboarding(Long userId, UserOnboardingRequest userOnboardingRequest){
+        User user = findUserById(userId);
+        userOnboardingRepository.findByUser(user)
+                .ifPresentOrElse(
+                        UserOnboarding -> updateUserOnboarding(UserOnboarding, userOnboardingRequest),
+                        () -> registerUserOnboarding(user,userOnboardingRequest)
+                );
+    }
+
+    // 유저 온보딩 업데이트
+    private void updateUserOnboarding(UserOnboarding userOnboarding, UserOnboardingRequest userOnboardingRequest){
+        userOnboarding.update(
+                userOnboardingRequest.ageGroup(),
+                userOnboardingRequest.gender(),
+                userOnboardingRequest.moodType(),
+                userOnboardingRequest.productType(),
+                userOnboardingRequest.spaceType()
+        );
+    }
+
+    // 유저 온보딩 저장
+    private void registerUserOnboarding(User user, UserOnboardingRequest userOnboardingRequest) {
+        UserOnboarding newOnboarding = UserOnboarding.builder()
+                .user(user)
+                .ageGroup(userOnboardingRequest.ageGroup())
+                .gender(userOnboardingRequest.gender())
+                .moodType(userOnboardingRequest.moodType())
+                .productType(userOnboardingRequest.productType())
+                .spaceType(userOnboardingRequest.spaceType())
+                .build();
+
+        userOnboardingRepository.save(newOnboarding);
+    }
+
+
 
     // 이메일 중복 검사
     public void checkEmailNotExists(String email) {
