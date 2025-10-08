@@ -2,8 +2,8 @@ package com.roome.roome.be.domain.user.service;
 
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.status.ErrorStatus;
-import com.roome.roome.be.domain.auth.dto.CheckNicknameResponse;
-import com.roome.roome.be.domain.auth.dto.SignUpRequest;
+import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
+import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.repository.UserRepository;
@@ -17,27 +17,20 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
 
-    /** 이메일 중복 검사 */
+    // 이메일 중복 검사
     public void checkEmailNotExists(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new GeneralException(ErrorStatus.EMAIL_ALREADY_EXISTS);
         }
     }
 
-    /** 닉네임 중복 검사 */
-    public void checkNicknameNotExists(String email) {
-        if (userRepository.existsByNickname(email)) {
-            throw new GeneralException(ErrorStatus.EMAIL_ALREADY_EXISTS);
-        }
-    }
-
-    /** 닉네임 중복 검사 */
+    // 닉네임 중복 검사
     public CheckNicknameResponse checkNickname(String nickname) {
         boolean isExist = userRepository.existsByNickname(nickname);
         return new CheckNicknameResponse(isExist);
     }
 
-    /** 유저 등록 */
+    // 유저 등록
     public void registerUser(SignUpRequest request) {
         User user = User.builder()
                 .password(request.password())
@@ -50,39 +43,39 @@ public class UserService {
         userRepository.save(user);
     }
 
-    /** 이메일로 유저 찾기*/
+    // 이메일로 유저 찾기
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_NOT_FOUND_2));
     }
 
-    /** 아이디로 유저 찾기*/
+    // 아이디로 유저 찾기
     public User findUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
 
-    /** 전화번호로 유저 찾기*/
+    // 전화번호로 유저 찾기
     public Optional<User> findUserByPhoneNumber(String phoneNumber) {
         return userRepository.findUserByPhoneNumber(phoneNumber);
     }
 
-    /** RefreshToken 업데이트 */
+    // RefreshToken 업데이트
     public void updateRefreshToken(User user, String refreshToken) {
         user.updateRefreshToken(refreshToken);
     }
 
-    /** 회원 탈퇴*/
+    // 회원 탈퇴
     public void withdrawUser(Long userId) {
         userRepository.deleteById(userId);
     }
 
-    /** 로그아웃 시 RefreshToken 제거 */
+    // 로그아웃 시 RefreshToken 제거
     public void clearRefreshToken(User user) {
         user.clearRefreshToken();
     }
 
-    /** 비밀번호 수정 */
+    // 비밀번호 수정
     public void updatePassword(User user, String encryptedPassword) {
         user.updatePassword(encryptedPassword);
     }

@@ -3,7 +3,10 @@ package com.roome.roome.be.domain.auth.service;
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.status.ErrorStatus;
-import com.roome.roome.be.domain.auth.dto.*;
+import com.roome.roome.be.domain.auth.dto.request.*;
+import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
+import com.roome.roome.be.domain.auth.dto.response.EmailLoginResponse;
+import com.roome.roome.be.domain.auth.dto.response.FindEmailResponse;
 import com.roome.roome.be.domain.auth.enums.PasswordValidationType;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.service.UserService;
@@ -45,7 +48,7 @@ public class AuthService {
     @Transactional
     public EmailLoginResponse login(LoginRequest request) {
         User user = userService.findUserByEmail(request.email());
-        checkPasswordMatch(request.password(), user.getPassword(), PasswordValidationType.LOGIN);
+        validatePasswordMatch(request.password(), user.getPassword(), PasswordValidationType.LOGIN);
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
@@ -65,16 +68,16 @@ public class AuthService {
     @Transactional
     public void updatePassword(UpdatePasswordRequest request) {
         User user = userService.findUserByEmail(request.email());
-        checkPasswordMatch(request.password(), user.getPassword(), PasswordValidationType.UPDATE);
+        validatePasswordMatch(request.password(), user.getPassword(), PasswordValidationType.UPDATE);
 
         userService.updatePassword(user, passwordEncoder.encode(request.password()));
     }
 
     // 전화번호로 이메일 찾기
     public FindEmailResponse findEmail(FindEmailRequest request) {
-        return userService.findUserByPhoneNumber(request.phoneNumber())
-                .map(user -> new FindEmailResponse(user.getEmail()))
-                .orElseGet(() -> new FindEmailResponse(null));
+        User user = userService.findUserByPhoneNumber(request.phoneNumber())
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_NOT_FOUND_1));
+        return new FindEmailResponse(user.getEmail());
     }
 
     // 이메일 인증 코드 요청
@@ -93,18 +96,23 @@ public class AuthService {
 
     // 비밀번호 형식 검사
     private void isValidPassword(String password) {
-        boolean hasLowercase = password.matches(".*[a-z].*");
-        boolean hasUppercase = password.matches(".*[A-Z].*");
+        // 1. 최소 8자 이상
+        if (password.length() < 8) {
+            throw new GeneralException(ErrorStatus.INVALID_PASSWORD_FORMAT);
+        }
+
+        // 2. 영문 포함 (대소문자 모두 허용)
+        boolean hasLetter = password.matches(".*[a-zA-Z].*");
+
+        // 3. 숫자 포함
         boolean hasDigit = password.matches(".*\\d.*");
+
+        // 4. 특수문자 포함
         boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"|,.<>/?].*");
 
-        int charTypeCount = (hasLowercase ? 1 : 0)
-                + (hasUppercase ? 1 : 0)
-                + (hasDigit ? 1 : 0)
-                + (hasSpecial ? 1 : 0);
-
-        if (charTypeCount >= 3 && password.length() >= 8) return;
-        if (charTypeCount == 2 && password.length() >= 10) return;
+        if (hasLetter && hasDigit && hasSpecial) {
+            return;
+        }
 
         throw new GeneralException(ErrorStatus.INVALID_PASSWORD_FORMAT);
     }
@@ -114,8 +122,8 @@ public class AuthService {
         return userService.checkNickname(nickname);
     }
 
-    /** 비밀번호 매칭 검사 */
-    private void checkPasswordMatch(String rawPassword, String encodedPassword, PasswordValidationType type) {
+    // 비밀번호 매칭 검사
+    private void validatePasswordMatch(String rawPassword, String encodedPassword, PasswordValidationType type) {
         boolean isMatch = passwordEncoder.matches(rawPassword, encodedPassword);
 
         switch (type) {

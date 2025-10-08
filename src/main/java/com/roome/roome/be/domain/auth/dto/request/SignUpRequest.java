@@ -1,4 +1,4 @@
-package com.roome.roome.be.domain.auth.dto;
+package com.roome.roome.be.domain.auth.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Builder;

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
 @Service
@@ -17,21 +18,24 @@ public class EmailVerificationService {
 
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailSender emailSender;
+    private static final SecureRandom random = new SecureRandom();
 
     // 이메일 인증 코드 요청
     @Transactional
     public void requestEmailVerificationCode(String email) {
         String verificationCode = createEmailVerificationCode();
-        emailSender.send(email, verificationCode);
+        try {
+            emailSender.send(email, verificationCode);
+        } catch (Exception e) {
+            throw new GeneralException(ErrorStatus.SEND_VERIFICATION_CODE_EMAIL_INTERNAL_SERVER_ERROR);
+        }
 
         emailVerificationRepository.findByEmail(email)
                 .ifPresentOrElse(
-                        existing -> {
-                            updateEmailVerification(existing, verificationCode);
-                        },
-                        () -> {
-                            registerEmailVerification(email, verificationCode);
-                        }
+                        existing ->
+                            updateEmailVerification(existing, verificationCode),
+                        () ->
+                            registerEmailVerification(email, verificationCode)
                 );
     }
 
@@ -95,7 +99,7 @@ public class EmailVerificationService {
 
     // 4자리 랜덤 숫자 코드 생성
     private String createEmailVerificationCode() {
-        int code = (int) (Math.random() * 9000) + 1000;
+        int code = random.nextInt(9000) + 1000; // 1000~9999
         return String.valueOf(code);
     }
 }

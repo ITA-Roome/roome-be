@@ -31,6 +31,7 @@ public class EmailVerification extends BaseEntity {
     public void updateVerificationCode(String verificationCode) {
         this.verificationCode = verificationCode;
     }
+
 }
 
 

@@ -21,16 +21,40 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JwtFilter jwtFilter;
+
+    /** ✅ Swagger 관련 경로 */
+    private static final String[] SWAGGER_URIS = {
+            "/",
+            "/swagger-ui/**",
+            "/api-docs/**",
+            "/v3/api-docs/**",
+            "/swagger-resources/**",
+            "/swagger-ui.html"
+    };
+
+    /** ✅ 인증(회원가입, 로그인 등) 관련 경로 */
+    private static final String[] AUTH_URIS = {
+            "/api/auth/signup",
+            "/api/auth/login",
+            "/api/auth/logout",
+            "/api/auth/password",
+            "/api/auth/check-nickname",
+            "/api/auth/find-email",
+            "/api/auth/email-verification",
+            "/api/auth/email-verification/confirm"
+    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/swagger-ui/**", "/api-docs/**", "/api/auth/email-verification","/api/auth/email-verification/confirm","/api/auth/signup", "/api/auth/password", "/api/auth/check-nickname", "/api/auth/find-email").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(SWAGGER_URIS).permitAll()
+                        .requestMatchers(AUTH_URIS).permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // 혹시 빠진 URI 커버
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -58,7 +82,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt 해시 알고리즘 기반 암호화기
         return new BCryptPasswordEncoder();
     }
 }

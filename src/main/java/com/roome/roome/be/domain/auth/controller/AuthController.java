@@ -3,7 +3,10 @@ package com.roome.roome.be.domain.auth.controller;
 import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
-import com.roome.roome.be.domain.auth.dto.*;
+import com.roome.roome.be.domain.auth.dto.request.*;
+import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
+import com.roome.roome.be.domain.auth.dto.response.EmailLoginResponse;
+import com.roome.roome.be.domain.auth.dto.response.FindEmailResponse;
 import com.roome.roome.be.domain.auth.service.AuthService;
 import com.roome.roome.be.domain.user.dto.response.LoginResponse;
 import com.roome.roome.be.domain.user.entity.User;
@@ -42,20 +45,15 @@ public class AuthController {
     }
 
     @GetMapping("/kakao/callback")
-    @Operation(summary = "카카오 로그인 콜백",
-            description = "카카오에서 받은 인가 코드로 로그인을 처리하고 JWT 토큰을 발급합니다."
-    )
+    @Operation(summary = "카카오 로그인 콜백", description = "카카오에서 받은 인가 코드로 로그인을 처리하고 JWT 토큰을 발급합니다.")
     public ResponseEntity<ApiResponse<LoginResponse>> kakaoLogin(
             @RequestParam  String code
     ) {
         User user = kakaoService.loginWithKakao(code);
 
-        String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-
         LoginResponse response = LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(jwtService.generateAccessToken(user))
+                .refreshToken(jwtService.generateRefreshToken(user))
                 .tokenType("Bearer")
                 .expiresIn(jwtService.getAccessTokenExpiration())
                 .userInfo(LoginResponse.UserInfo.builder()
@@ -115,13 +113,13 @@ public class AuthController {
         return ApiResponse.success(SuccessStatus.CREATE_USER_SUCCESS);
     }
 
-    @DeleteMapping("")
+    @DeleteMapping("/withdraw")
     @Operation(summary = "회원탈퇴")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "회원탈퇴 성공", content = @Content(mediaType = "application/json"))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않는 경우", content = @Content)
     public ResponseEntity<ApiResponse<Void>> withdraw(
-            @AuthenticationPrincipal Long userId)
-    {
+            @AuthenticationPrincipal Long userId
+    ) {
         authService.withdraw(userId);
         return ApiResponse.success(SuccessStatus.DELETE_USER_SUCCESS);
     }
@@ -131,7 +129,9 @@ public class AuthController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "비밀번호가 일치하지 않는 경우", content = @Content)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않는 경우", content = @Content)
-    public ResponseEntity<ApiResponse<EmailLoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<EmailLoginResponse>> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
         EmailLoginResponse response = authService.login(request);
         return ApiResponse.success(SuccessStatus.LOGIN_SUCCESS, response);
     }
@@ -149,8 +149,10 @@ public class AuthController {
 
     @GetMapping("/check-nickname")
     @Operation(summary = "닉네임 중복확인")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "아이디 중복 확인 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
-    public ResponseEntity<ApiResponse<CheckNicknameResponse>> checkNickname(@RequestParam String nickname) {
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "아이디 중복 확인 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CheckNicknameResponse.class)))
+    public ResponseEntity<ApiResponse<CheckNicknameResponse>> checkNickname(
+            @RequestParam String nickname
+    ) {
         CheckNicknameResponse response = authService.checkNickname(nickname);
         return ApiResponse.success(SuccessStatus.CHECK_NICKNAME_SUCCESS, response);
     }
@@ -160,24 +162,28 @@ public class AuthController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 변경 성공", content = @Content(mediaType = "application/json"))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "기존과 동일한 비밀번호를 입력한 경우", content = @Content)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않는 경우", content = @Content)
-    public ResponseEntity<ApiResponse<Void>> updatePassword(@RequestBody @Valid UpdatePasswordRequest request) {
+    public ResponseEntity<ApiResponse<Void>> updatePassword(
+            @RequestBody @Valid UpdatePasswordRequest request
+    ) {
         authService.updatePassword(request);
         return ApiResponse.success(SuccessStatus.UPDATE_PASSWORD_SUCCESS);
     }
 
     @PostMapping("/find-email")
     @Operation(summary = "이메일 찾기")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 찾기 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = EmailLoginResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 찾기 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindEmailResponse.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "전화번호 형식이 틀린 경우",content = @Content)
-    public ResponseEntity<ApiResponse<FindEmailResponse>> findId(@RequestBody @Valid FindEmailRequest request) {
+    public ResponseEntity<ApiResponse<FindEmailResponse>> findEmail(
+            @RequestBody @Valid FindEmailRequest request
+    ) {
         FindEmailResponse response = authService.findEmail(request);
         return ApiResponse.success(SuccessStatus.FIND_EMAIL_SUCCESS, response);
     }
 
     @PostMapping("/email-verification")
     @Operation(summary = "이메일 인증 코드 요청")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 인증 요청 성공", content = @Content(mediaType = "application/json")
-    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 인증 요청 성공", content = @Content(mediaType = "application/json"))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "인증 코드 시간이 만료되었거나 인증 코드가 일치하지 않는 경우",content =@Content)
     public ResponseEntity<ApiResponse<Void>> requestEmailVerificationCode(
             @Valid @RequestBody EmailVerificationRequest request
     ) {

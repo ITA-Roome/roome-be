@@ -1,4 +1,4 @@
-package com.roome.roome.be.domain.auth.dto;
+package com.roome.roome.be.domain.auth.dto.response;
 
 import com.roome.roome.be.domain.user.entity.User;
 
