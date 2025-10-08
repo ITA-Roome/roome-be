@@ -11,7 +11,10 @@ public enum SuccessStatus implements BaseStatus {
 
     SUCCESS_200("ROOME_200", HttpStatus.OK, "성공입니다."),
     SUCCESS_201("ROOME_201", HttpStatus.CREATED, "성공입니다."),
-    SUCCESS_204("ROOME_204", HttpStatus.NO_CONTENT, "성공입니다.");
+    SUCCESS_204("ROOME_204", HttpStatus.NO_CONTENT, "성공입니다."),
+
+    AUTH_URL_SUCCESS("SUCCESS_200", HttpStatus.OK, "로그인 URL 조회 성공"),
+    LOGIN_SUCCESS("SUCCESS_200", HttpStatus.OK, "로그인 성공");
 
     private final String code;
     private final HttpStatus httpStatus;
