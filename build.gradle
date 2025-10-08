@@ -43,7 +43,11 @@ dependencies {
 
     //OAuth
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    //Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
+
 
 tasks.named('test') {
     useJUnitPlatform()
