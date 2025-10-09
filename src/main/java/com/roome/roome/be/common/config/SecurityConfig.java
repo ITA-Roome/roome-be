@@ -47,6 +47,13 @@ public class SecurityConfig {
             "/api/auth/email-verification/confirm"
     };
 
+    /** 헬스체크 및 모니터링 관련 경로 */
+    private static final String[] ACTUATOR_URIS = {
+        "/actuator/health",
+        "/actuator/info"
+    };
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -55,6 +62,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_URIS).permitAll()
                         .requestMatchers(AUTH_URIS).permitAll()
+                        .requestMatchers(ACTUATOR_URIS).permitAll()
                         .requestMatchers("/api/auth/**").permitAll() // 혹시 빠진 URI 커버
                         .anyRequest().authenticated()
                 )
@@ -70,7 +78,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080","https://roome.p-e.kr"));
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

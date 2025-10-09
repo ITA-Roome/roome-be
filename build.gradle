@@ -44,6 +44,9 @@ dependencies {
     //OAuth
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+    //Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     // Email
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
