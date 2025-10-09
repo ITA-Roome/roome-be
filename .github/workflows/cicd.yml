@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - develop
-      - feat/#4   # 테스트용 브랜치, 추후 삭제 예정
   workflow_dispatch:
 
 jobs:
