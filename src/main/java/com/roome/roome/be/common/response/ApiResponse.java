@@ -40,4 +40,10 @@ public class ApiResponse<T> {
                 .status(errorStatus.getHttpStatus())
                 .body(new ApiResponse<>(false, errorStatus.getCode(), errorStatus.getMessage(), null));
     }
+
+    public static ResponseEntity<ApiResponse<Void>> error(BaseStatus errorStatus, String message) {
+        return ResponseEntity
+                .status(errorStatus.getHttpStatus())
+                .body(new ApiResponse<>(false, errorStatus.getCode(), message, null));
+    }
 }

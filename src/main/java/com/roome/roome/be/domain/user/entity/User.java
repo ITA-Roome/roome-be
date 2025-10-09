@@ -19,12 +19,30 @@ public class User extends BaseEntity {
 
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String nickname;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private LoginType loginType;
 
+    @Column(nullable = false, length = 20)
+    private String phoneNumber;
+
     private String providerId;
+
+    private String refreshToken;
+
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = null;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
 }
