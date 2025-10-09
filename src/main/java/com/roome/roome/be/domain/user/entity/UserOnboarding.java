@@ -17,7 +17,7 @@ public class UserOnboarding extends BaseEntity {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Enumerated(EnumType.STRING)
@@ -40,7 +40,19 @@ public class UserOnboarding extends BaseEntity {
     @Column(nullable = false)
     private SpaceType spaceType;
 
-
+    public void update(
+            AgeGroup ageGroup,
+            Gender gender,
+            MoodType moodType,
+            ProductType productType,
+            SpaceType spaceType
+    ) {
+        this.ageGroup = ageGroup;
+        this.gender = gender;
+        this.moodType = moodType;
+        this.productType = productType;
+        this.spaceType = spaceType;
+    }
 
 
 }
