@@ -44,7 +44,8 @@ public class SecurityConfig {
             "/api/auth/check-nickname",
             "/api/auth/find-email",
             "/api/auth/email-verification",
-            "/api/auth/email-verification/confirm"
+            "/api/auth/email-verification/confirm",
+            "/api/auth.check-email"
     };
 
     /** 헬스체크 및 모니터링 관련 경로 */
@@ -52,7 +53,6 @@ public class SecurityConfig {
         "/actuator/health",
         "/actuator/info"
     };
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
