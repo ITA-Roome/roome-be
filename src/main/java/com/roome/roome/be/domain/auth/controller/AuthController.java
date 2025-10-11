@@ -4,10 +4,7 @@ import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.auth.dto.request.*;
-import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
-import com.roome.roome.be.domain.auth.dto.response.EmailLoginResponse;
-import com.roome.roome.be.domain.auth.dto.response.FindEmailResponse;
-import com.roome.roome.be.domain.auth.dto.response.ReissueAccessTokenResponse;
+import com.roome.roome.be.domain.auth.dto.response.*;
 import com.roome.roome.be.domain.auth.service.AuthService;
 import com.roome.roome.be.domain.user.dto.response.LoginResponse;
 import com.roome.roome.be.domain.user.entity.User;
@@ -81,8 +78,8 @@ public class AuthController {
             description = "구글 받은 인가 코드로 로그인을 처리하고 JWT 토큰을 발급합니다."
     )
     public ResponseEntity<ApiResponse<LoginResponse>> googleLogin(
-            @RequestParam  String code)
-    {
+            @RequestParam  String code
+    ) {
         User user = googleService.loginWithGoogle(code);
 
         String accessToken = jwtService.generateAccessToken(user);
@@ -179,6 +176,16 @@ public class AuthController {
     ) {
         FindEmailResponse response = authService.findEmail(request);
         return ApiResponse.success(SuccessStatus.FIND_EMAIL_SUCCESS, response);
+    }
+
+    @GetMapping("/check-email")
+    @Operation(summary = "이메일 존재 여부 검사")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 존재 여부 검사 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CheckEmailResponse.class)))
+    public ResponseEntity<ApiResponse<CheckEmailResponse>> checkEmail(
+            @RequestParam String email
+    ) {
+        CheckEmailResponse response = authService.checkEmail(email);
+        return ApiResponse.success(SuccessStatus.CHECK_EMAIL_SUCCESS, response);
     }
 
     @PostMapping("/email-verification")

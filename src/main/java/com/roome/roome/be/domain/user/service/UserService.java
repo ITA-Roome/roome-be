@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.user.service;
 
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.status.ErrorStatus;
+import com.roome.roome.be.domain.auth.dto.response.CheckEmailResponse;
 import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
@@ -59,8 +60,6 @@ public class UserService {
         userOnboardingRepository.save(newOnboarding);
     }
 
-
-
     // 이메일 중복 검사
     public void checkEmailNotExists(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -72,6 +71,12 @@ public class UserService {
     public CheckNicknameResponse checkNickname(String nickname) {
         boolean isExist = userRepository.existsByNickname(nickname);
         return new CheckNicknameResponse(isExist);
+    }
+
+    // 이메일 중복 검사
+    public CheckEmailResponse checkEmail(String email){
+        boolean isExist = userRepository.existsByEmail(email);
+        return new CheckEmailResponse(isExist);
     }
 
     // 유저 등록
@@ -124,6 +129,7 @@ public class UserService {
         user.updatePassword(encryptedPassword);
     }
 
+    // RefreshToken으로 User 검색
     public User findUserByRefreshToken(Claims claims, String refreshToken) {
         String id = claims.getSubject();
 

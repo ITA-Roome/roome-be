@@ -4,10 +4,7 @@ import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.jwt.JwtService;
 import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.auth.dto.request.*;
-import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
-import com.roome.roome.be.domain.auth.dto.response.EmailLoginResponse;
-import com.roome.roome.be.domain.auth.dto.response.FindEmailResponse;
-import com.roome.roome.be.domain.auth.dto.response.ReissueAccessTokenResponse;
+import com.roome.roome.be.domain.auth.dto.response.*;
 import com.roome.roome.be.domain.auth.enums.PasswordValidationType;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.service.UserService;
@@ -122,6 +119,9 @@ public class AuthService {
     public CheckNicknameResponse checkNickname(String nickname) {
         return userService.checkNickname(nickname);
     }
+
+    // 이메일 중복 검사
+    public CheckEmailResponse checkEmail(String email) {return userService.checkEmail(email);}
 
     // 비밀번호 매칭 검사
     private void validatePasswordMatch(String rawPassword, String encodedPassword, PasswordValidationType type) {
