@@ -1,4 +1,4 @@
-package com.roome.roome.be.domain.shop.enums;
+package com.roome.roome.be.domain.product.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

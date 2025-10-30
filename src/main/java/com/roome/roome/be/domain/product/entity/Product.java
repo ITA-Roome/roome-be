@@ -1,8 +1,8 @@
 package com.roome.roome.be.domain.product.entity;
 
 import com.roome.roome.be.common.base.BaseEntity;
-import com.roome.roome.be.domain.shop.enums.Category;
-import com.roome.roome.be.domain.shop.enums.Color;
+import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.Color;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
