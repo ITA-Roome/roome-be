@@ -39,6 +39,7 @@ public class JwtService {
                 .claim("email", user.getEmail())
                 .claim("nickname", user.getNickname())
                 .claim("loginType", user.getLoginType().name())
+                .claim("role", user.getRole().name())
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -86,6 +87,21 @@ public class JwtService {
         }
     }
 
+    /** JWT 토큰에서 role 추출 */
+    /** JWT 토큰에서 role 추출 */
+    public String getRoleFromJwtToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
+        } catch (Exception e) {
+            throw new GeneralException(ErrorStatus.JWT_EXTRACT_ROLE_FAILED);
+        }
+    }
+
     /** 내부 Claims 파싱 로직, 만료된 토큰, 서명 불일치 등 예외 시 GeneralException 처리 */
     private Claims getClaims(String token) {
         try {
@@ -114,4 +130,5 @@ public class JwtService {
             throw new GeneralException(ErrorStatus.JWT_GENERAL_ERROR);
         }
     }
+
 }
