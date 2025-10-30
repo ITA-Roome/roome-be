@@ -2,6 +2,8 @@ package com.roome.roome.be.domain.user.entity;
 
 import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.user.enums.LoginType;
+import com.roome.roome.be.domain.user.enums.Role;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,6 +34,9 @@ public class User extends BaseEntity {
     private String providerId;
 
     private String refreshToken;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;  // ← 여기!
 
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
