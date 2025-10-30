@@ -33,7 +33,12 @@ public enum SuccessStatus implements BaseStatus {
     /**
      * User
      */
-    SAVE_USER_ONBOARDING("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공");
+    SAVE_USER_ONBOARDING("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공"),
+
+    /**
+     * Shop
+     */
+    REGISTER_SHOP_SUCCESS("SHOP_201", HttpStatus.CREATED, "가게 등록 성공");
 
     private final String code;
     private final HttpStatus httpStatus;
