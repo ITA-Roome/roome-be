@@ -41,4 +41,12 @@ public class ShopService {
 		}
 	}
 
+	//가게 삭제
+	@Transactional
+	public void deleteShop(Long shopId) {
+		Shop shop = shopRepository.findById(shopId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND));
+
+		shopRepository.delete(shop);
+	}
 }

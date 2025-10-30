@@ -31,6 +31,7 @@ public class AdminShopController {
 
 	private final ShopService shopService;
 
+    //가게 등록
 	@PostMapping
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "가게 등록 성공", content = @Content)
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content)
@@ -42,6 +43,7 @@ public class AdminShopController {
 		return ApiResponse.success(SuccessStatus.REGISTER_SHOP_SUCCESS, shopRegisterResponse);
 	}
 
+	// 가게 정보 수정
 	@PatchMapping("/{shopId}")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "가게 수정 성공", content = @Content)
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "가게가 존재하지 않는 경우", content = @Content)
@@ -52,5 +54,17 @@ public class AdminShopController {
 	) {
 		shopService.updateShop(shopId, shopUpdateRequest);
 		return ApiResponse.success(SuccessStatus.UPDATE_SHOP_SUCCESS);
+	}
+
+	//가게 삭제
+	@DeleteMapping("/{shopId}")
+	@Operation(summary = "가게 삭제 (관리자)")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "가게 삭제 성공", content = @Content)
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "가게가 존재하지 않는 경우", content = @Content)
+	public ResponseEntity<ApiResponse<Void>> deleteShop(
+		@PathVariable Long shopId
+	) {
+		shopService.deleteShop(shopId);
+		return ApiResponse.success(SuccessStatus.DELETE_SHOP_SUCCESS);
 	}
 }
