@@ -9,6 +9,7 @@ import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.enums.LoginType;
+import com.roome.roome.be.domain.user.enums.Role;
 import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -87,6 +88,7 @@ public class UserService {
                 .nickname(request.nickname())
                 .phoneNumber(request.phoneNumber())
                 .loginType(LoginType.EMAIL)
+                .role(Role.USER)
                 .providerId(null)
                 .build();
         userRepository.save(user);

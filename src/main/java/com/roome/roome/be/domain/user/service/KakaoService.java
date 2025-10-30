@@ -4,6 +4,7 @@ import com.roome.roome.be.domain.user.dto.social.KakaoInfoDto;
 import com.roome.roome.be.domain.user.dto.social.KakaoTokenResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.enums.LoginType;
+import com.roome.roome.be.domain.user.enums.Role;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,6 +99,7 @@ public class KakaoService {
                                 .nickname(kakaoInfo.getKakaoAccount().getProfile().getNickname())
                                 .email(kakaoInfo.getKakaoAccount().getEmail())
                                 .loginType(LoginType.KAKAO)
+                                .role(Role.USER)
                                 .build()
                 ));
     }
