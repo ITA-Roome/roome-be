@@ -40,7 +40,8 @@ public enum SuccessStatus implements BaseStatus {
      */
     REGISTER_SHOP_SUCCESS("SHOP_201", HttpStatus.CREATED, "가게 등록 성공"),
     UPDATE_SHOP_SUCCESS("SHOP_200", HttpStatus.OK, "가게 수정 성공"),
-    DELETE_SHOP_SUCCESS("SHOP_200", HttpStatus.OK, "가게 삭제 성공");
+    DELETE_SHOP_SUCCESS("SHOP_200", HttpStatus.OK, "가게 삭제 성공"),
+    GET_SHOP_DETAIL_SUCCESS("SHOP_200",HttpStatus.OK ,"가게 상세 조회 성공" );
 
     private final String code;
     private final HttpStatus httpStatus;

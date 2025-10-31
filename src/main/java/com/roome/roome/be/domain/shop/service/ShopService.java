@@ -6,6 +6,7 @@ import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.shop.dto.request.ShopRegisterRequest;
 import com.roome.roome.be.domain.shop.dto.request.ShopUpdateRequest;
+import com.roome.roome.be.domain.shop.dto.response.ShopDetailResponse;
 import com.roome.roome.be.domain.shop.dto.response.ShopRegisterResponse;
 import com.roome.roome.be.domain.shop.entity.Shop;
 import com.roome.roome.be.domain.shop.repository.ShopRepository;
@@ -49,4 +50,14 @@ public class ShopService {
 
 		shopRepository.delete(shop);
 	}
+
+	//가게 상세 조회, 추후 상세 내용 보완
+	@Transactional
+	public ShopDetailResponse getShopDetail(Long shopId){
+		Shop shop = shopRepository.findById(shopId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND));
+		return ShopDetailResponse.from(shop);
+
+	}
+
 }
