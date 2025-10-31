@@ -88,7 +88,6 @@ public class JwtService {
     }
 
     /** JWT 토큰에서 role 추출 */
-    /** JWT 토큰에서 role 추출 */
     public String getRoleFromJwtToken(String token) {
         try {
             return Jwts.parserBuilder()
