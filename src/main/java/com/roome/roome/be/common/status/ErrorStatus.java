@@ -59,7 +59,13 @@ public enum ErrorStatus implements BaseStatus {
     JWT_GENERAL_ERROR("JWT_401", HttpStatus.UNAUTHORIZED, "JWT 토큰 처리 중 알 수 없는 오류가 발생했습니다."),
     JWT_INVALID_TYPE("JWT_401", HttpStatus.UNAUTHORIZED, "토큰 타입이 유효하지 않습니다."),
     REFRESH_TOKEN_NOT_FOUND("JWT_401", HttpStatus.UNAUTHORIZED, "DB에 저장된 토큰과 일치하지 않습니다."),
-    REFRESH_TOKEN_MISMATCH("JWT_401", HttpStatus.UNAUTHORIZED, "리프레시 토큰 정보가 사용자 정보와 일치하지 않습니다.");
+    REFRESH_TOKEN_MISMATCH("JWT_401", HttpStatus.UNAUTHORIZED, "리프레시 토큰 정보가 사용자 정보와 일치하지 않습니다."),
+    JWT_EXTRACT_ROLE_FAILED("JWT_401", HttpStatus.UNAUTHORIZED, "토큰에서 사용자 Role을 추출할 수 없습니다."),
+
+    /**
+     * Shop
+     */
+    SHOP_NOT_FOUND("SHOP_404", HttpStatus.NOT_FOUND, "존재하지 않는 가게입니다.");
 
     private final String code;
     private final HttpStatus httpStatus;

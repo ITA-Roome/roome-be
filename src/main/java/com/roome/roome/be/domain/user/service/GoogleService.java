@@ -4,6 +4,7 @@ import com.roome.roome.be.domain.user.dto.social.GoogleInfoDto;
 import com.roome.roome.be.domain.user.dto.social.GoogleTokenResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.enums.LoginType;
+import com.roome.roome.be.domain.user.enums.Role;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,6 +99,7 @@ public class GoogleService {
                                 .nickname(googleInfo.getName())
                                 .email(googleInfo.getEmail())
                                 .loginType(LoginType.GOOGLE)
+                                .role(Role.USER)
                                 .build()
                 ));
     }

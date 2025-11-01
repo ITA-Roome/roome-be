@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers(AUTH_URIS).permitAll()
                         .requestMatchers(ACTUATOR_URIS).permitAll()
                         .requestMatchers("/api/auth/**").permitAll() // 혹시 빠진 URI 커버
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
