@@ -65,7 +65,14 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Shop
      */
-    SHOP_NOT_FOUND("SHOP_404", HttpStatus.NOT_FOUND, "존재하지 않는 가게입니다.");
+    SHOP_NOT_FOUND("SHOP_404", HttpStatus.NOT_FOUND, "존재하지 않는 가게입니다."),
+
+    /**
+     * image
+     */
+    // com.roome.roome.be.common.exception.ErrorCode.java
+    INVALID_FILE_TYPE("S3-001", HttpStatus.BAD_REQUEST, "허용되지 않은 파일 형식입니다."),
+    FILE_TOO_LARGE( "S3-002", HttpStatus.BAD_REQUEST,"파일 크기가 5MB를 초과했습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
