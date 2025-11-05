@@ -70,9 +70,9 @@ public class AdminProductController {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "상품 없음", content = @Content)
 	public ResponseEntity<ApiResponse<Void>> replaceImages(
 		@PathVariable Long productId,
-		@Valid @RequestBody UpdateProductImagesRequest request
+		@Valid @RequestBody UpdateProductImagesRequest updateProductImagesRequest
 	) {
-		productImageService.replaceImages(productId, request);
+		productImageService.replaceImages(productId, updateProductImagesRequest);
 		return ApiResponse.success(SuccessStatus.UPDATE_PRODUCT_IMAGES_SUCCESS);
 	}
 
