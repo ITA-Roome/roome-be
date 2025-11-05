@@ -6,6 +6,7 @@ import com.roome.roome.be.domain.auth.dto.response.CheckEmailResponse;
 import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
+import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.enums.LoginType;
@@ -59,6 +60,16 @@ public class UserService {
                 .build();
 
         userOnboardingRepository.save(newOnboarding);
+    }
+
+    //유저온보딩 존재 여부
+    public UserOnboardingExistResponse checkExistence(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+        boolean exists = userOnboardingRepository.findByUser(user).isPresent();
+
+        return new UserOnboardingExistResponse(exists);
     }
 
     // 이메일 중복 검사

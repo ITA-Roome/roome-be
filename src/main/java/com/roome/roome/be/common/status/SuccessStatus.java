@@ -34,6 +34,7 @@ public enum SuccessStatus implements BaseStatus {
      * User
      */
     SAVE_USER_ONBOARDING("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공"),
+    CHECK_USER_ONBOARDING_EXISTENCE("AUTH_200", HttpStatus.OK, "유저 온보딩 존재 여부 조회 성공"),
 
     /**
      * Shop
