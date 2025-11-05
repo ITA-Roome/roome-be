@@ -82,7 +82,8 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Product
      */
-    PRODUCT_NOT_FOUND("PRODUCT_404", HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다.");
+    PRODUCT_NOT_FOUND("PRODUCT_404", HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다."),
+    INVALID_IMAGE_ORDER("PRODUCT_400", HttpStatus.BAD_REQUEST,  "잘못된 이미지 순서입니다.");
         
 
     private final String code;

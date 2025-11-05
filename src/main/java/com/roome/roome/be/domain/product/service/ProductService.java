@@ -9,17 +9,20 @@ import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
 import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.product.dto.request.RegisterProductRequest;
+import com.roome.roome.be.domain.product.dto.request.UpdateProductRequest;
 import com.roome.roome.be.domain.product.dto.response.ProductDetailResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductImageResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductListItemResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductTagResponse;
 import com.roome.roome.be.domain.product.entity.Product;
+import com.roome.roome.be.domain.product.entity.ProductImage;
 import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.enums.Color;
 import com.roome.roome.be.domain.product.repository.ProductImageRepository;
 import com.roome.roome.be.domain.product.repository.ProductRepository;
 import com.roome.roome.be.domain.product.repository.ProductTagRepository;
 import com.roome.roome.be.domain.shop.dto.response.ShopSummaryResponse;
+import com.roome.roome.be.domain.shop.entity.Shop;
 import com.roome.roome.be.domain.shop.repository.ShopRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -115,5 +118,23 @@ public class ProductService {
 		}
 
 		return page.map(product -> ProductListItemResponse.from(product, imageUrlBuilder));
+	}
+
+	//상품 수정
+	@Transactional
+	public void updateProduct(Long productId, UpdateProductRequest updateProductRequest) {
+		Product product = productRepository.findById(productId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
+
+		if (updateProductRequest.name() != null) product.updateName(updateProductRequest.name());
+		if (updateProductRequest.price() != null) product.updatePrice(updateProductRequest.price());
+		if (updateProductRequest.category() != null) product.updateCategory(updateProductRequest.category());
+		if (updateProductRequest.color() != null) product.updateColor(updateProductRequest.color());
+		if (updateProductRequest.description() != null) product.updateDescription(updateProductRequest.description());
+
+		if (updateProductRequest.tagNames() != null) {
+			productTagService.applyTags(product.getId(), updateProductRequest.tagNames());
+		}
+
 	}
 }

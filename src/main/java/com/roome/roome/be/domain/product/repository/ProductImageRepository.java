@@ -11,4 +11,6 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Long
 
 	@Query("select i from ProductImage i where i.product.id = :productId order by i.sortOrder asc")
 	List<ProductImage> findByProductIdOrderBySortOrder(Long productId);
+
+	void deleteByProductId(Long productId);
 }
