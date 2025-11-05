@@ -43,7 +43,6 @@ public class UserService {
                 userOnboardingRequest.ageGroup(),
                 userOnboardingRequest.gender(),
                 userOnboardingRequest.moodType(),
-                userOnboardingRequest.productType(),
                 userOnboardingRequest.spaceType()
         );
     }
@@ -55,7 +54,6 @@ public class UserService {
                 .ageGroup(userOnboardingRequest.ageGroup())
                 .gender(userOnboardingRequest.gender())
                 .moodType(userOnboardingRequest.moodType())
-                .productType(userOnboardingRequest.productType())
                 .spaceType(userOnboardingRequest.spaceType())
                 .build();
 

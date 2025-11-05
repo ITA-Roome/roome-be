@@ -13,9 +13,6 @@ public record UserOnboardingRequest(
         @NotNull(message = "분위기 타입은 필수입니다.")
         MoodType moodType,
 
-        @NotNull(message = "제품 타입은 필수입니다.")
-        ProductType productType,
-
         @NotNull(message = "공간 타입은 필수입니다.")
         SpaceType spaceType
 ) {
