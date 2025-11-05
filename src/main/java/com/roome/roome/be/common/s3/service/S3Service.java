@@ -2,7 +2,10 @@ package com.roome.roome.be.common.s3.service;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.s3.dto.request.PresignedUrlRequest;
 import com.roome.roome.be.common.s3.dto.response.PresignedUrlBatchResponse;
@@ -92,5 +95,11 @@ public class S3Service {
 			}
 		}
 	}
+
+	public void deleteObject(String objectKey) {
+		if (objectKey == null || objectKey.isBlank()) return;
+		amazonS3.deleteObject(bucket, objectKey);
+	}
+
 }
 

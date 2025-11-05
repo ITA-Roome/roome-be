@@ -1,6 +1,7 @@
 package com.roome.roome.be.domain.product.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,5 +74,18 @@ public class ProductAdminController {
 	) {
 		productImageService.replaceImages(productId, request);
 		return ApiResponse.success(SuccessStatus.UPDATE_PRODUCT_IMAGES_SUCCESS);
+	}
+
+	//상품 삭제
+	@DeleteMapping("/admin/products/{productId}")
+	@Operation(
+		summary = "상품 삭제(관리자)",
+		description = "연관된 이미지/태그를 정리한 뒤 상품을 삭제합니다."
+	)
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상품 삭제 성공", content = @Content)
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "상품 없음", content = @Content)
+	public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long productId) {
+		productService.deleteProduct(productId);
+		return ApiResponse.success(SuccessStatus.DELETE_PRODUCT_SUCCESS);
 	}
 }
