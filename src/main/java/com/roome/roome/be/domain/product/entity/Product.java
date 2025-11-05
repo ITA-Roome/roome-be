@@ -36,7 +36,7 @@ public class Product extends BaseEntity {
 	private String name;
 
 	@Column(nullable = false)
-	private int price;
+	private Integer price;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
