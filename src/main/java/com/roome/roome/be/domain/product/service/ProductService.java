@@ -1,5 +1,7 @@
 package com.roome.roome.be.domain.product.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,8 +11,11 @@ import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.product.dto.request.RegisterProductRequest;
 import com.roome.roome.be.domain.product.dto.response.ProductDetailResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductImageResponse;
+import com.roome.roome.be.domain.product.dto.response.ProductListItemResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductTagResponse;
 import com.roome.roome.be.domain.product.entity.Product;
+import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.Color;
 import com.roome.roome.be.domain.product.repository.ProductImageRepository;
 import com.roome.roome.be.domain.product.repository.ProductRepository;
 import com.roome.roome.be.domain.product.repository.ProductTagRepository;
@@ -91,4 +96,24 @@ public class ProductService {
 		   tags
 	   );
     }
+
+	//목록 조회
+	public Page<ProductListItemResponse> getList(Category category, Color color, Pageable pageable) {
+		Page<Product> page;
+
+		if (category == null && color == null) {
+			page = productRepository.findAll(pageable);
+		}
+		else if (category != null && color != null) {
+			page = productRepository.findByCategoryAndColor(category, color, pageable);
+		}
+		else if (category != null) {
+			page = productRepository.findByCategory(category, pageable);
+		}
+		else {
+			page = productRepository.findByColor(color, pageable);
+		}
+
+		return page.map(product -> ProductListItemResponse.from(product, imageUrlBuilder));
+	}
 }
