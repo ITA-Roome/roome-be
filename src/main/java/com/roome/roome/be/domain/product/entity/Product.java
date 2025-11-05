@@ -11,11 +11,17 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,7 +38,7 @@ public class Product extends BaseEntity {
 	private String name;
 
 	@Column(nullable = false)
-	private int price;
+	private Integer price;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -42,4 +48,7 @@ public class Product extends BaseEntity {
 	@Column(nullable = false)
 	private Color color;
 
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private List<ProductTag> productTags = new ArrayList<>();
 }
