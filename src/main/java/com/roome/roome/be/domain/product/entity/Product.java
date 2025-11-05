@@ -58,9 +58,6 @@ public class Product extends BaseEntity {
 	@JoinColumn(name = "shop_id", nullable = false)
 	private Shop shop;
 
-	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<ProductImage> images = new ArrayList<>();
-
 	@Column(length = 512)
 	private String thumbnailKey;
 

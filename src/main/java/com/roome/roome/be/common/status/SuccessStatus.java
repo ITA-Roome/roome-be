@@ -52,7 +52,9 @@ public enum SuccessStatus implements BaseStatus {
     /**
      * Product
      */
-    PRODUCT_REGISTER_SUCCESS("PRODUCT_201", HttpStatus.CREATED, "상품 등록 성공");
+    PRODUCT_REGISTER_SUCCESS("PRODUCT_201", HttpStatus.CREATED, "상품 등록 성공"),
+    GET_PRODUCT_DETAIL("PRODUCT_200", HttpStatus.OK, "상품 상세 조회 성공"),
+    GET_PRODUCT_LIST("PRODUCT_200_LIST", HttpStatus.OK, "상품 목록 조회 성공");
 
     private final String code;
     private final HttpStatus httpStatus;

@@ -77,3 +77,6 @@ management:
 server:
   forward-headers-strategy: framework
 
+storage:
+  cdn-base-url: ${CDN_BASE_URL}
+
