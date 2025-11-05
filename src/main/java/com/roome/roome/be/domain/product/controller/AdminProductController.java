@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/products")
 @Tag(name = "Products(Admin)", description = "관리자 상품 API")
 @RequiredArgsConstructor
-public class ProductAdminController {
+public class AdminProductController {
 
 	private final ProductService productService;
 	private final ProductImageService productImageService;
