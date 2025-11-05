@@ -34,25 +34,17 @@ public class UserOnboarding extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ProductType productType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private SpaceType spaceType;
 
     public void update(
             AgeGroup ageGroup,
             Gender gender,
             MoodType moodType,
-            ProductType productType,
             SpaceType spaceType
     ) {
         this.ageGroup = ageGroup;
         this.gender = gender;
         this.moodType = moodType;
-        this.productType = productType;
         this.spaceType = spaceType;
     }
-
-
 }
