@@ -35,5 +35,5 @@ public class ProductImage extends BaseEntity {
 	private String objectKey;
 
 	@Column(nullable = false)
-	private int orderIndex;
+	private int sortOrder;
 }

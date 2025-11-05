@@ -13,6 +13,7 @@ import com.roome.roome.be.common.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URL;
 import java.util.*;
@@ -66,13 +67,30 @@ public class S3Service {
 		if (sizeBytes > MAX_SIZE) throw new GeneralException(ErrorStatus.FILE_TOO_LARGE);
 	}
 
-	private String buildKey(StorageScope scope, long productID, String ext) {
+	private String buildKey(StorageScope storageScope, long productID, String ext) {
 		String uuid = UUID.randomUUID().toString();
-		return switch (scope) {
+		return switch (storageScope) {
 			case SHOP_PROFILE   -> "shops/%d/profile/%s.%s".formatted(productID, uuid, ext);
 			case PRODUCT_MAIN   -> "products/%d/main/%s.%s".formatted(productID, uuid, ext);
 			case PRODUCT_DETAIL -> "products/%d/detail/%s.%s".formatted(productID, uuid, ext);
+			case UPLOAD_SESSION -> "uploads/%d/detail/%s.%s".formatted(productID, uuid, ext);
 		};
+	}
+
+	//상품 등록을 위해 이미지 경로 임시 저장 후 실제 db에 옮기기 위해
+	@Transactional
+	public void moveAll(Map<String, String> sourceToDestinationMap) {
+		for (Map.Entry<String, String> entry : sourceToDestinationMap.entrySet()) {
+			String source = entry.getKey();
+			String dest = entry.getValue();
+
+			amazonS3.copyObject(bucket, source, bucket, dest);
+
+			try {
+				amazonS3.deleteObject(bucket, source);
+			} catch (Exception ignore) {
+			}
+		}
 	}
 }
 

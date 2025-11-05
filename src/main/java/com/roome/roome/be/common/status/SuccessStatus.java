@@ -47,8 +47,12 @@ public enum SuccessStatus implements BaseStatus {
     /**
      * S3
      */
-    // SuccessStatus.java
-    S3_PRESIGNED_ISSUE_SUCCESS("S3_200", HttpStatus.OK, "Presigned URL 발급 성공");
+    S3_PRESIGNED_ISSUE_SUCCESS("S3_200", HttpStatus.OK, "Presigned URL 발급 성공"),
+
+    /**
+     * Product
+     */
+    PRODUCT_REGISTER_SUCCESS("PRODUCT_201", HttpStatus.CREATED, "상품 등록 성공");
 
     private final String code;
     private final HttpStatus httpStatus;

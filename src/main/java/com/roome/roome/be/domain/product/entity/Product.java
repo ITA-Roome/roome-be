@@ -1,10 +1,14 @@
 package com.roome.roome.be.domain.product.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.enums.Color;
 import com.roome.roome.be.domain.shop.entity.Shop;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +19,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,7 +58,14 @@ public class Product extends BaseEntity {
 	@JoinColumn(name = "shop_id", nullable = false)
 	private Shop shop;
 
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<ProductImage> images = new ArrayList<>();
+
 	@Column(length = 512)
 	private String thumbnailKey;
+
+	public void changeThumbnail(String thumbnailKey) {
+		this.thumbnailKey = thumbnailKey;
+	}
 
 }
