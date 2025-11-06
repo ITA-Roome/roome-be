@@ -23,7 +23,6 @@ public class ProductTag {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "product", nullable = false) // ERD 컬럼명과 정확히 맞춤
 	private Product product;
