@@ -73,7 +73,6 @@ public class S3Service {
 		String uuid = UUID.randomUUID().toString();
 		return switch (storageScope) {
 			case SHOP_PROFILE   -> "shops/%d/profile/%s.%s".formatted(productID, uuid, ext);
-			case PRODUCT_MAIN   -> "products/%d/main/%s.%s".formatted(productID, uuid, ext);
 			case PRODUCT_DETAIL -> "products/%d/detail/%s.%s".formatted(productID, uuid, ext);
 			case UPLOAD_SESSION -> "uploads/%d/detail/%s.%s".formatted(productID, uuid, ext);
 		};
