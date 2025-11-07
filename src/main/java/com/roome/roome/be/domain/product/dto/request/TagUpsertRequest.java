@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record TagUpsertRequest(
-	@NotBlank String name,
-	@NotNull TagType type
+	@NotBlank(message ="태그명은 필수입니다.")
+	String name,
+
+	@NotNull(message = "태그 타입은 필수입니다.")
+	TagType type
 ) { }

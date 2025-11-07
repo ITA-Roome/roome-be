@@ -2,6 +2,8 @@ package com.roome.roome.be.domain.product.dto.request;
 
 import java.util.List;
 
+import org.hibernate.validator.constraints.URL;
+
 import com.roome.roome.be.domain.product.enums.Category;
 
 import jakarta.validation.constraints.NotBlank;
@@ -22,8 +24,11 @@ public record RegisterProductRequest(
 	Category category,
 
 	@Size(max = 2000, message = "상품 설명은 최대 2000자까지 가능합니다.")
+	@NotNull(message = "상품설명은 필수입니다.")
 	String description,
 
+	@URL(protocol = "https", message = "상품 링크는 https URL이어야 합니다.")
+	@NotNull(message = "상품링크는 필수입니다.")
 	String productUrl,
 
 	@NotNull(message = "샵 ID는 필수입니다.")
@@ -31,6 +36,6 @@ public record RegisterProductRequest(
 
 	List<@Size(min=1, max=30) TagUpsertRequest>tags,
 
-    @NotNull
-	CommitProductImagesRequest images
+	@NotNull(message = "상품이미지는 필수입니다.")
+	RegisterProductImagesRequest images
 ) { }

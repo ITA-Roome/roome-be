@@ -7,14 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public record UpdateProductImagesRequest(
-
+public record RegisterProductImagesRequest(
+	@NotBlank(message = "세션id는 필수입니다.")
 	Long sessionId,
-	@NotNull(message = "이미지 목록은 필수입니다.")
-	@Size(min = 1, max = 30, message = "이미지는 1~30장까지 등록할 수 있습니다.")
+
+	@NotBlank(message = "상품 이미지 정보은 필수입니다.")
 	List<Item> items,
 
-	@Min(value = 0, message = "thumbnailOrder는 0 이상이어야 합니다.")
+	@NotBlank(message = "썸네일 사진의 순서는 필수입니다.")
 	Integer thumbnailOrder
 ) {
 	public record Item(

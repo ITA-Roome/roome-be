@@ -12,7 +12,7 @@ public record ProductDetailResponse(
 	String productUrl,
 	String description,
 	ShopSummaryResponse shop,
-	String thumbnailUrl, //이거 다시 확인하자 예진아
+	String thumbnailUrl,
 	List<ProductImageResponse> images,
 	List<ProductTagResponse> tags
 ) {}
