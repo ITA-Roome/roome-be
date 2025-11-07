@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -68,7 +69,7 @@ public class ProductImageService {
 			: commitProductImagesRequest.thumbnailOrder();
 
 		String thumbKey = toSave.stream()
-			.filter(pi -> pi.getSortOrder() == thumbOrder)
+			.filter(productImage -> productImage.getSortOrder() == thumbOrder)
 			.map(ProductImage::getObjectKey)
 			.findFirst()
 			.orElse(toSave.get(0).getObjectKey());
@@ -83,35 +84,42 @@ public class ProductImageService {
 		var product = productRepository.findById(productId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
 
-
-		// 이미지 순서 order 중복, 음수 체크, items 개수 제한
-		var orders = updateProductImagesRequest.items().stream().map(UpdateProductImagesRequest.Item::order).toList();
-		if (orders.stream().distinct().count() != orders.size())
+		var items = updateProductImagesRequest.items();
+		if (items == null || items.isEmpty()) {
 			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
-		if (orders.stream().anyMatch(o -> o < 0))
-			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
 
-		//전부 삭제
+		var orders = items.stream().map(UpdateProductImagesRequest.Item::order).toList();
+		if (orders.stream().anyMatch(Objects::isNull)) {
+			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
+		if (orders.stream().distinct().count() != orders.size()) {
+			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
+		if (orders.stream().anyMatch(o -> o < 0)) {
+			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
+
 		productImageRepository.deleteByProductId(productId);
+		productImageRepository.flush();
 
-		//새로 삽입
-		var toSave = updateProductImagesRequest.items().stream()
+		var toSave = items.stream()
 			.map(i -> ProductImage.builder()
 				.product(product)
 				.objectKey(i.objectKey())
 				.sortOrder(i.order())
 				.build())
 			.toList();
+
 		productImageRepository.saveAll(toSave);
 
-		//썸네일 이미지  반영
-		int thumbOrder = (updateProductImagesRequest.thumbnailOrder() != null) ? updateProductImagesRequest.thumbnailOrder() : 0;
+		Integer thumbOrder = (updateProductImagesRequest.thumbnailOrder() != null) ? updateProductImagesRequest.thumbnailOrder() : 0;
 		String thumbKey = toSave.stream()
-			.filter(pi -> pi.getSortOrder() == thumbOrder)
+			.filter(pi -> Objects.equals(pi.getSortOrder(), thumbOrder))
 			.map(ProductImage::getObjectKey)
 			.findFirst()
-			.orElse(null);
-		product.updateThumbnail(thumbKey);
+			.orElseGet(() -> toSave.get(0).getObjectKey());
 
+		product.updateThumbnail(thumbKey);
 	}
 }

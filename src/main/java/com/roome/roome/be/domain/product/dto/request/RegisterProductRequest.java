@@ -3,7 +3,6 @@ package com.roome.roome.be.domain.product.dto.request;
 import java.util.List;
 
 import com.roome.roome.be.domain.product.enums.Category;
-import com.roome.roome.be.domain.product.enums.Color;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,17 +21,16 @@ public record RegisterProductRequest(
 	@NotNull(message = "카테고리는 필수입니다.")
 	Category category,
 
-	@NotNull(message = "색상은 필수입니다.")
-	Color color,
-
 	@Size(max = 2000, message = "상품 설명은 최대 2000자까지 가능합니다.")
 	String description,
+
+	String productUrl,
 
 	@NotNull(message = "샵 ID는 필수입니다.")
 	Long shopId,
 
-	List<@Size(min=1, max=30) String>tags,
-	// 이미지 커밋용 DTO
+	List<@Size(min=1, max=30) TagUpsertRequest>tags,
+
     @NotNull
 	CommitProductImagesRequest images
 ) { }

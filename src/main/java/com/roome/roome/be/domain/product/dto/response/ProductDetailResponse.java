@@ -9,10 +9,10 @@ public record ProductDetailResponse(
 	String name,
 	Integer price,
 	String category,
-	String color,
+	String productUrl,
 	String description,
 	ShopSummaryResponse shop,
-	String thumbnailUrl,
+	String thumbnailUrl, //이거 다시 확인하자 예진아
 	List<ProductImageResponse> images,
 	List<ProductTagResponse> tags
 ) {}

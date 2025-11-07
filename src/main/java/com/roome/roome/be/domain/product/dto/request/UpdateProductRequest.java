@@ -12,7 +12,7 @@ public record UpdateProductRequest(
 	String name,
 	Integer price,
 	Category category,
-	Color color,
+	String productUrl,
 	String description,
-	List<@Size(min=1, max=30) String> tagNames
+	List<@Size(min=1, max=30) TagUpsertRequest> tags
 ){}

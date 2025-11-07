@@ -11,14 +11,14 @@ public record ProductListItemResponse(
 	String name,
 	Integer price,
 	String category,
-	String color,
+	String productUrl,
 	String thumbnailUrl,
 	Long shopId,
 	String shopName
 ) {
 	public static ProductListItemResponse from(Product product, ImageUrlBuilder imageUrlBuilder) {
 		String category = product.getCategory() != null ? product.getCategory().name() : null;
-		String color = product.getColor() != null ? product.getColor().name() : null;
+		String productUrl = product.getProductUrl() != null ? product.getProductUrl() : null;
 
 		String thumbnailUrl = product.getThumbnailKey() != null
 			? imageUrlBuilder.build(product.getThumbnailKey())
@@ -32,7 +32,7 @@ public record ProductListItemResponse(
 			product.getName(),
 			product.getPrice(),
 			category,
-			color,
+			productUrl,
 			thumbnailUrl,
 			shopId,
 			shopName
