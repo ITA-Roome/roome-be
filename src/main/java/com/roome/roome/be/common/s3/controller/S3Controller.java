@@ -40,7 +40,7 @@ public class S3Controller {
 		@PathVariable Long sessionId,
 		@RequestBody List<PresignedUrlRequest> files
 	) {
-		var responses = s3Service.generatePresignedPutUrls(StorageScope.UPLOAD_SESSION, sessionId, files);
+		var responses = s3Service.generatePresignedPutUrls(StorageScope.PRODUCT_DETAIL, sessionId, files);
 		return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, responses);
 	}
 
