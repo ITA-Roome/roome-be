@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.product.enums.Category;
-import com.roome.roome.be.domain.product.enums.Color;
 import com.roome.roome.be.domain.shop.entity.Shop;
 
 import jakarta.persistence.CascadeType;
@@ -61,7 +60,6 @@ public class Product extends BaseEntity {
 	private String productUrl;
 
 	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-
 	@Builder.Default
 	private List<ProductTag> productTags = new ArrayList<>();
 

@@ -11,7 +11,8 @@ public enum SpaceType {
     LIVING_ROOM("거실"),
     KITCHEN("주방"),
     BATHROOM("화장실"),
-    BEDROOM("침실");
+    BEDROOM("침실"),
+    ENTRANCE("현관");
 
     private final String description;
 }
