@@ -34,7 +34,7 @@ public record RegisterProductRequest(
 	@NotNull(message = "샵 ID는 필수입니다.")
 	Long shopId,
 
-	List<@Size(min=1, max=30) TagUpsertRequest>tags,
+	List<TagUpsertRequest>tags,
 
 	@NotNull(message = "상품이미지는 필수입니다.")
 	RegisterProductImagesRequest images
