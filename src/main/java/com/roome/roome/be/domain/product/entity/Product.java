@@ -67,7 +67,7 @@ public class Product extends BaseEntity {
 	public void updatePrice(Integer price) { this.price = price; }
 	public void updateCategory(Category category) { this.category = category; }
 	public void updateDescription(String description) { this.description = description; }
-	public void updateProductUrl(String description) { this.productUrl = productUrl; }
+	public void updateProductUrl(String productUrl) { this.productUrl = productUrl; }
 	public void updateThumbnail(String thumbnailKey) { this.thumbnailKey = thumbnailKey; }
 
 }

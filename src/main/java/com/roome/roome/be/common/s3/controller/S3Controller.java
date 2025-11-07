@@ -31,9 +31,9 @@ public class S3Controller {
 
 	private final S3Service s3Service;
 
-	//임시저장을 위한
+	//상품 등록 전 사진 임시저장을 위한 api
 	@PostMapping("/uploads/{sessionId}/images/presigned")
-	@Operation(summary = "세션 업로드용 Presigned URL(여러장)")
+	@Operation(summary = "세션 업로드용 Presigned URL(여러장 가능), sessionId는 프론트에서 임의 랜덤으로 만들어주시면 됩니다.")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 파일 형식이거나 용량 제한(5MB)을 초과한 경우", content = @Content)
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
 	public ResponseEntity<ApiResponse<List<PresignedUrlBatchResponse>>> generatePresignedUrls(
@@ -44,15 +44,4 @@ public class S3Controller {
 		return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, responses);
 	}
 
-	@PostMapping("/uploads/{sessionId}/images/presigned/single")
-	@Operation(summary = "세션 임시 업로드용 Presigned URL(단일)")
-	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 파일 형식이거나 용량 제한(5MB)을 초과한 경우", content = @Content)
-	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
-	public ResponseEntity<ApiResponse<PresignedUrlResponse>> generatePresignedUrlSingle(
-		@PathVariable Long sessionId,
-		@RequestBody PresignedUrlRequest file
-	) {
-		var response = s3Service.generatePresignedPutUrl(StorageScope.UPLOAD_SESSION, sessionId, file);
-		return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, response);
-	}
 }

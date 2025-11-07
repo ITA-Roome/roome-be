@@ -61,8 +61,8 @@ public class ProductController {
 	)
 	public ResponseEntity<ApiResponse<Page<ProductListItemResponse>>> getList(
 		@RequestParam(required = false) Category category,
-		@RequestParam(required = false, name = "color") List<String> colorNames, // GREEN,WHITE...
-		@RequestParam(required = false, defaultValue = "any") String match,      // any | all
+		@RequestParam(required = false, name = "color") List<String> colorNames, // GREEN,WHITE.,,
+		@RequestParam(required = false, defaultValue = "any") String match,      // any (한 색상이라도 있을 경우),all
 		@ParameterObject
 		@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
 	) {

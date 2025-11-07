@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.s3.service.S3Service;
 import com.roome.roome.be.common.status.ErrorStatus;
-import com.roome.roome.be.domain.product.dto.request.CommitProductImagesRequest;
+import com.roome.roome.be.domain.product.dto.request.RegisterProductImagesRequest;
 import com.roome.roome.be.domain.product.dto.request.UpdateProductImagesRequest;
 import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.entity.ProductImage;
@@ -33,7 +33,7 @@ public class ProductImageService {
 	private final ProductImageRepository productImageRepository;
 
 	@Transactional
-	public void commitSessionImages(Long productId, CommitProductImagesRequest commitProductImagesRequest) {
+	public void commitSessionImages(Long productId, RegisterProductImagesRequest commitProductImagesRequest) {
 		Product product = productRepository.findById(productId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
 
@@ -42,7 +42,7 @@ public class ProductImageService {
 		Map<String, String> moveMap = new LinkedHashMap<>();
 		List<ProductImage> toSave = new ArrayList<>();
 
-		for (CommitProductImagesRequest.Item item : commitProductImagesRequest.items()) {
+		for (RegisterProductImagesRequest.Item item : commitProductImagesRequest.items()) {
 			String source = item.objectKey();
 			String ext = source.substring(source.lastIndexOf('.') + 1);
 

@@ -85,10 +85,10 @@ public class ProductService {
 			: (images.isEmpty() ? null : images.get(0).url());
 
 		var tags = productTagRepository.findByProductIdWithTag(productId).stream()
-			.map(pt -> new ProductTagResponse(
-				pt.getTag().getId(),
-				pt.getTag().getType(),
-				pt.getTag().getName()))
+			.map(productTag -> new ProductTagResponse(
+				productTag.getTag().getId(),
+				productTag.getTag().getType(),
+				productTag.getTag().getName()))
 			.toList();
 
 		var shop = new ShopSummaryResponse(product.getShop().getId(), product.getShop().getName());

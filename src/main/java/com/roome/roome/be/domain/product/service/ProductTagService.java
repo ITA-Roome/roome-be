@@ -30,11 +30,11 @@ public class ProductTagService {
 	private final ProductTagRepository productTagRepository;
 
 	@Transactional
-	public void applyTags(Long productId, List<TagUpsertRequest> upserts) {
+	public void applyTags(Long productId, List<TagUpsertRequest> tagUpsertRequests) {
 		Product product = productRepository.findById(productId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
 
-		List<TagUpsertRequest> cleaned = (upserts == null ? List.<TagUpsertRequest>of() : upserts).stream()
+		List<TagUpsertRequest> cleaned = (tagUpsertRequests == null ? List.<TagUpsertRequest>of() : tagUpsertRequests).stream()
 			.filter(tagUpsertRequest -> tagUpsertRequest != null && tagUpsertRequest.name() != null && !tagUpsertRequest.name().trim().isEmpty() && tagUpsertRequest.type() != null)
 			.map(tagUpsertRequest -> new TagUpsertRequest(tagUpsertRequest.name().trim(), tagUpsertRequest.type()))
 			.distinct()
@@ -43,7 +43,7 @@ public class ProductTagService {
 		List<ProductTag> currentLinks = productTagRepository.findByProduct(product);
 		List<Tag> currentTags = currentLinks.stream().map(ProductTag::getTag).toList();
 
-		record Key(String name, TagType type) {
+		record Key(String name, TagType tagType) {
 		}
 		var currentSet = currentTags.stream()
 			.map(tag -> new Key(tag.getName(), tag.getType()))

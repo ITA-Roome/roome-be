@@ -15,8 +15,6 @@ public interface ProductTagRepository extends JpaRepository<ProductTag, Long> {
 
 	List<ProductTag> findByProduct(Product product);
 
-	void deleteByProductAndTag(Product product, Tag tag);
-
 	@Query("""
            select pt from ProductTag pt
            join fetch pt.tag t

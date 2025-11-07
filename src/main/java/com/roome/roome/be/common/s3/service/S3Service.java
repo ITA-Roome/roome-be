@@ -38,24 +38,23 @@ public class S3Service {
 	private static final long MAX_SIZE = 5 * 1024 * 1024; // 5MB
 	private static final long DEFAULT_EXPIRE_MILLIS = 5 * 60_000L; // 5분
 
-	public PresignedUrlResponse generatePresignedPutUrl(StorageScope storageScope, long productId, PresignedUrlRequest file) {
-		validate(file.contentType(), file.sizeBytes());
-		String ext = CT_TO_EXT.get(file.contentType());
+	public PresignedUrlResponse generatePresignedPutUrl(StorageScope storageScope, long productId, PresignedUrlRequest presignedUrlRequest) {
+		validate(presignedUrlRequest.contentType(), presignedUrlRequest.sizeBytes());
+		String ext = CT_TO_EXT.get(presignedUrlRequest.contentType());
 		String key = buildKey(storageScope, productId, ext);
 
-		URL url = generatePutUrl(key, file.contentType(), DEFAULT_EXPIRE_MILLIS);
+		URL url = generatePutUrl(key, presignedUrlRequest.contentType(), DEFAULT_EXPIRE_MILLIS);
 		return new PresignedUrlResponse(url.toString(), key);
 	}
 
-	public List<PresignedUrlBatchResponse> generatePresignedPutUrls(StorageScope storageScope, long productId, List<PresignedUrlRequest> files) {
+	public List<PresignedUrlBatchResponse> generatePresignedPutUrls(StorageScope storageScope, long productId, List<PresignedUrlRequest> presignedUrlRequests) {
 		List<PresignedUrlBatchResponse> list = new ArrayList<>();
-		for (PresignedUrlRequest f : files) {
-			PresignedUrlResponse r = generatePresignedPutUrl(storageScope, productId, f);
-			list.add(new PresignedUrlBatchResponse(r.uploadUrl(), r.objectKey(), f.order()));
+		for (PresignedUrlRequest presignedUrlRequest : presignedUrlRequests) {
+			PresignedUrlResponse presignedUrlResponse = generatePresignedPutUrl(storageScope, productId, presignedUrlRequest);
+			list.add(new PresignedUrlBatchResponse(presignedUrlResponse.uploadUrl(), presignedUrlResponse.objectKey(), presignedUrlRequest.order()));
 		}
 		return list;
 	}
-
 
 	private URL generatePutUrl(String objectKey, String contentType, long expireMs) {
 		var req = new GeneratePresignedUrlRequest(bucket, objectKey)
