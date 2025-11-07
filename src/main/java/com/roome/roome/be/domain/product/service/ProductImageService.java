@@ -33,16 +33,16 @@ public class ProductImageService {
 	private final ProductImageRepository productImageRepository;
 
 	@Transactional
-	public void commitSessionImages(Long productId, RegisterProductImagesRequest commitProductImagesRequest) {
+	public void commitSessionImages(Long productId, RegisterProductImagesRequest registerProductImagesRequest) {
 		Product product = productRepository.findById(productId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
 
-		if (commitProductImagesRequest.items() == null || commitProductImagesRequest.items().isEmpty()) return;
+		if (registerProductImagesRequest.items() == null || registerProductImagesRequest.items().isEmpty()) return;
 
 		Map<String, String> moveMap = new LinkedHashMap<>();
 		List<ProductImage> toSave = new ArrayList<>();
 
-		for (RegisterProductImagesRequest.Item item : commitProductImagesRequest.items()) {
+		for (RegisterProductImagesRequest.Item item : registerProductImagesRequest.items()) {
 			String source = item.objectKey();
 			String ext = source.substring(source.lastIndexOf('.') + 1);
 
@@ -64,9 +64,9 @@ public class ProductImageService {
 
 		productImageRepository.saveAll(toSave);
 
-		int thumbOrder = (commitProductImagesRequest.thumbnailOrder() == null)
+		int thumbOrder = (registerProductImagesRequest.thumbnailOrder() == null)
 			? toSave.stream().mapToInt(ProductImage::getSortOrder).min().orElse(0)
-			: commitProductImagesRequest.thumbnailOrder();
+			: registerProductImagesRequest.thumbnailOrder();
 
 		String thumbKey = toSave.stream()
 			.filter(productImage -> productImage.getSortOrder() == thumbOrder)
