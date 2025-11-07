@@ -107,31 +107,36 @@ public class ProductService {
 		);
 	}
 
-	// 목록 조회 (tag 기반 color 필터)
+	// 목록 조회
 	@Transactional(readOnly = true)
 	public Page<ProductListItemResponse> getList(
+		Long shopId,                 // 가게 필터
 		Category category,
 		List<String> colorNames,
-		String match,
+		String match,                // 기본 any
+		String keyWord,
+		Integer minPrice,
+		Integer maxPrice,
 		Pageable pageable
 	) {
-		Page<Product> page;
-		boolean hasColor = colorNames != null && !colorNames.isEmpty();
+		final boolean hasColor = colorNames != null && !colorNames.isEmpty();
+		final String normalizedMatch = (match == null) ? "any" : match.trim().toLowerCase();
 
-		if (!hasColor) {
-			page = (category == null)
-				? productRepository.findAll(pageable)
-				: productRepository.findByCategory(category, pageable);
+		Page<Product> page;
+		if ("all".equals(normalizedMatch)) {
+			long size = hasColor ? colorNames.size() : 0;
+			page = productRepository.findByFiltersAllColors(
+				shopId, category, keyWord, minPrice, maxPrice,
+				hasColor, colorNames, size, pageable
+			);
 		} else {
-			if ("all".equalsIgnoreCase(match)) {
-				long size = colorNames.size();
-				page = productRepository.findByCategoryAndAllColorTags(category, colorNames, size, pageable);
-			} else {
-				page = productRepository.findByCategoryAndAnyColorTags(category, colorNames, pageable);
-			}
+			page = productRepository.findByFiltersAnyColors(
+				shopId, category, keyWord, minPrice, maxPrice,
+				hasColor, colorNames, pageable
+			);
 		}
 
-		return page.map(product -> ProductListItemResponse.from(product, imageUrlBuilder));
+		return page.map(p -> ProductListItemResponse.from(p, imageUrlBuilder));
 	}
 
 	// 상품 수정
