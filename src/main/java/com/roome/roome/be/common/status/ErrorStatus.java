@@ -65,7 +65,26 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Shop
      */
-    SHOP_NOT_FOUND("SHOP_404", HttpStatus.NOT_FOUND, "존재하지 않는 가게입니다.");
+    SHOP_NOT_FOUND("SHOP_404", HttpStatus.NOT_FOUND, "존재하지 않는 가게입니다."),
+
+    /**
+     * image
+     */
+    INVALID_FILE_TYPE("S3-001", HttpStatus.BAD_REQUEST, "허용되지 않은 파일 형식입니다."),
+    FILE_TOO_LARGE( "S3-002", HttpStatus.BAD_REQUEST,"파일 크기가 5MB를 초과했습니다."),
+
+    /**
+     * Tag
+     */
+    TAG_NOT_FOUND("TAG_404", HttpStatus.NOT_FOUND, "존재하지 않는 태그입니다."),
+    TAG_NAME_DUPLICATED("TAG_409", HttpStatus.CONFLICT, "이미 존재하는 태그 이름입니다."),
+
+    /**
+     * Product
+     */
+    PRODUCT_NOT_FOUND("PRODUCT_404", HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다."),
+    INVALID_IMAGE_ORDER("PRODUCT_400", HttpStatus.BAD_REQUEST,  "잘못된 이미지 순서입니다.");
+        
 
     private final String code;
     private final HttpStatus httpStatus;

@@ -1,0 +1,125 @@
+package com.roome.roome.be.domain.product.service;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.s3.service.S3Service;
+import com.roome.roome.be.common.status.ErrorStatus;
+import com.roome.roome.be.domain.product.dto.request.RegisterProductImagesRequest;
+import com.roome.roome.be.domain.product.dto.request.UpdateProductImagesRequest;
+import com.roome.roome.be.domain.product.entity.Product;
+import com.roome.roome.be.domain.product.entity.ProductImage;
+import com.roome.roome.be.domain.product.repository.ProductImageRepository;
+import com.roome.roome.be.domain.product.repository.ProductRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ProductImageService {
+
+	private final S3Service s3Service;
+	private final ProductRepository productRepository;
+	private final ProductImageRepository productImageRepository;
+
+	@Transactional
+	public void commitSessionImages(Long productId, RegisterProductImagesRequest registerProductImagesRequest) {
+		Product product = productRepository.findById(productId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
+
+		if (registerProductImagesRequest.items() == null || registerProductImagesRequest.items().isEmpty()) return;
+
+		Map<String, String> moveMap = new LinkedHashMap<>();
+		List<ProductImage> toSave = new ArrayList<>();
+
+		for (RegisterProductImagesRequest.Item item : registerProductImagesRequest.items()) {
+			String source = item.objectKey();
+			String ext = source.substring(source.lastIndexOf('.') + 1);
+
+			String destination = "products/%d/detail/%s.%s".formatted(
+				product.getId(), UUID.randomUUID(), ext
+			);
+
+			moveMap.put(source, destination);
+			toSave.add(
+				ProductImage.builder()
+					.product(product)
+					.objectKey(destination)
+					.sortOrder(item.order() == null ? Integer.MAX_VALUE : item.order())
+					.build()
+			);
+		}
+
+		s3Service.moveAll(moveMap);
+
+		productImageRepository.saveAll(toSave);
+
+		int thumbOrder = (registerProductImagesRequest.thumbnailOrder() == null)
+			? toSave.stream().mapToInt(ProductImage::getSortOrder).min().orElse(0)
+			: registerProductImagesRequest.thumbnailOrder();
+
+		String thumbKey = toSave.stream()
+			.filter(productImage -> productImage.getSortOrder() == thumbOrder)
+			.map(ProductImage::getObjectKey)
+			.findFirst()
+			.orElse(toSave.get(0).getObjectKey());
+
+		product.updateThumbnail(thumbKey);
+	}
+
+	//이미지 교체
+	@Transactional
+	public void replaceImages(Long productId, UpdateProductImagesRequest updateProductImagesRequest) {
+
+		var product = productRepository.findById(productId)
+			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
+
+		var items = updateProductImagesRequest.items();
+		if (items == null || items.isEmpty()) {
+			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
+
+		var orders = items.stream().map(UpdateProductImagesRequest.Item::order).toList();
+		if (orders.stream().anyMatch(Objects::isNull)) {
+			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
+		if (orders.stream().distinct().count() != orders.size()) {
+			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
+		if (orders.stream().anyMatch(o -> o < 0)) {
+			throw new GeneralException(ErrorStatus.INVALID_IMAGE_ORDER);
+		}
+
+		productImageRepository.deleteByProductId(productId);
+		productImageRepository.flush();
+
+		var toSave = items.stream()
+			.map(i -> ProductImage.builder()
+				.product(product)
+				.objectKey(i.objectKey())
+				.sortOrder(i.order())
+				.build())
+			.toList();
+
+		productImageRepository.saveAll(toSave);
+
+		Integer thumbOrder = (updateProductImagesRequest.thumbnailOrder() != null) ? updateProductImagesRequest.thumbnailOrder() : 0;
+		String thumbKey = toSave.stream()
+			.filter(pi -> Objects.equals(pi.getSortOrder(), thumbOrder))
+			.map(ProductImage::getObjectKey)
+			.findFirst()
+			.orElseGet(() -> toSave.get(0).getObjectKey());
+
+		product.updateThumbnail(thumbKey);
+	}
+}
