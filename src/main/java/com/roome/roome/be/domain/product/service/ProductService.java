@@ -1,7 +1,10 @@
 package com.roome.roome.be.domain.product.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.roome.roome.be.domain.product.enums.TagType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -110,33 +113,43 @@ public class ProductService {
 	// 목록 조회
 	@Transactional(readOnly = true)
 	public Page<ProductListItemResponse> getList(
-		Long shopId,                 // 가게 필터
-		Category category,
-		List<String> colorNames,
-		String match,                // 기본 any
-		String keyWord,
-		Integer minPrice,
-		Integer maxPrice,
-		Pageable pageable
+			Long shopId,                 // 가게 필터
+			Category category,
+			List<String> colorTags,
+			List<String> materialTags,
+			List<String> styleTags,
+			List<String> featureTags,
+			List<String> moodTags,
+			String match,                // 기본 any
+			String keyWord,
+			Integer minPrice,
+			Integer maxPrice,
+			Pageable pageable
 	) {
-		final boolean hasColor = colorNames != null && !colorNames.isEmpty();
+		// [수정 3] match 문자열 정규화
 		final String normalizedMatch = (match == null) ? "any" : match.trim().toLowerCase();
 
-		Page<Product> page;
-		if ("all".equals(normalizedMatch)) {
-			long size = hasColor ? colorNames.size() : 0;
-			page = productRepository.findByFiltersAllColors(
-				shopId, category, keyWord, minPrice, maxPrice,
-				hasColor, colorNames, size, pageable
-			);
-		} else {
-			page = productRepository.findByFiltersAnyColors(
-				shopId, category, keyWord, minPrice, maxPrice,
-				hasColor, colorNames, pageable
-			);
-		}
+		// [수정 4] 모든 태그 파라미터를 Map으로 조립
+		Map<TagType, List<String>> tagFilters = new HashMap<>();
+		if (colorTags != null && !colorTags.isEmpty()) tagFilters.put(TagType.COLOR, colorTags);
+		if (materialTags != null && !materialTags.isEmpty()) tagFilters.put(TagType.MATERIAL, materialTags);
+		if (styleTags != null && !styleTags.isEmpty()) tagFilters.put(TagType.STYLE, styleTags);
+		if (featureTags != null && !featureTags.isEmpty()) tagFilters.put(TagType.FEATURE, featureTags);
+		if (moodTags != null && !moodTags.isEmpty()) tagFilters.put(TagType.MOOD, moodTags);
+
+		Page<Product> page = productRepository.findByDynamicFilters(
+				shopId,
+				category,
+				keyWord,
+				minPrice,
+				maxPrice,
+				tagFilters,
+				normalizedMatch,
+				pageable
+		);
 
 		return page.map(p -> ProductListItemResponse.from(p, imageUrlBuilder));
+
 	}
 
 	// 상품 수정
