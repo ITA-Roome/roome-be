@@ -34,4 +34,8 @@ public class Shop extends BaseEntity {
 		this.name = name;
 	}
 
+	public void updateLogoObjectKey(String objectKey) {
+		this.logoObjectKey = objectKey;
+	}
+
 }
