@@ -2,6 +2,7 @@ package com.roome.roome.be.common.s3.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Presigned URL 발급 요청 파일 정보")
 public record PresignedUrlRequest(
@@ -10,10 +11,10 @@ public record PresignedUrlRequest(
 	String contentType,
 
 	@Schema(description = "파일 크기(Byte)", example = "1048576")
-	@NotBlank(message = "sizeBytes은 필수입니다.")
+	@NotNull(message = "sizeBytes은 필수입니다.")
 	long sizeBytes,
 
 	@Schema(description = "이미지 순서 (여러 장 업로드 시 정렬용)", example = "1")
-	@NotBlank(message = "order는 필수입니다.")
+	@NotNull(message = "order는 필수입니다.")
 	Integer order
 ) {}
