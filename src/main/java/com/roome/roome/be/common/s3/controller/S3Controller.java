@@ -46,7 +46,7 @@ public class S3Controller {
 	}
 
 	//샵로고 등록 전 사진 임시저장을 위한 api
-	@PostMapping("/admin/uploads/{sessionId}/shops/logo/presigned")
+	@PostMapping("/uploads/{sessionId}/shops/logo/presigned")
 	public ResponseEntity<ApiResponse<PresignedUrlResponse>> presignedShopLogo(
 		@PathVariable long sessionId,
 		@RequestBody PresignedUrlRequest presignedUrlRequest
