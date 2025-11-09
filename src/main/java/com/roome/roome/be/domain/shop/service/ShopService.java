@@ -43,7 +43,7 @@ public class ShopService {
 			.name(shopRegisterRequest.name())
 			.build());
 
-		commitLogoIfPresent(saved, shopRegisterRequest.logo());
+		commitLogoIfPresent(saved, shopRegisterRequest.logoObjectKey());
 
 		String logoUrl = (saved.getLogoObjectKey() != null && !saved.getLogoObjectKey().isBlank())
 			? imageUrlBuilder.build(saved.getLogoObjectKey())
@@ -59,7 +59,7 @@ public class ShopService {
 			.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND));
 
 		if (shopUpdateRequest.name() != null) shop.updateName(shopUpdateRequest.name());
-		commitLogoIfPresent(shop, shopUpdateRequest.logo());
+		commitLogoIfPresent(shop, shopUpdateRequest.logoObjectKey());
 	}
 
 
@@ -115,10 +115,10 @@ public class ShopService {
 	}
 
 	// ShopService.java
-	private void commitLogoIfPresent(Shop shop, ShopRegisterRequest.ShopLogoRequest logo) {
-		if (logo == null || logo.objectKey() == null || logo.objectKey().isBlank()) return;
+	private void commitLogoIfPresent(Shop shop, String logoObjectKey) {
+		if (logoObjectKey == null || logoObjectKey.isBlank()) return;
 
-		String source = logo.objectKey();
+		String source = logoObjectKey;
 		String ext = source.substring(source.lastIndexOf('.') + 1);
 		String dest = "shops/%d/profile/%s.%s".formatted(
 			shop.getId(), java.util.UUID.randomUUID(), ext
