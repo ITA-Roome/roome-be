@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.product.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,9 @@ public class ProductService {
 	private final ProductImageService productImageService;
 	private final S3Service s3Service;
 	private final ImageUrlBuilder imageUrlBuilder;
+
+	@Value("${storage.defaults.shop-logo}")
+	private String defaultShopLogoUrl;
 
 	// 상품 등록
 	@Transactional
@@ -91,7 +95,11 @@ public class ProductService {
 				productTag.getTag().getName()))
 			.toList();
 
-		var shop = new ShopSummaryResponse(product.getShop().getId(), product.getShop().getName());
+		String logoUrl = (product.getShop().getLogoObjectKey() != null && !product.getShop().getLogoObjectKey().isBlank())
+			? imageUrlBuilder.build(product.getShop().getLogoObjectKey())
+			: defaultShopLogoUrl;
+
+		var shop = ShopSummaryResponse.from(product.getShop(), logoUrl);
 
 		return new ProductDetailResponse(
 			product.getId(),

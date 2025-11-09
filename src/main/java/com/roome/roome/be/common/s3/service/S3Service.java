@@ -1,11 +1,20 @@
 package com.roome.roome.be.common.s3.service;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.s3.dto.request.PresignedUrlRequest;
 import com.roome.roome.be.common.s3.dto.response.PresignedUrlBatchResponse;
@@ -14,12 +23,6 @@ import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.status.ErrorStatus;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.net.URL;
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -38,19 +41,19 @@ public class S3Service {
 	private static final long MAX_SIZE = 5 * 1024 * 1024; // 5MB
 	private static final long DEFAULT_EXPIRE_MILLIS = 5 * 60_000L; // 5분
 
-	public PresignedUrlResponse generatePresignedPutUrl(StorageScope storageScope, long productId, PresignedUrlRequest presignedUrlRequest) {
+
+	public PresignedUrlResponse generatePresignedPutUrl(StorageScope storageScope, long id, PresignedUrlRequest presignedUrlRequest) {
 		validate(presignedUrlRequest.contentType(), presignedUrlRequest.sizeBytes());
 		String ext = CT_TO_EXT.get(presignedUrlRequest.contentType());
-		String key = buildKey(storageScope, productId, ext);
-
+		String key = buildKey(storageScope, id, ext);
 		URL url = generatePutUrl(key, presignedUrlRequest.contentType(), DEFAULT_EXPIRE_MILLIS);
 		return new PresignedUrlResponse(url.toString(), key);
 	}
 
-	public List<PresignedUrlBatchResponse> generatePresignedPutUrls(StorageScope storageScope, long productId, List<PresignedUrlRequest> presignedUrlRequests) {
+	public List<PresignedUrlBatchResponse> generatePresignedPutUrls(StorageScope storageScope, long id, List<PresignedUrlRequest> presignedUrlRequests) {
 		List<PresignedUrlBatchResponse> list = new ArrayList<>();
 		for (PresignedUrlRequest presignedUrlRequest : presignedUrlRequests) {
-			PresignedUrlResponse presignedUrlResponse = generatePresignedPutUrl(storageScope, productId, presignedUrlRequest);
+			PresignedUrlResponse presignedUrlResponse = generatePresignedPutUrl(storageScope, id, presignedUrlRequest);
 			list.add(new PresignedUrlBatchResponse(presignedUrlResponse.uploadUrl(), presignedUrlResponse.objectKey(), presignedUrlRequest.order()));
 		}
 		return list;
@@ -69,12 +72,12 @@ public class S3Service {
 		if (sizeBytes > MAX_SIZE) throw new GeneralException(ErrorStatus.FILE_TOO_LARGE);
 	}
 
-	private String buildKey(StorageScope storageScope, long productID, String ext) {
+	private String buildKey(StorageScope storageScope, long id, String ext) {
 		String uuid = UUID.randomUUID().toString();
 		return switch (storageScope) {
-			case SHOP_PROFILE   -> "shops/%d/profile/%s.%s".formatted(productID, uuid, ext);
-			case PRODUCT_DETAIL -> "products/%d/detail/%s.%s".formatted(productID, uuid, ext);
-			case UPLOAD_SESSION -> "uploads/%d/detail/%s.%s".formatted(productID, uuid, ext);
+			case SHOP_PROFILE   -> "shops/%d/profile/%s.%s".formatted(id, uuid, ext);
+			case PRODUCT_DETAIL -> "products/%d/detail/%s.%s".formatted(id, uuid, ext);
+			case UPLOAD_SESSION -> "uploads/%d/detail/%s.%s".formatted(id, uuid, ext);
 		};
 	}
 
