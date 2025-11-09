@@ -41,13 +41,13 @@ public class ShopService {
 	public ShopRegisterResponse registerShop(ShopRegisterRequest shopRegisterRequest) {
 		Shop saved = shopRepository.save(Shop.builder()
 			.name(shopRegisterRequest.name())
-			.build());                                           // 먼저 저장해서 shopId 확보
+			.build());
 
-		commitLogoIfPresent(saved, shopRegisterRequest.logo());                  // 로고가 있으면 이동/반영
+		commitLogoIfPresent(saved, shopRegisterRequest.logo());
 
 		String logoUrl = (saved.getLogoObjectKey() != null && !saved.getLogoObjectKey().isBlank())
 			? imageUrlBuilder.build(saved.getLogoObjectKey())
-			: defaultShopLogoUrl;                                // 기본 이미지 fallback
+			: defaultShopLogoUrl;
 
 		return ShopRegisterResponse.from(saved, logoUrl);
 	}
@@ -59,7 +59,7 @@ public class ShopService {
 			.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND));
 
 		if (shopUpdateRequest.name() != null) shop.updateName(shopUpdateRequest.name());
-		commitLogoIfPresent(shop, shopUpdateRequest.logo());                   // 로고 교체 시에도 동일 로직 재사용
+		commitLogoIfPresent(shop, shopUpdateRequest.logo());
 	}
 
 
@@ -78,10 +78,9 @@ public class ShopService {
 		Shop shop = shopRepository.findById(shopId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND));
 
-		// S3 objectKey → CDN URL 변환
 		String logoUrl = (shop.getLogoObjectKey() != null && !shop.getLogoObjectKey().isBlank())
 			? imageUrlBuilder.build(shop.getLogoObjectKey())
-			: defaultShopLogoUrl; // 기본 이미지 fallback
+			: defaultShopLogoUrl; // 기본 이미지
 
 		return ShopDetailResponse.from(shop, logoUrl);
 	}
@@ -119,13 +118,13 @@ public class ShopService {
 	private void commitLogoIfPresent(Shop shop, ShopRegisterRequest.ShopLogoRequest logo) {
 		if (logo == null || logo.objectKey() == null || logo.objectKey().isBlank()) return;
 
-		String source = logo.objectKey();                        // e.g. uploads/{sessionId}/detail/xxx.jpg
+		String source = logo.objectKey();
 		String ext = source.substring(source.lastIndexOf('.') + 1);
 		String dest = "shops/%d/profile/%s.%s".formatted(
 			shop.getId(), java.util.UUID.randomUUID(), ext
 		);
 
-		s3Service.moveAll(java.util.Map.of(source, dest));       // S3 임시 → 영구 경로로 이동
-		shop.updateLogoObjectKey(dest);                          // 엔티티에 최종 objectKey 반영
+		s3Service.moveAll(java.util.Map.of(source, dest));
+		shop.updateLogoObjectKey(dest);
 	}
 }
