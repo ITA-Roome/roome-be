@@ -47,7 +47,7 @@ public class AdminShopController {
 	@PatchMapping("/{shopId}")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "가게 수정 성공", content = @Content)
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "가게가 존재하지 않는 경우", content = @Content)
-	@Operation(summary = "가게 이름 수정 (관리자)")
+	@Operation(summary = "가게 수정 (관리자)")
 	public ResponseEntity<ApiResponse<Void>> updateShop(
 		@PathVariable Long shopId,
 		@RequestBody ShopUpdateRequest shopUpdateRequest

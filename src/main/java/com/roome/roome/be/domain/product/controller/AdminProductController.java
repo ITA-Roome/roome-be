@@ -42,7 +42,7 @@ public class AdminProductController {
 	}
 
 	// 상품 수정
-	@PatchMapping("/admin/products/{productId}")
+	@PatchMapping("/products/{productId}")
 	@Operation(summary = "상품 수정(통합)", description = "기본정보/태그/이미지를 한 번에 부분 수정합니다. images가 전달되면 전체 교체됩니다.")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상품 수정 성공", content = @Content)
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "상품/샵이 존재하지 않음", content = @Content)
@@ -55,7 +55,7 @@ public class AdminProductController {
 	}
 
 	//상품 이미지 교체
-	@PatchMapping("/admin/products/{productId}/images")
+	@PatchMapping("/products/{productId}/images")
 	@Operation(
 		summary = "상품 이미지 전체 교체",
 		description = """
@@ -77,7 +77,7 @@ public class AdminProductController {
 	}
 
 	//상품 삭제
-	@DeleteMapping("/admin/products/{productId}")
+	@DeleteMapping("/products/{productId}")
 	@Operation(
 		summary = "상품 삭제(관리자)",
 		description = "연관된 이미지/태그를 정리한 뒤 상품을 삭제합니다."

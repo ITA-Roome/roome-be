@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -38,10 +39,21 @@ public class S3Controller {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
 	public ResponseEntity<ApiResponse<List<PresignedUrlBatchResponse>>> generatePresignedUrls(
 		@PathVariable Long sessionId,
-		@RequestBody List<PresignedUrlRequest> files
+		@RequestBody List<PresignedUrlRequest> presignedUrlRequests
 	) {
-		var responses = s3Service.generatePresignedPutUrls(StorageScope.PRODUCT_DETAIL, sessionId, files);
+		var responses = s3Service.generatePresignedPutUrls(StorageScope.PRODUCT_DETAIL, sessionId, presignedUrlRequests);
 		return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, responses);
 	}
 
+	//샵로고 등록 전 사진 임시저장을 위한 api
+	@PostMapping("/uploads/{sessionId}/shops/logo/presigned")
+	public ResponseEntity<ApiResponse<PresignedUrlResponse>> presignedShopLogo(
+		@PathVariable long sessionId,
+		@RequestBody PresignedUrlRequest presignedUrlRequest
+	) {
+		var response = s3Service.generatePresignedPutUrl(
+			StorageScope.SHOP_PROFILE, sessionId, presignedUrlRequest
+		);
+		return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, response);
+	}
 }

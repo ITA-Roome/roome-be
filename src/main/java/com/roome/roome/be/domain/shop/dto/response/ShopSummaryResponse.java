@@ -4,12 +4,14 @@ import com.roome.roome.be.domain.shop.entity.Shop;
 
 public record ShopSummaryResponse(
 	Long id,
-	String name
+	String name,
+	String logoUrl
 ) {
-	public static ShopSummaryResponse from(Shop shop) {
+	public static ShopSummaryResponse from(Shop shop, String logoUrl) {
 		return new ShopSummaryResponse(
 			shop.getId(),
-			shop.getName()
+			shop.getName(),
+			logoUrl
 		);
 	}
 }
