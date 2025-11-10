@@ -6,6 +6,7 @@ import com.roome.roome.be.domain.product.enums.Color;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 public record CommonProductInfo(
         Long id,
@@ -16,8 +17,8 @@ public record CommonProductInfo(
         String description,
         String productUrl,
         String thumbnailKey,
-        List<String> imageList,
-        List<Tag> tagList,
+        Set<String> imageList,
+        Set<Tag> tagList,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

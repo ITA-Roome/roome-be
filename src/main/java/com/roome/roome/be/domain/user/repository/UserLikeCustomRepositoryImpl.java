@@ -44,8 +44,8 @@ public class UserLikeCustomRepositoryImpl implements UserLikeCustomRepository {
                                         product.description,
                                         product.productUrl,
                                         product.thumbnailKey,
-                                        GroupBy.list(productImage.imageUrl),
-                                        GroupBy.list(
+                                        GroupBy.set(productImage.imageUrl),
+                                        GroupBy.set(
                                                 Projections.constructor(
                                                         ProductTagInfo.class,
                                                         tag.id,
