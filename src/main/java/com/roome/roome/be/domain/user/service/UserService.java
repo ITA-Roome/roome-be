@@ -7,13 +7,15 @@ import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
+import com.roome.roome.be.domain.user.dto.response.UserLikeProduct;
+import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
 import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.entity.UserView;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.enums.Role;
-import com.roome.roome.be.domain.user.repository.UserLikeRepository;
+import com.roome.roome.be.domain.user.repository.UserLikeCustomRepositoryImpl;
 import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import com.roome.roome.be.domain.user.repository.UserViewRepository;
@@ -22,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -30,6 +33,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final UserViewRepository userViewRepository;
+    private final UserLikeCustomRepositoryImpl userLikeCustomRepositoryImpl;
 
     // 유저 온보딩 저장
     @Transactional
@@ -73,6 +77,12 @@ public class UserService {
         boolean exists = userOnboardingRepository.findByUser(user).isPresent();
 
         return new UserOnboardingExistResponse(exists);
+    }
+
+    // 유저가 좋아요를 누른 상품 리스트 조회
+    public UserLikeProductListResponse getUserLikedProductList(Long userId) {
+        List<UserLikeProduct> userLikeProductList = userLikeCustomRepositoryImpl.findUserLikeProductListByUserId(userId);
+        return new UserLikeProductListResponse(userLikeProductList);
     }
 
     // 이메일 중복 검사

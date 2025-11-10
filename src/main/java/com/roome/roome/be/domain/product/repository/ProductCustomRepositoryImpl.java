@@ -21,7 +21,7 @@ import static com.roome.roome.be.domain.product.entity.QTag.tag;
 import static com.roome.roome.be.domain.shop.entity.QShop.shop;
 
 @RequiredArgsConstructor
-public class ProductRepositoryImpl implements ProductRepositoryCustom {
+public class ProductCustomRepositoryImpl implements ProductCustomRepository {
 
     private final JPAQueryFactory queryFactory; // QueryDSL 사용을 위해 주입
 

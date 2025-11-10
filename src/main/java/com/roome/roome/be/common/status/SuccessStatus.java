@@ -35,6 +35,7 @@ public enum SuccessStatus implements BaseStatus {
      */
     SAVE_USER_ONBOARDING("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공"),
     CHECK_USER_ONBOARDING_EXISTENCE("AUTH_200", HttpStatus.OK, "유저 온보딩 존재 여부 조회 성공"),
+    GET_USER_LIKE_PRODUCT_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 좋아요 상품 리스트 조회 성공"),
 
     /**
      * Shop

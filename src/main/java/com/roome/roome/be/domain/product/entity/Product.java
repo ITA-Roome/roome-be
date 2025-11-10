@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.Color;
 import com.roome.roome.be.domain.shop.entity.Shop;
 
 import jakarta.persistence.CascadeType;
@@ -46,6 +47,10 @@ public class Product extends BaseEntity {
 	@Column(nullable = false)
 	private Category category;
 
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Color color;
+
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
@@ -59,9 +64,11 @@ public class Product extends BaseEntity {
 	@Column(name = "product_url", length = 1024, nullable = false)
 	private String productUrl;
 
-	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-	@Builder.Default
-	private List<ProductTag> productTags = new ArrayList<>();
+	@OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+	private List<ProductTag> productTagList = new ArrayList<>();
+
+	@OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+	private List<ProductImage> productImageList = new ArrayList<>();
 
 	@Column(name = "like_count",nullable = false)
 	private Integer likeCount;

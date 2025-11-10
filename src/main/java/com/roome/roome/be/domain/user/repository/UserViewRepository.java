@@ -5,6 +5,7 @@ import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserView;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+
 public interface UserViewRepository extends JpaRepository<UserView, Long> {
-    public UserView findByUserAndProduct(User user, Product product);
+    UserView findByUserAndProduct(User user, Product product);
 }

@@ -3,6 +3,7 @@ package com.roome.roome.be.domain.user.controller;
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
+import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
 import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
 import com.roome.roome.be.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,5 +49,14 @@ public class UserController {
     ) {
         UserOnboardingExistResponse response = userService.checkExistence(userId);
         return ApiResponse.success(SuccessStatus.CHECK_USER_ONBOARDING_EXISTENCE, response);
+    }
+
+    @GetMapping("/likes")
+    @Operation(summary = "유저가 좋아요를 누른 상품 리스트 조회")
+    public ResponseEntity<ApiResponse<UserLikeProductListResponse>> getUserLikedProductList(
+            @AuthenticationPrincipal Long userId
+    ){
+        UserLikeProductListResponse response = userService.getUserLikedProductList(userId);
+        return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
     }
 }

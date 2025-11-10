@@ -32,6 +32,9 @@ public class ProductImage extends BaseEntity {
 	private Product product;
 
 	@Column(nullable = false, length = 512, unique = true)
+	private String imageUrl;
+
+	@Column(nullable = false, length = 512)
 	private String objectKey;
 
 	@Column(nullable = false)
