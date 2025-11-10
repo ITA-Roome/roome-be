@@ -2,6 +2,8 @@ package com.roome.roome.be.domain.product.controller;
 
 import java.util.List;
 
+import com.roome.roome.be.domain.auth.dto.response.EmailLoginResponse;
+import com.roome.roome.be.domain.product.dto.response.ProductToggleLikeResponse;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,11 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
@@ -134,5 +132,24 @@ public class ProductController {
 	) {
 		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags, match, keyWord, minPrice, maxPrice, pageable);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_LIST, page);
+	}
+
+	// 상품 좋아요 기능 구현
+	@PostMapping("{productId}/like")
+	@Operation(
+			summary = "상품 좋아요 토글",
+			description = "이미 좋아요가 눌려 있으면 취소하고, 눌려 있지 않으면 좋아요를 추가합니다."
+	)
+	@Parameters({
+			@Parameter(name = "productId", description = "좋아요를 누를 상품의 ID", example = "123"),
+	})
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "좋아요 토글 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductToggleLikeResponse.class)))
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않거나 상품이 존재하지 않음", content = @Content(mediaType = "application/json"))
+	public ResponseEntity<ApiResponse<ProductToggleLikeResponse>> toggleProductLike(
+			@PathVariable("productId") Long productId,
+			@AuthenticationPrincipal Long userId
+	) {
+		ProductToggleLikeResponse response = productService.toggleProductLike(productId, userId);
+		return ApiResponse.success(SuccessStatus.CREATE_PRODUCT_LIKE,response);
 	}
 }

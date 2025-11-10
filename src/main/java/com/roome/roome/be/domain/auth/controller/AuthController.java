@@ -24,7 +24,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("auth")
 @Tag(name = "Auth", description = "인증 API")
 public class AuthController {
 

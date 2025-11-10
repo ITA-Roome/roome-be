@@ -13,6 +13,7 @@ import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.entity.UserView;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.enums.Role;
+import com.roome.roome.be.domain.user.repository.UserLikeRepository;
 import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import com.roome.roome.be.domain.user.repository.UserViewRepository;

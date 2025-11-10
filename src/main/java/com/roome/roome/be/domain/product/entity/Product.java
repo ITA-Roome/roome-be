@@ -63,11 +63,20 @@ public class Product extends BaseEntity {
 	@Builder.Default
 	private List<ProductTag> productTags = new ArrayList<>();
 
+	@Column(name = "like_count",nullable = false)
+	private Integer likeCount;
+
 	public void updateName(String name) { this.name = name; }
 	public void updatePrice(Integer price) { this.price = price; }
 	public void updateCategory(Category category) { this.category = category; }
 	public void updateDescription(String description) { this.description = description; }
 	public void updateProductUrl(String productUrl) { this.productUrl = productUrl; }
 	public void updateThumbnail(String thumbnailKey) { this.thumbnailKey = thumbnailKey; }
+	public void incrementLikeCount() { this.likeCount++; }
+	public void decrementLikeCount() {
+		if (this.likeCount > 0) {
+			this.likeCount--;
+		}
 
+	}
 }

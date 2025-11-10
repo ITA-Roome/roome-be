@@ -37,15 +37,15 @@ public class SecurityConfig {
 
     /** 인증(회원가입, 로그인 등) 관련 경로 */
     private static final String[] AUTH_URIS = {
-            "/api/auth/signup",
-            "/api/auth/login",
-            "/api/auth/logout",
-            "/api/auth/password",
-            "/api/auth/check-nickname",
-            "/api/auth/find-email",
-            "/api/auth/email-verification",
-            "/api/auth/email-verification/confirm",
-            "/api/auth.check-email"
+            "/auth/signup",
+            "/auth/login",
+            "/auth/logout",
+            "/auth/password",
+            "/auth/check-nickname",
+            "/auth/find-email",
+            "/auth/email-verification",
+            "/auth/email-verification/confirm",
+            "/auth.check-email"
     };
 
     /** 헬스체크 및 모니터링 관련 경로 */
