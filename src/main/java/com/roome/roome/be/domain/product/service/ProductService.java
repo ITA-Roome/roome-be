@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.roome.roome.be.domain.product.enums.TagType;
+import com.roome.roome.be.domain.user.entity.User;
+import com.roome.roome.be.domain.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ProductService {
 
 	private final ProductRepository productRepository;
@@ -48,6 +49,7 @@ public class ProductService {
 	private final ProductImageService productImageService;
 	private final S3Service s3Service;
 	private final ImageUrlBuilder imageUrlBuilder;
+	private final UserService userService;
 
 	// 상품 등록
 	@Transactional
@@ -71,7 +73,9 @@ public class ProductService {
 	}
 
 	// 상품 상세 조회
-	public ProductDetailResponse getDetail(Long productId) {
+	@Transactional
+	public ProductDetailResponse getDetail(Long productId,Long userId) {
+		User user = userService.findUserById(userId);
 		Product product = productRepository.findById(productId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
 
@@ -95,6 +99,8 @@ public class ProductService {
 			.toList();
 
 		var shop = new ShopSummaryResponse(product.getShop().getId(), product.getShop().getName());
+
+		userService.registerUserView(product,user);
 
 		return new ProductDetailResponse(
 			product.getId(),

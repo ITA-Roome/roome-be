@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,8 +44,11 @@ public class ProductController {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상품 상세 조회 성공", content = @Content)
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "상품이 존재하지 않음", content = @Content)
 	@Operation(summary = "상품 상세 조회")
-	public ResponseEntity<ApiResponse<ProductDetailResponse>> getDetail(@PathVariable Long productId) {
-		var dto = productService.getDetail(productId);
+	public ResponseEntity<ApiResponse<ProductDetailResponse>> getDetail(
+			@PathVariable Long productId,
+			@AuthenticationPrincipal Long userId
+	) {
+		var dto = productService.getDetail(productId,userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_DETAIL, dto);
 	}
 

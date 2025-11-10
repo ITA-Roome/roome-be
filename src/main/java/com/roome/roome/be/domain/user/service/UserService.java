@@ -5,14 +5,17 @@ import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.auth.dto.response.CheckEmailResponse;
 import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
+import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
+import com.roome.roome.be.domain.user.entity.UserView;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.enums.Role;
 import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserRepository;
+import com.roome.roome.be.domain.user.repository.UserViewRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final UserOnboardingRepository userOnboardingRepository;
+    private final UserViewRepository userViewRepository;
 
     // 유저 온보딩 저장
     @Transactional
@@ -101,6 +105,23 @@ public class UserService {
                 .providerId(null)
                 .build();
         userRepository.save(user);
+    }
+
+    // User View 등록
+    public void registerUserView(Product product, User user ){
+        UserView userView = userViewRepository.findByUserAndProduct(user,product);
+
+        if(userView == null) {
+            userView = UserView.builder()
+                    .user(user)
+                    .product(product)
+                    .build();
+            userViewRepository.save(userView);
+        }
+        else{
+            userView.touch();
+        }
+
     }
 
     // 이메일로 유저 찾기
