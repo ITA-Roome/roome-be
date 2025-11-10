@@ -63,7 +63,7 @@ public class SecurityConfig {
                         .requestMatchers(SWAGGER_URIS).permitAll()
                         .requestMatchers(AUTH_URIS).permitAll()
                         .requestMatchers(ACTUATOR_URIS).permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // 혹시 빠진 URI 커버
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

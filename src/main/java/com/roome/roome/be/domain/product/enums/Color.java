@@ -25,7 +25,8 @@ public enum Color {
 	PURPLE("퍼플"),
 	GOLD("골드"),
 	SILVER("실버"),
-	TRANSPARENT("투명");
+	TRANSPARENT("투명"),
+	MULTICOLOR("여러 색");
 
 	private final String description;
 }
