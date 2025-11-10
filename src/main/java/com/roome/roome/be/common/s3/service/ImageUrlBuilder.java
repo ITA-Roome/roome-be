@@ -10,7 +10,9 @@ public class ImageUrlBuilder {
 
 	public String build(String objectKey) {
 		if (objectKey == null || objectKey.isBlank()) return null;
-
+		if (objectKey.startsWith("http")) {
+			return objectKey;
+		}
 		String base = cdnBaseUrl.endsWith("/") ? cdnBaseUrl : cdnBaseUrl + "/";
 		String key  = objectKey.startsWith("/") ? objectKey.substring(1) : objectKey;
 		return base + key;
