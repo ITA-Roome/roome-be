@@ -5,6 +5,7 @@ import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
 import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
+import com.roome.roome.be.domain.user.dto.response.UserRecentViewedProductListResponse;
 import com.roome.roome.be.domain.user.dto.response.UserScrappedProductListResponse;
 import com.roome.roome.be.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,12 +65,22 @@ public class UserController {
     }
 
     @GetMapping("/scraps")
-    @Operation(summary = "유저가 스크랩한  상품 리스트 조회")
+    @Operation(summary = "유저가 스크랩한 상품 리스트 조회")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserScrappedProductListResponse.class)))
     public ResponseEntity<ApiResponse<UserScrappedProductListResponse>> getUserScrappedProductList(
             @AuthenticationPrincipal Long userId
     ){
         UserScrappedProductListResponse response = userService.getUserScrappedProductList(userId);
+        return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
+    }
+
+    @GetMapping("/recent-views")
+    @Operation(summary = "유저가 최근 본 상품 리스트 조회")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "최근 본 상품 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserRecentViewedProductListResponse.class)))
+    public ResponseEntity<ApiResponse<UserRecentViewedProductListResponse>> getUserRecentViewedProductList(
+            @AuthenticationPrincipal Long userId
+    ){
+        UserRecentViewedProductListResponse response = userService.getUserRecentViewedProductList(userId);
         return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
     }
 }

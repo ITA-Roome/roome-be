@@ -10,6 +10,7 @@ import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
 import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
+import com.roome.roome.be.domain.user.dto.response.UserRecentViewedProductListResponse;
 import com.roome.roome.be.domain.user.dto.response.UserScrappedProductListResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
@@ -34,6 +35,7 @@ public class UserService {
 
     private final UserLikeCustomRepositoryImpl userLikeCustomRepositoryImpl;
     private final UserScrapCustomRepositoryImpl userScrapCustomRepositoryImpl;
+    private final UserViewCustomRepositoryImpl userViewCustomRepositoryImpl;
 
     // 유저 온보딩 저장
     @Transactional
@@ -89,6 +91,12 @@ public class UserService {
     public UserScrappedProductListResponse getUserScrappedProductList(Long userId) {
         List<CommonProductInfo> userScrappedProductList = userScrapCustomRepositoryImpl.findUserScrappedProductListByUserId(userId);
         return new UserScrappedProductListResponse(userScrappedProductList);
+    }
+
+    // 유저가 최근 본 상품 리스트 조회
+    public UserRecentViewedProductListResponse getUserRecentViewedProductList(Long userId) {
+        List<CommonProductInfo> userRecentViewedProductList = userViewCustomRepositoryImpl.findUserRecentViewedProductListByUserId(userId);
+        return new UserRecentViewedProductListResponse(userRecentViewedProductList);
     }
 
     // 이메일 중복 검사
