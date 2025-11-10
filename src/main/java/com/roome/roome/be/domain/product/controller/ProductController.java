@@ -2,7 +2,6 @@ package com.roome.roome.be.domain.product.controller;
 
 import java.util.List;
 
-import com.roome.roome.be.domain.auth.dto.response.EmailLoginResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductToggleLikeResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductToggleScrapResponse;
 import org.springdoc.core.annotations.ParameterObject;

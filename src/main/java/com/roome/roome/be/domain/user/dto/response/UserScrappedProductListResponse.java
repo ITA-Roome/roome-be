@@ -4,7 +4,7 @@ import com.roome.roome.be.domain.product.dto.response.CommonProductInfo;
 
 import java.util.List;
 
-public record UserLikeProductListResponse(
-        List<CommonProductInfo> userLikeProductList
+public record UserScrappedProductListResponse(
+        List<CommonProductInfo> userScrapProductList
 ) {
 }
