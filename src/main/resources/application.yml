@@ -79,4 +79,5 @@ server:
 
 storage:
   cdn-base-url: ${CDN_BASE_URL}
-
+  defaults:
+    shop-logo: ${SHOP_LOGO}

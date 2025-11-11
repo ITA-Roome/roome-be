@@ -13,6 +13,7 @@ import com.roome.roome.be.domain.user.entity.UserScrap;
 import com.roome.roome.be.domain.user.repository.UserLikeRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapRepository;
 import com.roome.roome.be.domain.user.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,10 +43,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final ProductRepository productRepository;
-    private final ShopRepository shopRepository;
-    private final ProductImageRepository productImageRepository;
-    private final ProductTagRepository productTagRepository;
+	private final ProductRepository productRepository;
+	private final ShopRepository shopRepository;
+	private final ProductImageRepository productImageRepository;
+	private final ProductTagRepository productTagRepository;
 
     private final UserLikeRepository userLikeRepository;
     private final UserScrapRepository userScrapRepository;
@@ -56,18 +57,21 @@ public class ProductService {
     private final ImageUrlBuilder imageUrlBuilder;
     private final UserService userService;
 
-    // 상품 등록
-    @Transactional
-    public Long register(RegisterProductRequest registerProductRequest) {
-        Product product = productRepository.save(Product.builder()
-                .name(registerProductRequest.name())
-                .price(registerProductRequest.price())
-                .category(registerProductRequest.category())
-                .productUrl(registerProductRequest.productUrl())
-                .description(registerProductRequest.description())
-                .shop(shopRepository.findById(registerProductRequest.shopId())
-                        .orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND)))
-                .build());
+	@Value("${storage.defaults.shop-logo}")
+	private String defaultShopLogoUrl;
+
+	// 상품 등록
+	@Transactional
+	public Long register(RegisterProductRequest registerProductRequest) {
+		Product product = productRepository.save(Product.builder()
+			.name(registerProductRequest.name())
+			.price(registerProductRequest.price())
+			.category(registerProductRequest.category())
+			.productUrl(registerProductRequest.productUrl())
+			.description(registerProductRequest.description())
+			.shop(shopRepository.findById(registerProductRequest.shopId())
+				.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND)))
+			.build());
 
         if (registerProductRequest.images() != null) {
             productImageService.commitSessionImages(product.getId(), registerProductRequest.images());
@@ -84,26 +88,30 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
 
-        var images = productImageRepository.findByProductIdOrderBySortOrder(productId).stream()
-                .map(productImage -> new ProductImageResponse(
-                        productImage.getObjectKey(),
-                        imageUrlBuilder.build(productImage.getObjectKey()),
-                        productImage.getSortOrder()
-                ))
-                .toList();
+		var images = productImageRepository.findByProductIdOrderBySortOrder(productId).stream()
+			.map(productImage -> new ProductImageResponse(
+				productImage.getObjectKey(),
+				imageUrlBuilder.build(productImage.getObjectKey()),
+				productImage.getSortOrder()
+			))
+			.toList();
 
-        String thumbnailUrl = (product.getThumbnailKey() != null)
-                ? imageUrlBuilder.build(product.getThumbnailKey())
-                : (images.isEmpty() ? null : images.get(0).url());
+		String thumbnailUrl = (product.getThumbnailKey() != null)
+			? imageUrlBuilder.build(product.getThumbnailKey())
+			: (images.isEmpty() ? null : images.get(0).url());
 
-        var tags = productTagRepository.findByProductIdWithTag(productId).stream()
-                .map(productTag -> new ProductTagResponse(
-                        productTag.getTag().getId(),
-                        productTag.getTag().getType(),
-                        productTag.getTag().getName()))
-                .toList();
+		var tags = productTagRepository.findByProductIdWithTag(productId).stream()
+			.map(productTag -> new ProductTagResponse(
+				productTag.getTag().getId(),
+				productTag.getTag().getType(),
+				productTag.getTag().getName()))
+			.toList();
 
-        var shop = new ShopSummaryResponse(product.getShop().getId(), product.getShop().getName());
+		String logoUrl = (product.getShop().getLogoObjectKey() != null && !product.getShop().getLogoObjectKey().isBlank())
+			? imageUrlBuilder.build(product.getShop().getLogoObjectKey())
+			: defaultShopLogoUrl;
+
+		var shop = ShopSummaryResponse.from(product.getShop(), logoUrl);
 
         userService.registerUserView(product, user);
 
