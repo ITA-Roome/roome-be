@@ -39,7 +39,6 @@ public class UserViewCustomRepositoryImpl implements UserViewCustomRepository {
                                         product.id,
                                         product.name,
                                         product.category,
-                                        product.color,
                                         product.price,
                                         product.description,
                                         product.productUrl,

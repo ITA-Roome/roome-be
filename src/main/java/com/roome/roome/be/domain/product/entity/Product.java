@@ -5,10 +5,8 @@ import java.util.List;
 
 import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.product.enums.Category;
-import com.roome.roome.be.domain.product.enums.Color;
 import com.roome.roome.be.domain.shop.entity.Shop;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -46,10 +44,6 @@ public class Product extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private Category category;
-
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Color color;
 
 	@Column(columnDefinition = "TEXT")
 	private String description;

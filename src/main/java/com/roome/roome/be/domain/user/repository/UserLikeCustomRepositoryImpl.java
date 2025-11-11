@@ -39,7 +39,6 @@ public class UserLikeCustomRepositoryImpl implements UserLikeCustomRepository {
                                         product.id,
                                         product.name,
                                         product.category,
-                                        product.color,
                                         product.price,
                                         product.description,
                                         product.productUrl,

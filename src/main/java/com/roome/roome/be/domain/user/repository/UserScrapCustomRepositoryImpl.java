@@ -39,7 +39,6 @@ public class UserScrapCustomRepositoryImpl implements UserScrapCustomRepository 
                                         product.id,
                                         product.name,
                                         product.category,
-                                        product.color,
                                         product.price,
                                         product.description,
                                         product.productUrl,
