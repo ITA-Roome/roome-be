@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * QueryDSL을 사용한 동적 쿼리 인터페이스
  */
-public interface ProductRepositoryCustom {
+public interface ProductCustomRepository {
 
     /**
      * 상품 목록을 동적 필터(태그 포함)로 조회합니다.

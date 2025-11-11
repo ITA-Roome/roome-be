@@ -5,19 +5,25 @@ import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.auth.dto.response.CheckEmailResponse;
 import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
+import com.roome.roome.be.domain.product.dto.response.CommonProductInfo;
+import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
+import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
 import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
+import com.roome.roome.be.domain.user.dto.response.UserRecentViewedProductListResponse;
+import com.roome.roome.be.domain.user.dto.response.UserScrappedProductListResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
+import com.roome.roome.be.domain.user.entity.UserView;
 import com.roome.roome.be.domain.user.enums.LoginType;
 import com.roome.roome.be.domain.user.enums.Role;
-import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
-import com.roome.roome.be.domain.user.repository.UserRepository;
+import com.roome.roome.be.domain.user.repository.*;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,6 +31,11 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final UserOnboardingRepository userOnboardingRepository;
+    private final UserViewRepository userViewRepository;
+
+    private final UserLikeCustomRepositoryImpl userLikeCustomRepositoryImpl;
+    private final UserScrapCustomRepositoryImpl userScrapCustomRepositoryImpl;
+    private final UserViewCustomRepositoryImpl userViewCustomRepositoryImpl;
 
     // 유저 온보딩 저장
     @Transactional
@@ -70,6 +81,24 @@ public class UserService {
         return new UserOnboardingExistResponse(exists);
     }
 
+    // 유저가 좋아요를 누른 상품 리스트 조회
+    public UserLikeProductListResponse getUserLikedProductList(Long userId) {
+        List<CommonProductInfo> userLikeProductList = userLikeCustomRepositoryImpl.findUserLikeProductListByUserId(userId);
+        return new UserLikeProductListResponse(userLikeProductList);
+    }
+
+    // 유저가 스크랩한 상품 리스트 조회
+    public UserScrappedProductListResponse getUserScrappedProductList(Long userId) {
+        List<CommonProductInfo> userScrappedProductList = userScrapCustomRepositoryImpl.findUserScrappedProductListByUserId(userId);
+        return new UserScrappedProductListResponse(userScrappedProductList);
+    }
+
+    // 유저가 최근 본 상품 리스트 조회
+    public UserRecentViewedProductListResponse getUserRecentViewedProductList(Long userId) {
+        List<CommonProductInfo> userRecentViewedProductList = userViewCustomRepositoryImpl.findUserRecentViewedProductListByUserId(userId);
+        return new UserRecentViewedProductListResponse(userRecentViewedProductList);
+    }
+
     // 이메일 중복 검사
     public void checkEmailNotExists(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -101,6 +130,23 @@ public class UserService {
                 .providerId(null)
                 .build();
         userRepository.save(user);
+    }
+
+    // User View 등록
+    public void registerUserView(Product product, User user ){
+        UserView userView = userViewRepository.findByUserAndProduct(user,product);
+
+        if(userView == null) {
+            userView = UserView.builder()
+                    .user(user)
+                    .product(product)
+                    .build();
+            userViewRepository.save(userView);
+        }
+        else{
+            userView.touch();
+        }
+
     }
 
     // 이메일로 유저 찾기

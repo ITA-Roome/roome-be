@@ -1,8 +1,7 @@
-package com.roome.roome.be.domain.activity.entity;
+package com.roome.roome.be.domain.user.entity;
 
 import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.user.entity.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class UserView extends BaseEntity {
+public class UserLike extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

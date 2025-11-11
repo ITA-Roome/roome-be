@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/shop")
+@RequestMapping("/api/shops")
 @Tag(name = "Shop", description = "일반 조회 가게 API")
 public class ShopController {
 

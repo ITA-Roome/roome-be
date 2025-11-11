@@ -35,6 +35,7 @@ public enum SuccessStatus implements BaseStatus {
      */
     SAVE_USER_ONBOARDING("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공"),
     CHECK_USER_ONBOARDING_EXISTENCE("AUTH_200", HttpStatus.OK, "유저 온보딩 존재 여부 조회 성공"),
+    GET_USER_LIKE_PRODUCT_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 좋아요 상품 리스트 조회 성공"),
 
     /**
      * Shop
@@ -54,6 +55,8 @@ public enum SuccessStatus implements BaseStatus {
      * Product
      */
     PRODUCT_REGISTER_SUCCESS("PRODUCT_201", HttpStatus.CREATED, "상품 등록 성공"),
+    CREATE_PRODUCT_LIKE("PRODUCT_200", HttpStatus.OK, "상품 좋아요 토글 성공"),
+    CREATE_PRODUCT_SCRAP("PRODUCT_200", HttpStatus.OK, "상품 스크랩 토글 성공"),
     GET_PRODUCT_DETAIL("PRODUCT_200", HttpStatus.OK, "상품 상세 조회 성공"),
     GET_PRODUCT_LIST("PRODUCT_200", HttpStatus.OK, "상품 목록 조회 성공"),
     UPDATE_PRODUCT_SUCCESS("PRODUCT_200", HttpStatus.OK,"상품 수정 성공"),

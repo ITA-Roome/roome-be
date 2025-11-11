@@ -7,7 +7,6 @@ import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.shop.entity.Shop;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -59,9 +58,14 @@ public class Product extends BaseEntity {
 	@Column(name = "product_url", length = 1024, nullable = false)
 	private String productUrl;
 
-	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-	@Builder.Default
-	private List<ProductTag> productTags = new ArrayList<>();
+	@OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+	private List<ProductTag> productTagList = new ArrayList<>();
+
+	@OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+	private List<ProductImage> productImageList = new ArrayList<>();
+
+	@Column(name = "like_count",nullable = false)
+	private Integer likeCount;
 
 	public void updateName(String name) { this.name = name; }
 	public void updatePrice(Integer price) { this.price = price; }
@@ -69,5 +73,11 @@ public class Product extends BaseEntity {
 	public void updateDescription(String description) { this.description = description; }
 	public void updateProductUrl(String productUrl) { this.productUrl = productUrl; }
 	public void updateThumbnail(String thumbnailKey) { this.thumbnailKey = thumbnailKey; }
+	public void incrementLikeCount() { this.likeCount++; }
+	public void decrementLikeCount() {
+		if (this.likeCount > 0) {
+			this.likeCount--;
+		}
 
+	}
 }
