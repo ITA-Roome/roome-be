@@ -154,7 +154,7 @@ public class ProductController {
 	}
 
 	// 상품 스크랩 기능 구현
-	@PostMapping("{productId}/scrap")
+	@PostMapping("/{productId}/scrap")
 	@Operation(
 			summary = "상품 스크랩 토글",
 			description = "이미 스크랩이 되어 있으면 취소하고, 되어 있지 않으면 스크랩에 추가합니다."
@@ -162,7 +162,7 @@ public class ProductController {
 	@Parameters({
 			@Parameter(name = "productId", description = "스크랩할 상품의 ID", example = "123"),
 	})
-	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 토글 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductToggleLikeResponse.class)))
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 토글 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductToggleScrapResponse.class)))
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않거나 상품이 존재하지 않음", content = @Content(mediaType = "application/json"))
 	public ResponseEntity<ApiResponse<ProductToggleScrapResponse>> toggleProductScrap(
 			@PathVariable("productId") Long productId,
