@@ -9,7 +9,7 @@ import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserLike;
-import com.roome.roome.be.domain.user.entity.UserScrap;
+import com.roome.roome.be.domain.user.entity.UserScrapProduct;
 import com.roome.roome.be.domain.user.repository.UserLikeRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapRepository;
 import com.roome.roome.be.domain.user.service.UserService;
@@ -254,13 +254,13 @@ public class ProductService {
 
         boolean scrapped;
 
-        Optional<UserScrap> existing = userScrapRepository.findByUserAndProduct(user, product);
+        Optional<UserScrapProduct> existing = userScrapRepository.findByUserAndProduct(user, product);
         if (existing.isEmpty()) {
-            UserScrap userScrap = UserScrap.builder()
+            UserScrapProduct userScrapProduct = UserScrapProduct.builder()
                     .user(user)
                     .product(product)
                     .build();
-            userScrapRepository.save(userScrap);
+            userScrapRepository.save(userScrapProduct);
             scrapped = true;
         }
         else {
