@@ -8,10 +8,7 @@ import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.product.dto.response.CommonProductInfo;
 import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
-import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
-import com.roome.roome.be.domain.user.dto.response.UserRecentViewedProductListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserScrappedProductListResponse;
+import com.roome.roome.be.domain.user.dto.response.*;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.entity.UserView;
@@ -37,19 +34,31 @@ public class UserService {
     private final UserScrapCustomRepositoryImpl userScrapCustomRepositoryImpl;
     private final UserViewCustomRepositoryImpl userViewCustomRepositoryImpl;
 
+    public UserProfileResponse getUserProfile(Long userId) {
+        User user = findUserById(userId);
+        return new UserProfileResponse(
+                user.getId(),
+                user.getProfileImage(),
+                user.getNickname(),
+                user.getCreatedAt().toLocalDate(),
+                user.getPhoneNumber(),
+                user.getEmail())
+        ;
+    }
+
     // 유저 온보딩 저장
     @Transactional
-    public void saveUserOnboarding(Long userId, UserOnboardingRequest userOnboardingRequest){
+    public void saveUserOnboarding(Long userId, UserOnboardingRequest userOnboardingRequest) {
         User user = findUserById(userId);
         userOnboardingRepository.findByUser(user)
                 .ifPresentOrElse(
                         UserOnboarding -> updateUserOnboarding(UserOnboarding, userOnboardingRequest),
-                        () -> registerUserOnboarding(user,userOnboardingRequest)
+                        () -> registerUserOnboarding(user, userOnboardingRequest)
                 );
     }
 
     // 유저 온보딩 업데이트
-    private void updateUserOnboarding(UserOnboarding userOnboarding, UserOnboardingRequest userOnboardingRequest){
+    private void updateUserOnboarding(UserOnboarding userOnboarding, UserOnboardingRequest userOnboardingRequest) {
         userOnboarding.update(
                 userOnboardingRequest.ageGroup(),
                 userOnboardingRequest.gender(),
@@ -74,7 +83,7 @@ public class UserService {
     //유저온보딩 존재 여부
     public UserOnboardingExistResponse checkExistence(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         boolean exists = userOnboardingRepository.findByUser(user).isPresent();
 
@@ -113,7 +122,7 @@ public class UserService {
     }
 
     // 이메일 중복 검사
-    public CheckEmailResponse checkEmail(String email){
+    public CheckEmailResponse checkEmail(String email) {
         boolean isExist = userRepository.existsByEmail(email);
         return new CheckEmailResponse(isExist);
     }
@@ -133,17 +142,16 @@ public class UserService {
     }
 
     // User View 등록
-    public void registerUserView(Product product, User user ){
-        UserView userView = userViewRepository.findByUserAndProduct(user,product);
+    public void registerUserView(Product product, User user) {
+        UserView userView = userViewRepository.findByUserAndProduct(user, product);
 
-        if(userView == null) {
+        if (userView == null) {
             userView = UserView.builder()
                     .user(user)
                     .product(product)
                     .build();
             userViewRepository.save(userView);
-        }
-        else{
+        } else {
             userView.touch();
         }
 

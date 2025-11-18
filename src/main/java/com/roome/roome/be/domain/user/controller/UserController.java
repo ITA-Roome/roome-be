@@ -3,10 +3,7 @@ package com.roome.roome.be.domain.user.controller;
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
-import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
-import com.roome.roome.be.domain.user.dto.response.UserRecentViewedProductListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserScrappedProductListResponse;
+import com.roome.roome.be.domain.user.dto.response.*;
 import com.roome.roome.be.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +26,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/profile")
+    @Operation(summary = "유저 프로필 조회", description = "유저 계정 정보 조회")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "좋아요 상품 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserProfileResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않음", content = @Content)
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getUserProfile(
+            @AuthenticationPrincipal Long userId
+    ) {
+        UserProfileResponse response = userService.getUserProfile(userId);
+        return ApiResponse.success(SuccessStatus.GET_USER_PROFILE_SUCCESS,response);
+    }
 
     @PostMapping("/onboarding")
     @Operation(summary = "유저 온보딩 정보 저장")
