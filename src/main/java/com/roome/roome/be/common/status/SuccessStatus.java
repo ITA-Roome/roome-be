@@ -69,7 +69,8 @@ public enum SuccessStatus implements BaseStatus {
      */
     REGISTER_REFERENCE_SUCCESS("REFERENCE_201", HttpStatus.CREATED,"레퍼런스 등록 성공"),
     REGISTER_REFERENCE_IMAGE_SUCCESS("REFERENCE_201", HttpStatus.CREATED,"레퍼런스 이미지 등록 성공"),
-    CREATE_REFERENCE_200_SCRAP("REFERENCE_200", HttpStatus.OK, "레퍼런스 스크랩 토글 성공");
+    CREATE_REFERENCE_SCRAP("REFERENCE_200", HttpStatus.OK, "레퍼런스 스크랩 토글 성공"),
+    GET_REFERENCE_LIST_SUCCESS("REFERENCE_200",HttpStatus.OK,"레퍼런스 리스트 조회 성공");
 
     private final String code;
     private final HttpStatus httpStatus;

@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.reference.controller;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
+import com.roome.roome.be.domain.reference.dto.response.ReferenceListResponse;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceToggleScrapResponse;
 import com.roome.roome.be.domain.reference.service.ReferenceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,6 +26,19 @@ import java.util.List;
 @Tag(name = "Reference")
 public class ReferenceController {
     private final ReferenceService referenceService;
+
+    @GetMapping("")
+    @Operation(
+            summary = "레퍼런스 리스트 조회",
+            description = "레퍼런스 리스트를 사용자에 맞게 출력합니다."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReferenceListResponse.class)))
+    public ResponseEntity<ApiResponse<ReferenceListResponse>> getReferenceList(
+      @AuthenticationPrincipal Long userId
+    ){
+        ReferenceListResponse response = referenceService.getReferenceList(userId);
+        return ApiResponse.success(SuccessStatus.GET_REFERENCE_LIST_SUCCESS,response);
+    }
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
@@ -54,6 +68,6 @@ public class ReferenceController {
             @AuthenticationPrincipal Long userId
     ) {
         ReferenceToggleScrapResponse response = referenceService.toggleReferenceScrap(referenceId, userId);
-        return ApiResponse.success(SuccessStatus.CREATE_REFERENCE_200_SCRAP,response);
+        return ApiResponse.success(SuccessStatus.CREATE_REFERENCE_SCRAP,response);
     }
 }

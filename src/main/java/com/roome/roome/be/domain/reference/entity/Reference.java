@@ -22,8 +22,8 @@ public class Reference extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "like_count",nullable = false)
-    private Integer likeCount;
+    @Column(name = "scrap_count",nullable = false)
+    private Integer scrapCount;
 
     @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
     private List<ReferenceImage> referenceImageList = new ArrayList<>();
