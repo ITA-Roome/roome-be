@@ -10,6 +10,7 @@ import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.product.dto.response.CommonProductInfo;
 import com.roome.roome.be.domain.product.entity.Product;
+import com.roome.roome.be.domain.reference.dto.response.CommonReferenceInfo;
 import com.roome.roome.be.domain.user.dto.request.UpdateUserProfileRequest;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.dto.response.*;
@@ -21,6 +22,7 @@ import com.roome.roome.be.domain.user.enums.Role;
 import com.roome.roome.be.domain.user.repository.*;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,14 +32,16 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final UserViewRepository userViewRepository;
 
     private final UserLikeCustomRepositoryImpl userLikeCustomRepositoryImpl;
-    private final UserScrapProductCustomRepositoryImpl userScrapCustomRepositoryImpl;
+    private final UserScrapProductCustomRepositoryImpl userScrapProductCustomRepositoryImpl;
     private final UserViewCustomRepositoryImpl userViewCustomRepositoryImpl;
+    private final UserScrapReferenceCustomRepositoryImpl scrapReferenceCustomRepositoryImpl;
 
     private final S3Service s3Service;
     private final ImageUrlBuilder imageUrlBuilder;
@@ -66,7 +70,6 @@ public class UserService {
             user.updateProfileImage(imageUrlBuilder.build(objectKey));
         }
     }
-
 
     // 유저 온보딩 저장
     @Transactional
@@ -120,15 +123,32 @@ public class UserService {
 
     // 유저가 스크랩한 상품 리스트 조회
     public UserScrappedProductListResponse getUserScrappedProductList(Long userId) {
-        List<CommonProductInfo> userScrappedProductList = userScrapCustomRepositoryImpl.findUserScrappedProductListByUserId(userId);
+        List<CommonProductInfo> userScrappedProductList = userScrapProductCustomRepositoryImpl.findUserScrappedProductListByUserId(userId);
         return new UserScrappedProductListResponse(userScrappedProductList);
     }
 
-    // 유저가 스크랩한 상품 리스트 조회
-//    public UserScrappedReferenceListResponse getUserScrappedReferenceList(Long userId) {
-//        List<CommonReferenceInfo> userScrappedReferenceList = userScrapCustomRepositoryImpl.findUserScrappedProductListByUserId(userId);
-//        return new UserScrappedProductListResponse(userScrappedProductList);
-//    }
+    // 유저가 스크랩한 레퍼런스 리스트 조회
+    public UserScrappedReferenceListResponse getUserScrappedReferenceList(Long userId) {
+
+        List<CommonReferenceInfo> rawList = scrapReferenceCustomRepositoryImpl
+                .findUserScrappedReferenceListByUserId(userId);
+
+        log.error("중간 점검 {}", rawList);
+        List<CommonReferenceInfo> finalList = rawList.stream()
+                .map(raw -> new CommonReferenceInfo(
+                        raw.referenceId(),
+                        raw.nickname(),
+                        raw.userId(),
+                        raw.imageUrlList().stream()
+                                .map(imageUrlBuilder::build)  // ★ 여기서 URL 변환
+                                .toList(),
+                        raw.scrapCount()
+                ))
+                .toList();
+
+        return new UserScrappedReferenceListResponse(finalList);
+    }
+
 
     // 유저가 최근 본 상품 리스트 조회
     public UserRecentViewedProductListResponse getUserRecentViewedProductList(Long userId) {
