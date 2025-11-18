@@ -80,7 +80,8 @@ public class S3Service {
 			case SHOP_PROFILE   -> "shops/%d/profile/%s.%s".formatted(id, uuid, ext);
 			case PRODUCT_DETAIL -> "products/%d/detail/%s.%s".formatted(id, uuid, ext);
 			case UPLOAD_SESSION -> "uploads/%d/detail/%s.%s".formatted(id, uuid, ext);
-			case REFERENCE      -> "references/%d/%s.%s".formatted(id, uuid, ext); // ★ 추가
+			case REFERENCE      -> "references/%d/%s.%s".formatted(id, uuid, ext);
+			case USER_PROFILE -> "users/%d/profile/%s.%s".formatted(id, uuid, ext);
 		};
 	}
 

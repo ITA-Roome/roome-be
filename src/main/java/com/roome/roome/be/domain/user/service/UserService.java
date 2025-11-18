@@ -1,12 +1,16 @@
 package com.roome.roome.be.domain.user.service;
 
 import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.s3.enums.StorageScope;
+import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
+import com.roome.roome.be.common.s3.service.S3Service;
 import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.auth.dto.response.CheckEmailResponse;
 import com.roome.roome.be.domain.auth.dto.response.CheckNicknameResponse;
 import com.roome.roome.be.domain.auth.dto.request.SignUpRequest;
 import com.roome.roome.be.domain.product.dto.response.CommonProductInfo;
 import com.roome.roome.be.domain.product.entity.Product;
+import com.roome.roome.be.domain.user.dto.request.UpdateUserProfileRequest;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.dto.response.*;
 import com.roome.roome.be.domain.user.entity.User;
@@ -19,6 +23,7 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +39,9 @@ public class UserService {
     private final UserScrapCustomRepositoryImpl userScrapCustomRepositoryImpl;
     private final UserViewCustomRepositoryImpl userViewCustomRepositoryImpl;
 
+    private final S3Service s3Service;
+    private final ImageUrlBuilder imageUrlBuilder;
+
     public UserProfileResponse getUserProfile(Long userId) {
         User user = findUserById(userId);
         return new UserProfileResponse(
@@ -42,9 +50,23 @@ public class UserService {
                 user.getNickname(),
                 user.getCreatedAt().toLocalDate(),
                 user.getPhoneNumber(),
-                user.getEmail())
-        ;
+                user.getEmail());
     }
+
+    @Transactional
+    public void updateUserProfile(Long userId, UpdateUserProfileRequest request){
+        User user = findUserById(userId);
+
+        if(request.nickname() != null && !request.nickname().isBlank())
+            user.updateNickname(request.nickname());
+
+        MultipartFile file = request.profileImage();
+        if(file != null&& !file.isEmpty()){
+            String objectKey = s3Service.uploadObject(StorageScope.USER_PROFILE,userId,file);
+            user.updateProfileImage(imageUrlBuilder.build(objectKey));
+        }
+    }
+
 
     // 유저 온보딩 저장
     @Transactional
