@@ -2,11 +2,16 @@ package com.roome.roome.be.domain.user.controller;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
+import com.roome.roome.be.domain.product.dto.response.ProductToggleLikeResponse;
+import com.roome.roome.be.domain.product.dto.response.ProductToggleScrapResponse;
+import com.roome.roome.be.domain.reference.dto.response.ReferenceToggleScrapResponse;
 import com.roome.roome.be.domain.user.dto.request.UpdateUserProfileRequest;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.dto.response.*;
-import com.roome.roome.be.domain.user.service.UserService;
+import com.roome.roome.be.domain.user.service.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +28,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "User", description = "유저 API")
 public class UserController {
 
+    private final UserLikeService userLikeService;
+    private final UserOnboardingService userOnboardingService;
     private final UserService userService;
+    private final UserScrapService userScrapService;
+    private final UserViewService userViewService;
 
     @GetMapping("/profile")
     @Operation(summary = "유저 프로필 조회", description = "유저 계정 정보 조회")
@@ -57,8 +66,8 @@ public class UserController {
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody UserOnboardingRequest userOnboardingRequest
     ) {
-        userService.saveUserOnboarding(userId, userOnboardingRequest);
-        return ApiResponse.success(SuccessStatus.SAVE_USER_ONBOARDING);
+        userOnboardingService.saveUserOnboarding(userId, userOnboardingRequest);
+        return ApiResponse.success(SuccessStatus.SAVE_USER_ONBOARDING_SUCCESS);
     }
 
     @GetMapping("/onboarding/existence")
@@ -68,8 +77,27 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserOnboardingExistResponse>> checkOnboardingExistence(
             @AuthenticationPrincipal Long userId
     ) {
-        UserOnboardingExistResponse response = userService.checkExistence(userId);
-        return ApiResponse.success(SuccessStatus.CHECK_USER_ONBOARDING_EXISTENCE, response);
+        UserOnboardingExistResponse response = userOnboardingService.checkExistence(userId);
+        return ApiResponse.success(SuccessStatus.CHECK_USER_ONBOARDING_EXISTENCE_SUCCESS, response);
+    }
+
+    // 상품 좋아요 기능 구현
+    @PostMapping("/likes/{productId}")
+    @Operation(
+            summary = "상품 좋아요 토글",
+            description = "이미 좋아요가 눌려 있으면 취소하고, 눌려 있지 않으면 좋아요를 추가합니다."
+    )
+    @Parameters({
+            @Parameter(name = "productId", description = "좋아요를 누를 상품의 ID", example = "123"),
+    })
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "좋아요 토글 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductToggleLikeResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않거나 상품이 존재하지 않음", content = @Content(mediaType = "application/json"))
+    public ResponseEntity<ApiResponse<ProductToggleLikeResponse>> toggleProductLike(
+            @PathVariable("productId") Long productId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        ProductToggleLikeResponse response = userLikeService.toggleProductLike(productId, userId);
+        return ApiResponse.success(SuccessStatus.CREATE_PRODUCT_LIKE,response);
     }
 
     @GetMapping("/likes")
@@ -78,8 +106,45 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserLikeProductListResponse>> getUserLikedProductList(
             @AuthenticationPrincipal Long userId
     ) {
-        UserLikeProductListResponse response = userService.getUserLikedProductList(userId);
+        UserLikeProductListResponse response = userLikeService.getUserLikedProductList(userId);
         return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
+    }
+
+    // 상품 스크랩 기능 구현
+    @PostMapping("/scraps/{productId}")
+    @Operation(
+            summary = "상품 스크랩 토글",
+            description = "이미 스크랩이 되어 있으면 취소하고, 되어 있지 않으면 스크랩에 추가합니다."
+    )
+    @Parameters({
+            @Parameter(name = "productId", description = "스크랩할 상품의 ID", example = "123"),
+    })
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 토글 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductToggleScrapResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않거나 상품이 존재하지 않음", content = @Content(mediaType = "application/json"))
+    public ResponseEntity<ApiResponse<ProductToggleScrapResponse>> toggleProductScrap(
+            @PathVariable("productId") Long productId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        ProductToggleScrapResponse response = userScrapService.toggleProductScrap(productId, userId);
+        return ApiResponse.success(SuccessStatus.CREATE_PRODUCT_LIKE,response);
+    }
+
+    @PostMapping("/scraps/{referenceId}")
+    @Operation(
+            summary = "레퍼런스 스크랩 토글 ",
+            description = "이미 스크랩이 되어 있으면 취소하고, 되어 있지 않으면 스크랩에 추가합니다."
+    )
+    @Parameters({
+            @Parameter(name = "referenceId", description = "스크랩할 Reference ID", example = "1")
+    })
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 토글 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReferenceToggleScrapResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않거나 레퍼런스가 존재하지 않음", content = @Content(mediaType = "application/json"))
+    public ResponseEntity<ApiResponse<ReferenceToggleScrapResponse>> toggleReferenceScrap(
+            @PathVariable("referenceId") Long referenceId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        ReferenceToggleScrapResponse response = userScrapService.toggleReferenceScrap(referenceId, userId);
+        return ApiResponse.success(SuccessStatus.CREATE_REFERENCE_SCRAP,response);
     }
 
     @GetMapping("/scraps/product")
@@ -88,7 +153,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserScrappedProductListResponse>> getUserScrappedProductList(
             @AuthenticationPrincipal Long userId
     ) {
-        UserScrappedProductListResponse response = userService.getUserScrappedProductList(userId);
+        UserScrappedProductListResponse response = userScrapService.getUserScrappedProductList(userId);
         return ApiResponse.success(SuccessStatus.GET_USER_SCRAP_PRODUCT_LIST_SUCCESS, response);
     }
 
@@ -98,7 +163,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserScrappedReferenceListResponse>> getUserScrappedReferenceList(
             @AuthenticationPrincipal Long userId
     ) {
-        UserScrappedReferenceListResponse response = userService.getUserScrappedReferenceList(userId);
+        UserScrappedReferenceListResponse response = userScrapService.getUserScrappedReferenceList(userId);
         return ApiResponse.success(SuccessStatus.GET_USER_SCRAP_REFERENCE_LIST_SUCCESS, response);
     }
 
@@ -108,7 +173,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserRecentViewedProductListResponse>> getUserRecentViewedProductList(
             @AuthenticationPrincipal Long userId
     ) {
-        UserRecentViewedProductListResponse response = userService.getUserRecentViewedProductList(userId);
+        UserRecentViewedProductListResponse response = userViewService.getUserRecentViewedProductList(userId);
         return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
     }
 }
