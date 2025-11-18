@@ -72,6 +72,7 @@ public enum ErrorStatus implements BaseStatus {
      */
     INVALID_FILE_TYPE("S3-001", HttpStatus.BAD_REQUEST, "허용되지 않은 파일 형식입니다."),
     FILE_TOO_LARGE( "S3-002", HttpStatus.BAD_REQUEST,"파일 크기가 5MB를 초과했습니다."),
+    S3_SERVER_ERROR("S3_500", HttpStatus.INTERNAL_SERVER_ERROR,"S3 업로드 중 오류가 발생하였습니다."),
 
     /**
      * Tag
@@ -83,7 +84,12 @@ public enum ErrorStatus implements BaseStatus {
      * Product
      */
     PRODUCT_NOT_FOUND("PRODUCT_404", HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다."),
-    INVALID_IMAGE_ORDER("PRODUCT_400", HttpStatus.BAD_REQUEST,  "잘못된 이미지 순서입니다.");
+    INVALID_IMAGE_ORDER("PRODUCT_400", HttpStatus.BAD_REQUEST,  "잘못된 이미지 순서입니다."),
+
+    /**
+     * Reference
+     */
+    REFERENCE_NOT_FOUND("REFERENCE_404", HttpStatus.NOT_FOUND, "존재하지 않는 레퍼런스입니다.");
         
 
     private final String code;

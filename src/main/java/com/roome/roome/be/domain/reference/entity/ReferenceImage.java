@@ -18,6 +18,7 @@ public class ReferenceImage extends BaseEntity {
     @JoinColumn(name = "reference_id", nullable = false)
     private Reference reference;
 
-    @Column(nullable = false, length = 512, unique = true)
-    private String imageUrl;
+    @Column(nullable = false, length = 256, unique = true)
+    private String objectKey;
+
 }
