@@ -36,7 +36,7 @@ public class UserService {
     private final UserViewRepository userViewRepository;
 
     private final UserLikeCustomRepositoryImpl userLikeCustomRepositoryImpl;
-    private final UserScrapCustomRepositoryImpl userScrapCustomRepositoryImpl;
+    private final UserScrapProductCustomRepositoryImpl userScrapCustomRepositoryImpl;
     private final UserViewCustomRepositoryImpl userViewCustomRepositoryImpl;
 
     private final S3Service s3Service;
@@ -123,6 +123,12 @@ public class UserService {
         List<CommonProductInfo> userScrappedProductList = userScrapCustomRepositoryImpl.findUserScrappedProductListByUserId(userId);
         return new UserScrappedProductListResponse(userScrappedProductList);
     }
+
+    // 유저가 스크랩한 상품 리스트 조회
+//    public UserScrappedReferenceListResponse getUserScrappedReferenceList(Long userId) {
+//        List<CommonReferenceInfo> userScrappedReferenceList = userScrapCustomRepositoryImpl.findUserScrappedProductListByUserId(userId);
+//        return new UserScrappedProductListResponse(userScrappedProductList);
+//    }
 
     // 유저가 최근 본 상품 리스트 조회
     public UserRecentViewedProductListResponse getUserRecentViewedProductList(Long userId) {

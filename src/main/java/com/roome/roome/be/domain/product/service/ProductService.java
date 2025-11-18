@@ -11,7 +11,7 @@ import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserLike;
 import com.roome.roome.be.domain.user.entity.UserScrapProduct;
 import com.roome.roome.be.domain.user.repository.UserLikeRepository;
-import com.roome.roome.be.domain.user.repository.UserScrapRepository;
+import com.roome.roome.be.domain.user.repository.UserScrapProductRepository;
 import com.roome.roome.be.domain.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -49,7 +49,7 @@ public class ProductService {
 	private final ProductTagRepository productTagRepository;
 
     private final UserLikeRepository userLikeRepository;
-    private final UserScrapRepository userScrapRepository;
+    private final UserScrapProductRepository userScrapProductRepository;
 
     private final ProductTagService productTagService;
     private final ProductImageService productImageService;
@@ -254,17 +254,17 @@ public class ProductService {
 
         boolean scrapped;
 
-        Optional<UserScrapProduct> existing = userScrapRepository.findByUserAndProduct(user, product);
+        Optional<UserScrapProduct> existing = userScrapProductRepository.findByUserAndProduct(user, product);
         if (existing.isEmpty()) {
             UserScrapProduct userScrapProduct = UserScrapProduct.builder()
                     .user(user)
                     .product(product)
                     .build();
-            userScrapRepository.save(userScrapProduct);
+            userScrapProductRepository.save(userScrapProduct);
             scrapped = true;
         }
         else {
-            userScrapRepository.delete(existing.get());
+            userScrapProductRepository.delete(existing.get());
             scrapped = false;
         }
 

@@ -19,7 +19,7 @@ import static com.roome.roome.be.domain.user.entity.QUserScrapProduct.userScrapP
 
 @Repository
 @RequiredArgsConstructor
-public class UserScrapCustomRepositoryImpl implements UserScrapCustomRepository {
+public class UserScrapProductCustomRepositoryImpl implements UserScrapProductCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 

@@ -48,7 +48,6 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.UPDATE_USER_PROFILE_SUCCESS);
     }
 
-
     @PostMapping("/onboarding")
     @Operation(summary = "유저 온보딩 정보 저장")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "온보딩 정보 저장 성공", content = @Content)
@@ -83,15 +82,25 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
     }
 
-    @GetMapping("/scraps")
+    @GetMapping("/scraps/product")
     @Operation(summary = "유저가 스크랩한 상품 리스트 조회")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserScrappedProductListResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 상품 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserScrappedProductListResponse.class)))
     public ResponseEntity<ApiResponse<UserScrappedProductListResponse>> getUserScrappedProductList(
             @AuthenticationPrincipal Long userId
     ) {
         UserScrappedProductListResponse response = userService.getUserScrappedProductList(userId);
-        return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
+        return ApiResponse.success(SuccessStatus.GET_USER_SCRAP_PRODUCT_LIST_SUCCESS, response);
     }
+
+//    @GetMapping("/scraps/reference")
+//    @Operation(summary = "유저가 스크랩한 레퍼런스 리스트 조회")
+//    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 레퍼런스 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserScrappedReferenceListResponse.class)))
+//    public ResponseEntity<ApiResponse<UserScrappedReferenceListResponse>> getUserScrappedReferenceList(
+//            @AuthenticationPrincipal Long userId
+//    ) {
+//        UserScrappedReferenceListResponse response = userService.getUserScrappedReferenceList(userId);
+//        return ApiResponse.success(SuccessStatus.GET_USER_SCRAP_REFERENCE_LIST_SUCCESS, response);
+//    }
 
     @GetMapping("/recent-views")
     @Operation(summary = "유저가 최근 본 상품 리스트 조회")

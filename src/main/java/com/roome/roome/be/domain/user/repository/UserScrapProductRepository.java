@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface UserScrapRepository extends JpaRepository<UserScrapProduct, Long> {
+public interface UserScrapProductRepository extends JpaRepository<UserScrapProduct, Long> {
     Optional<UserScrapProduct> findByUserAndProduct(User user, Product product);
 }
