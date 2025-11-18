@@ -1,0 +1,31 @@
+package com.roome.roome.be.domain.inquiry.service;
+
+import com.roome.roome.be.domain.inquiry.dto.request.RegisterInquiryRequest;
+import com.roome.roome.be.domain.inquiry.entity.Inquiry;
+import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
+import com.roome.roome.be.domain.inquiry.repository.InquiryRepository;
+import com.roome.roome.be.domain.user.entity.User;
+import com.roome.roome.be.domain.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class InquiryService {
+
+    private final InquiryRepository inquiryRepository;
+    private final UserService userService;
+
+    public void registerInquiry(Long userId, RegisterInquiryRequest request) {
+        User user = userService.getUserById(userId);
+
+        inquiryRepository.save(Inquiry.builder()
+                .user(user)
+                .content(request.content())
+                .status(InquiryStatus.OPEN)
+                .type(request.type())
+                .build()
+        );
+    }
+
+}
