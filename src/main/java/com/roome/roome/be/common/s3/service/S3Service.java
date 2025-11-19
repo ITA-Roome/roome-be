@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.status.ErrorStatus;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -78,6 +80,7 @@ public class S3Service {
 			case SHOP_PROFILE   -> "shops/%d/profile/%s.%s".formatted(id, uuid, ext);
 			case PRODUCT_DETAIL -> "products/%d/detail/%s.%s".formatted(id, uuid, ext);
 			case UPLOAD_SESSION -> "uploads/%d/detail/%s.%s".formatted(id, uuid, ext);
+			case REFERENCE      -> "references/%d/%s.%s".formatted(id, uuid, ext); // ★ 추가
 		};
 	}
 
@@ -102,5 +105,23 @@ public class S3Service {
 		amazonS3.deleteObject(bucket, objectKey);
 	}
 
+	public String uploadObject(StorageScope storageScope, long id, MultipartFile file) {
+		validate(file.getContentType(), file.getSize());
+
+		String ext = CT_TO_EXT.get(file.getContentType());
+		String objectKey = buildKey(storageScope, id, ext);
+
+		try{
+			ObjectMetadata metadata = new ObjectMetadata();
+			metadata.setContentType(file.getContentType());
+			metadata.setContentLength(file.getSize());
+
+			amazonS3.putObject(bucket, objectKey, file.getInputStream(), metadata);
+		}catch (Exception e){
+			throw new GeneralException(ErrorStatus.FILE_TOO_LARGE);
+		}
+
+		return objectKey;
+	}
 }
 

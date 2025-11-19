@@ -5,5 +5,7 @@ public enum StorageScope {
     SHOP_PROFILE,
     PRODUCT_DETAIL,
     //임시저장용
-    UPLOAD_SESSION
+    UPLOAD_SESSION,
+    // 레퍼런스용
+    REFERENCE;
 }
