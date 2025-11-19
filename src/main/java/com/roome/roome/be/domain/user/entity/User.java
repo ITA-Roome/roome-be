@@ -35,6 +35,9 @@ public class User extends BaseEntity {
 
     private String refreshToken;
 
+    @Column(length = 512)
+    private String profileImage;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -51,4 +54,11 @@ public class User extends BaseEntity {
         this.password = password;
     }
 
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
 }

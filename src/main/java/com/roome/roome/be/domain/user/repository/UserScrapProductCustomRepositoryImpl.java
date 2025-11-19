@@ -15,24 +15,24 @@ import static com.roome.roome.be.domain.product.entity.QProduct.product;
 import static com.roome.roome.be.domain.product.entity.QProductImage.productImage;
 import static com.roome.roome.be.domain.product.entity.QProductTag.productTag;
 import static com.roome.roome.be.domain.product.entity.QTag.tag;
-import static com.roome.roome.be.domain.user.entity.QUserScrap.userScrap;
+import static com.roome.roome.be.domain.user.entity.QUserScrapProduct.userScrapProduct;
 
 @Repository
 @RequiredArgsConstructor
-public class UserScrapCustomRepositoryImpl implements UserScrapCustomRepository {
+public class UserScrapProductCustomRepositoryImpl implements UserScrapProductCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public List<CommonProductInfo> findUserScrappedProductListByUserId(Long userId) {
         return jpaQueryFactory
-                .from(userScrap)
-                .join(userScrap.product, product)
+                .from(userScrapProduct)
+                .join(userScrapProduct.product, product)
                 .leftJoin(product.productImageList, productImage)
                 .leftJoin(product.productTagList, productTag)
                 .leftJoin(productTag.tag, tag)
-                .where(userScrap.user.id.eq(userId))
-                .orderBy(userScrap.updatedAt.desc())
+                .where(userScrapProduct.user.id.eq(userId))
+                .orderBy(userScrapProduct.updatedAt.desc())
                 .transform(
                         groupBy(product.id).list(
                                 Projections.constructor(CommonProductInfo.class,

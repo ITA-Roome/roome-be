@@ -7,5 +7,7 @@ public enum StorageScope {
     //임시저장용
     UPLOAD_SESSION,
     // 레퍼런스용
-    REFERENCE;
+    REFERENCE,
+    // 유저 프로필용
+    USER_PROFILE
 }

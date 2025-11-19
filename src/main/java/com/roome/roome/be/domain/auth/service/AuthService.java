@@ -45,7 +45,7 @@ public class AuthService {
     // 로그인
     @Transactional
     public EmailLoginResponse login(LoginRequest request) {
-        User user = userService.findUserByEmail(request.email());
+        User user = userService.getUserByEmail(request.email());
         validatePasswordMatch(request.password(), user.getPassword(), PasswordValidationType.LOGIN);
 
         String accessToken = jwtService.generateAccessToken(user);
@@ -58,14 +58,14 @@ public class AuthService {
     // 로그아웃
     @Transactional
     public void logout(Long userId) {
-        User user = userService.findUserById(userId);
+        User user = userService.getUserById(userId);
         userService.clearRefreshToken(user);
     }
 
     // Update Password
     @Transactional
     public void updatePassword(UpdatePasswordRequest request) {
-        User user = userService.findUserByEmail(request.email());
+        User user = userService.getUserByEmail(request.email());
         validatePasswordMatch(request.password(), user.getPassword(), PasswordValidationType.UPDATE);
 
         userService.updatePassword(user, passwordEncoder.encode(request.password()));
@@ -73,7 +73,7 @@ public class AuthService {
 
     // 전화번호로 이메일 찾기
     public FindEmailResponse findEmail(FindEmailRequest request) {
-        User user = userService.findUserByPhoneNumber(request.phoneNumber())
+        User user = userService.getUserByPhoneNumber(request.phoneNumber())
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_NOT_FOUND_1));
         return new FindEmailResponse(user.getEmail());
     }
@@ -142,7 +142,7 @@ public class AuthService {
     @Transactional
     public ReissueAccessTokenResponse reissueAccessToken(String refreshToken) {
         var claims = jwtService.validateRefreshToken(refreshToken);
-        User user = userService.findUserByRefreshToken(claims, refreshToken);
+        User user = userService.getUserByRefreshToken(claims, refreshToken);
 
         String newAccessToken = jwtService.generateAccessToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);

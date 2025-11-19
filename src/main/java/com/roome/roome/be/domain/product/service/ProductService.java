@@ -3,16 +3,10 @@ package com.roome.roome.be.domain.product.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.TagType;
-import com.roome.roome.be.domain.user.entity.User;
-import com.roome.roome.be.domain.user.entity.UserLike;
-import com.roome.roome.be.domain.user.entity.UserScrap;
-import com.roome.roome.be.domain.user.repository.UserLikeRepository;
-import com.roome.roome.be.domain.user.repository.UserScrapRepository;
-import com.roome.roome.be.domain.user.service.UserService;
+import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,14 +42,12 @@ public class ProductService {
 	private final ProductImageRepository productImageRepository;
 	private final ProductTagRepository productTagRepository;
 
-    private final UserLikeRepository userLikeRepository;
-    private final UserScrapRepository userScrapRepository;
 
     private final ProductTagService productTagService;
     private final ProductImageService productImageService;
     private final S3Service s3Service;
     private final ImageUrlBuilder imageUrlBuilder;
-    private final UserService userService;
+    private final UserViewService userViewService;
 
 	@Value("${storage.defaults.shop-logo}")
 	private String defaultShopLogoUrl;
@@ -84,7 +76,6 @@ public class ProductService {
     // 상품 상세 조회
     @Transactional
     public ProductDetailResponse getDetail(Long productId, Long userId) {
-        User user = userService.findUserById(userId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
 
@@ -113,7 +104,7 @@ public class ProductService {
 
 		var shop = ShopSummaryResponse.from(product.getShop(), logoUrl);
 
-        userService.registerUserView(product, user);
+        userViewService.registerUserView(product, userId);
 
         return new ProductDetailResponse(
                 product.getId(),
@@ -217,58 +208,6 @@ public class ProductService {
                 }
             }
         });
-    }
-
-    // 상품 좋아요 or 좋아요 취소 기능 구현
-    @Transactional
-    public ProductToggleLikeResponse toggleProductLike(Long productId, Long userId) {
-        Product product = findProductById(productId);
-        User user = userService.findUserById(userId);
-
-        boolean liked;
-
-        Optional<UserLike> existing = userLikeRepository.findByUserAndProduct(user, product);
-        if (existing.isEmpty()) {
-            UserLike userLike = UserLike.builder()
-                    .user(user)
-                    .product(product)
-                    .build();
-            userLikeRepository.save(userLike);
-            liked = true;
-            product.incrementLikeCount();
-        }
-        else {
-            userLikeRepository.delete(existing.get());
-            liked = false;
-            product.decrementLikeCount();
-        }
-
-        return new ProductToggleLikeResponse(liked);
-    }
-
-    // 상품 스크랩 or 스크랩 취소 기능 구현
-    @Transactional
-    public ProductToggleScrapResponse toggleProductScrap(Long productId, Long userId) {
-        Product product = findProductById(productId);
-        User user = userService.findUserById(userId);
-
-        boolean scrapped;
-
-        Optional<UserScrap> existing = userScrapRepository.findByUserAndProduct(user, product);
-        if (existing.isEmpty()) {
-            UserScrap userScrap = UserScrap.builder()
-                    .user(user)
-                    .product(product)
-                    .build();
-            userScrapRepository.save(userScrap);
-            scrapped = true;
-        }
-        else {
-            userScrapRepository.delete(existing.get());
-            scrapped = false;
-        }
-
-        return new ProductToggleScrapResponse(scrapped);
     }
 
     public Product findProductById(Long productId) {
