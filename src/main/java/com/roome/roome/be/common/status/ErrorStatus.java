@@ -45,6 +45,7 @@ public enum ErrorStatus implements BaseStatus {
     ID_ALREADY_EXISTS("AUTH_409", HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
     EMAIL_ALREADY_EXISTS("AUTH_409", HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
     SEND_VERIFICATION_CODE_EMAIL_INTERNAL_SERVER_ERROR("500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 인증 코드 발송 중 오류가 발생했습니다."),
+    NOT_ADMIN_ERROR("AUTH_403",HttpStatus.FORBIDDEN,"관리자가 아닙니다."),
 
     /**
      * JWT
@@ -66,6 +67,14 @@ public enum ErrorStatus implements BaseStatus {
      * Shop
      */
     SHOP_NOT_FOUND("SHOP_404", HttpStatus.NOT_FOUND, "존재하지 않는 가게입니다."),
+
+    /**
+     * Inquiry
+     */
+    INQUIRY_NOT_FOUND("INQUIRY_404", HttpStatus.NOT_FOUND, "존재하지 않는 문의내역입니다."),
+    INQUIRY_ANSWER_NOT_FOUND("INQUIRY_404", HttpStatus.NOT_FOUND, "존재하지 않는 문의 답변입니다."),
+    INQUIRY_ANSWER_ALREADY_EXISTS("INQUIRY_409", HttpStatus.CONFLICT, "이미 답변이 작성되었습니다"),
+    INQUIRY_NOT_ANSWERED("INQUIRY_409",HttpStatus.CONFLICT, "답변을 수정할 수 없는 상태입니다."),
 
     /**
      * image

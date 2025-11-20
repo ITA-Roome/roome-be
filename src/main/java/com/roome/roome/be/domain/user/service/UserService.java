@@ -140,4 +140,13 @@ public class UserService {
         user.updatePassword(encryptedPassword);
     }
 
+    // 관리자 검사
+    public User validateAdmin(Long userId) {
+        User user = getUserById(userId);
+        if (user.getRole() != Role.ADMIN) {
+            throw new GeneralException(ErrorStatus.NOT_ADMIN_ERROR);
+        }
+        return user;
+    }
+
 }

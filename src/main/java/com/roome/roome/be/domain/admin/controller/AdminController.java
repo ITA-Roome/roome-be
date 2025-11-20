@@ -1,21 +1,25 @@
 package com.roome.roome.be.domain.admin.controller;
 
+import com.roome.roome.be.common.response.PageResponse;
 import com.roome.roome.be.common.s3.dto.request.PresignedUrlRequest;
 import com.roome.roome.be.common.s3.dto.response.PresignedUrlBatchResponse;
 import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.s3.service.S3Service;
+import com.roome.roome.be.domain.admin.dto.request.AdminInquiryAnswerRequest;
+import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchConditionRequest;
+import com.roome.roome.be.domain.admin.service.AdminService;
+import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryResponse;
+import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
+import com.roome.roome.be.domain.inquiry.enums.InquiryType;
 import com.roome.roome.be.domain.shop.dto.request.ShopRegisterRequest;
 import com.roome.roome.be.domain.shop.dto.request.ShopUpdateRequest;
 import com.roome.roome.be.domain.shop.dto.response.ShopRegisterResponse;
 import com.roome.roome.be.domain.shop.service.ShopService;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
@@ -39,6 +43,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
 
+    private final AdminService adminService;
     private final ProductService productService;
     private final ProductImageService productImageService;
     private final ShopService shopService;
@@ -149,5 +154,55 @@ public class AdminController {
     ) {
         var responses = s3Service.generatePresignedPutUrls(StorageScope.PRODUCT_DETAIL, sessionId, files);
         return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, responses);
+    }
+
+    // 관리자 전용 문의 답변 작성
+    @PostMapping("/inquiries/{inquiryId}/answer")
+    @Operation(summary = "문의 답변 작성",description = "관리자 전용 문의 답변 작성")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 답변 작성 성공", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "문의 내역이 존재하지 않는 경우", content = @Content)
+    public ResponseEntity<ApiResponse<Void>> registerInquiryAnswer(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable("inquiryId") Long inquiryId,
+            @Valid @RequestBody AdminInquiryAnswerRequest request
+    ){
+        adminService.registerAdminInquiryAnswer(userId, inquiryId, request);
+        return ApiResponse.success(SuccessStatus.REGISTER_INQUIRY_ANSWER_SUCCESS);
+    }
+
+    // 관리자 전용 문의 답변 수정
+    @PatchMapping("/inquiries/{inquiryId}/answer")
+    @Operation(summary = "문의 답변 수정",description = "관리자 전용 문의 답변 수정")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 답변 작성 성공", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문의 내역이 존재하지 않거나 답변 내역이 존재하지 않는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "답변을 수정할 수 없는 경우 -> 답변이 등록되지 않았음", content = @Content)
+    public ResponseEntity<ApiResponse<Void>> updateInquiryAnswer(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable("inquiryId") Long inquiryId,
+            @Valid @RequestBody AdminInquiryAnswerRequest request
+    ){
+        adminService.updateAdminInquiryAnswer(userId, inquiryId, request);
+        return ApiResponse.success(SuccessStatus.UPDATE_INQUIRY_ANSWER_SUCCESS);
+    }
+
+    // 관리자 전용 문의 내역 전체 조회
+    @GetMapping("/inquiries")
+    @Operation(summary = "문의하기 내역 전체 조회", description = "관리자 전용 문의 내역 전체 조회")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 내역 전체 조회 성공", content = @Content(schema = @Schema(implementation = AdminInquiryResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 답변을 등록한 경우", content = @Content)
+    public ResponseEntity<ApiResponse<PageResponse<AdminInquiryResponse>>> getInquiryList(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false)InquiryStatus status,
+            @RequestParam(required = false)InquiryType type,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
+    ){
+
+        Page<AdminInquiryResponse> response = adminService.getAdminInquiryList(userId, AdminInquirySearchConditionRequest.of(keyword, status,type, page, size));
+        return ApiResponse.success(SuccessStatus.GET_INQUIRY_LIST_SUCCESS, PageResponse.from(response));
     }
 }

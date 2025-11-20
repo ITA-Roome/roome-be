@@ -31,6 +31,15 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_TOKEN_SUCCESS("AUTH_200", HttpStatus.OK, "토큰 재발급 성공"),
 
     /**
+     * Inquiry
+     */
+    GET_INQUIRY_LIST_SUCCESS("INQUIRY_200",HttpStatus.OK,"문의하기 전체 내역 조회 성공"),
+    UPDATE_INQUIRY_ANSWER_SUCCESS("INQUIRY_200", HttpStatus.CREATED, "문의 답변 수정 성공"),
+    REGISTER_INQUIRY_SUCCESS("INQUIRY_201", HttpStatus.CREATED, "문의 등록 성공"),
+    REGISTER_INQUIRY_ANSWER_SUCCESS("INQUIRY_201", HttpStatus.CREATED, "문의 답변 등록 성공"),
+
+
+    /**
      * User
      */
     SAVE_USER_ONBOARDING_SUCCESS("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공"),
