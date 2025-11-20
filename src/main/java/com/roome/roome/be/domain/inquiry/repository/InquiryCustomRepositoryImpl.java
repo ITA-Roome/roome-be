@@ -5,7 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchCondition;
-import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryDetailResponse;
+import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryResponse;
 import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
 import com.roome.roome.be.domain.inquiry.enums.InquiryType;
 import com.roome.roome.be.domain.user.dto.request.UserInquirySearchCondition;
@@ -30,13 +30,13 @@ public class InquiryCustomRepositoryImpl implements InquiryCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Page<AdminInquiryDetailResponse> findAdminInquiryList(AdminInquirySearchCondition condition, Pageable pageable) {
+    public Page<AdminInquiryResponse> findAdminInquiryList(AdminInquirySearchCondition condition, Pageable pageable) {
 
         QUser admin = new QUser("admin");
 
-        List<AdminInquiryDetailResponse> content = jpaQueryFactory
+        List<AdminInquiryResponse> content = jpaQueryFactory
                 .select(Projections.constructor(
-                        AdminInquiryDetailResponse.class,
+                        AdminInquiryResponse.class,
                         inquiry.id,
                         inquiry.type,
                         inquiry.status,

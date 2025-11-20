@@ -2,13 +2,12 @@ package com.roome.roome.be.domain.inquiry.service;
 
 import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchCondition;
 import com.roome.roome.be.domain.inquiry.dto.request.RegisterInquiryRequest;
-import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryDetailResponse;
+import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryResponse;
 import com.roome.roome.be.domain.inquiry.entity.Inquiry;
 import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
 import com.roome.roome.be.domain.inquiry.repository.InquiryCustomRepository;
 import com.roome.roome.be.domain.inquiry.repository.InquiryRepository;
 import com.roome.roome.be.domain.user.dto.request.UserInquirySearchCondition;
-import com.roome.roome.be.domain.user.dto.request.UserInquirySearchConditionRequest;
 import com.roome.roome.be.domain.user.dto.response.UserInquiryResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.service.UserService;
@@ -38,7 +37,7 @@ public class InquiryService {
         );
     }
 
-    public Page<AdminInquiryDetailResponse> getAdminInquiryList(
+    public Page<AdminInquiryResponse> getAdminInquiryList(
             AdminInquirySearchCondition condition,
             Pageable pageable
     ) {

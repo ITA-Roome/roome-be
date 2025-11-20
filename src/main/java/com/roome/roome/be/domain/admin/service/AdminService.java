@@ -2,7 +2,7 @@ package com.roome.roome.be.domain.admin.service;
 
 import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchCondition;
 import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchConditionRequest;
-import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryDetailResponse;
+import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryResponse;
 import com.roome.roome.be.domain.inquiry.service.InquiryService;
 import com.roome.roome.be.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class AdminService {
     private final InquiryService inquiryService;
     private final UserService userService;
 
-    public Page<AdminInquiryDetailResponse> getAdminInquiryList(
+    public Page<AdminInquiryResponse> getAdminInquiryList(
             Long userId,
             AdminInquirySearchConditionRequest request
     ) {

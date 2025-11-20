@@ -5,7 +5,7 @@ import com.roome.roome.be.domain.inquiry.enums.InquiryType;
 
 import java.time.LocalDateTime;
 
-public record AdminInquiryDetailResponse(
+public record AdminInquiryResponse(
 
         Long inquiryId,                // 문의 ID
         InquiryType inquiryType,       // 문의 타입

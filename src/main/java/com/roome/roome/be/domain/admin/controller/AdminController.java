@@ -7,7 +7,7 @@ import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.s3.service.S3Service;
 import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchConditionRequest;
 import com.roome.roome.be.domain.admin.service.AdminService;
-import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryDetailResponse;
+import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryResponse;
 import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
 import com.roome.roome.be.domain.inquiry.enums.InquiryType;
 import com.roome.roome.be.domain.shop.dto.request.ShopRegisterRequest;
@@ -158,9 +158,9 @@ public class AdminController {
     // 관리자 전용 문의 내역 전체 조회
     @GetMapping("/inquiries")
     @Operation(summary = "문의하기 내역 전체 조회", description = "관리자 전용 문의 내역 전체 조회")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 내역 전체 조회 성공", content = @Content(schema = @Schema(implementation = AdminInquiryDetailResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 내역 전체 조회 성공", content = @Content(schema = @Schema(implementation = AdminInquiryResponse.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
-    public ResponseEntity<ApiResponse<PageResponse<AdminInquiryDetailResponse>>> getInquiryList(
+    public ResponseEntity<ApiResponse<PageResponse<AdminInquiryResponse>>> getInquiryList(
             @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false)InquiryStatus status,
@@ -169,7 +169,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") Integer size
     ){
 
-        Page<AdminInquiryDetailResponse> response = adminService.getAdminInquiryList(userId, AdminInquirySearchConditionRequest.of(keyword, status,type, page, size));
+        Page<AdminInquiryResponse> response = adminService.getAdminInquiryList(userId, AdminInquirySearchConditionRequest.of(keyword, status,type, page, size));
         return ApiResponse.success(SuccessStatus.GET_INQUIRY_LIST_SUCCESS, PageResponse.from(response));
     }
 }
