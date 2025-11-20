@@ -1,11 +1,10 @@
 package com.roome.roome.be.domain.product.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.TagType;
+import com.roome.roome.be.domain.user.repository.UserLikeRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -41,6 +40,7 @@ public class ProductService {
 	private final ShopRepository shopRepository;
 	private final ProductImageRepository productImageRepository;
 	private final ProductTagRepository productTagRepository;
+    private final UserLikeRepository userLikeRepository;
 
 
     private final ProductTagService productTagService;
@@ -120,7 +120,7 @@ public class ProductService {
         );
     }
 
-    // 목록 조회
+    // 상품 목록 조회
     @Transactional(readOnly = true)
     public Page<ProductListItemResponse> getList(
             Long shopId,                 // 가게 필터
@@ -134,12 +134,13 @@ public class ProductService {
             String keyWord,
             Integer minPrice,
             Integer maxPrice,
-            Pageable pageable
+            Pageable pageable,
+            Long userId
     ) {
-        // [수정 3] match 문자열 정규화
+        // match 문자열 정규화
         final String normalizedMatch = (match == null) ? "any" : match.trim().toLowerCase();
 
-        // [수정 4] 모든 태그 파라미터를 Map으로 조립
+        // 모든 태그 파라미터를 Map으로 조립
         Map<TagType, List<String>> tagFilters = new HashMap<>();
         if (colorTags != null && !colorTags.isEmpty()) tagFilters.put(TagType.COLOR, colorTags);
         if (materialTags != null && !materialTags.isEmpty()) tagFilters.put(TagType.MATERIAL, materialTags);
@@ -158,8 +159,24 @@ public class ProductService {
                 pageable
         );
 
-        return page.map(p -> ProductListItemResponse.from(p, imageUrlBuilder));
+        Set<Long> likedProductIds = new HashSet<>();
+        if (userId != null && !page.isEmpty()) {
+            List<Long> productIds = page.getContent().stream()
+                    .map(Product::getId)
+                    .toList();
 
+            if (!productIds.isEmpty()) {
+                likedProductIds = userLikeRepository.findLikedProductIds(userId, productIds);
+            }
+        }
+
+        // [수정] map 할 때 likedProductIds에 포함되어 있는지 확인하여 true/false 전달
+        final Set<Long> finalLikedProductIds = likedProductIds;
+        return page.map(p -> ProductListItemResponse.from(
+                p,
+                imageUrlBuilder,
+                finalLikedProductIds.contains(p.getId())
+        ));
     }
 
     // 상품 수정
