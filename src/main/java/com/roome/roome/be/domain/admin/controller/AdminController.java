@@ -161,7 +161,7 @@ public class AdminController {
     @Operation(summary = "문의 답변 작성",description = "관리자 전용 문의 답변 작성")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 답변 작성 성공", content = @Content)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문의 내역이 존재하지 않는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "문의 내역이 존재하지 않는 경우", content = @Content)
     public ResponseEntity<ApiResponse<Void>> registerInquiryAnswer(
             @AuthenticationPrincipal Long userId,
             @PathVariable("inquiryId") Long inquiryId,
@@ -169,6 +169,22 @@ public class AdminController {
     ){
         adminService.registerAdminInquiryAnswer(userId, inquiryId, request);
         return ApiResponse.success(SuccessStatus.REGISTER_INQUIRY_ANSWER_SUCCESS);
+    }
+
+    // 관리자 전용 문의 답변 수정
+    @PatchMapping("/inquiries/{inquiryId}/answer")
+    @Operation(summary = "문의 답변 수정",description = "관리자 전용 문의 답변 수정")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 답변 작성 성공", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문의 내역이 존재하지 않거나 답변 내역이 존재하지 않는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "답변을 수정할 수 없는 경우 -> 답변이 등록되지 않았음", content = @Content)
+    public ResponseEntity<ApiResponse<Void>> updateInquiryAnswer(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable("inquiryId") Long inquiryId,
+            @Valid @RequestBody AdminInquiryAnswerRequest request
+    ){
+        adminService.updateAdminInquiryAnswer(userId, inquiryId, request);
+        return ApiResponse.success(SuccessStatus.UPDATE_INQUIRY_ANSWER_SUCCESS);
     }
 
     // 관리자 전용 문의 내역 전체 조회

@@ -72,7 +72,9 @@ public enum ErrorStatus implements BaseStatus {
      * Inquiry
      */
     INQUIRY_NOT_FOUND("INQUIRY_404", HttpStatus.NOT_FOUND, "존재하지 않는 문의내역입니다."),
+    INQUIRY_ANSWER_NOT_FOUND("INQUIRY_404", HttpStatus.NOT_FOUND, "존재하지 않는 문의 답변입니다."),
     INQUIRY_ANSWER_ALREADY_EXISTS("INQUIRY_409", HttpStatus.CONFLICT, "이미 답변이 작성되었습니다"),
+    INQUIRY_NOT_ANSWERED("INQUIRY_409",HttpStatus.CONFLICT, "답변을 수정할 수 없는 상태입니다."),
 
     /**
      * image

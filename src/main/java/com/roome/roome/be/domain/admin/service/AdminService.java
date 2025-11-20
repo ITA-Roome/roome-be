@@ -37,4 +37,13 @@ public class AdminService {
         User admin = userService.validateAdmin(userId);
         inquiryAnswerService.registerInquiryAnswer(admin,inquiryId, request.content());
     }
+
+    public void updateAdminInquiryAnswer(
+            Long userId,
+            Long inquiryId,
+            AdminInquiryAnswerRequest request
+    ){
+        userService.validateAdmin(userId);
+        inquiryAnswerService.updateInquiryAnswer(inquiryId, request.content());
+    }
 }

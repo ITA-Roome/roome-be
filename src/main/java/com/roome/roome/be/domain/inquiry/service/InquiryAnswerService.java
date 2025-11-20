@@ -22,16 +22,37 @@ public class InquiryAnswerService {
     public void registerInquiryAnswer(User admin, Long inquiryId, String content) {
         Inquiry inquiry = inquiryService.getInquiryById(inquiryId);
 
-        if(inquiry.getStatus() == InquiryStatus.ANSWERED)
+        // inquiryAnswer 존재 여부가 가장 중요함
+        if (inquiry.getAnswer() != null) {
             throw new GeneralException(ErrorStatus.INQUIRY_ANSWER_ALREADY_EXISTS);
+        }
 
-        inquiryAnswerRepository.save(
-                InquiryAnswer.builder()
-                        .inquiry(inquiry)
-                        .admin(admin)
-                        .content(content)
-                        .build()
-        );
+        InquiryAnswer answer = InquiryAnswer.builder()
+                .inquiry(inquiry)
+                .admin(admin)
+                .content(content)
+                .build();
+
+        inquiryAnswerRepository.save(answer);
         inquiry.updateInquiryStatus(InquiryStatus.ANSWERED);
     }
+
+
+    @Transactional
+    public void updateInquiryAnswer(Long inquiryId, String content) {
+        Inquiry inquiry = inquiryService.getInquiryById(inquiryId);
+
+        // 답변된 경우만 수정 가능
+        if (inquiry.getStatus() != InquiryStatus.ANSWERED) {
+            throw new GeneralException(ErrorStatus.INQUIRY_NOT_ANSWERED);
+        }
+
+        InquiryAnswer inquiryAnswer = inquiry.getAnswer();
+        if (inquiryAnswer == null) {
+            throw new GeneralException(ErrorStatus.INQUIRY_ANSWER_NOT_FOUND);
+        }
+
+        inquiryAnswer.updateContent(content);
+    }
+
 }
