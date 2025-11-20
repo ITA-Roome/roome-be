@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 
 
 public interface InquiryCustomRepository {
-     Page<AdminInquiryDetailResponse> findInquiryList(AdminInquirySearchCondition condition, Pageable pageable);
+     Page<AdminInquiryDetailResponse> findAdminInquiryList(AdminInquirySearchCondition condition, Pageable pageable);
 }

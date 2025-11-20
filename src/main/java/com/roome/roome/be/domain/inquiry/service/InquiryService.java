@@ -35,11 +35,11 @@ public class InquiryService {
         );
     }
 
-    public Page<AdminInquiryDetailResponse> getInquiryList(
+    public Page<AdminInquiryDetailResponse> getAdminInquiryList(
             AdminInquirySearchCondition condition,
             Pageable pageable
     ) {
-        return inquiryCustomRepository.findInquiryList(condition,pageable);
+        return inquiryCustomRepository.findAdminInquiryList(condition,pageable);
     }
 
 }

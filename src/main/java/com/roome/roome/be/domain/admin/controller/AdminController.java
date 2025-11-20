@@ -169,7 +169,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") Integer size
     ){
 
-        Page<AdminInquiryDetailResponse> response = adminService.getInquiryList(userId, AdminInquirySearchConditionRequest.of(keyword, status,type, page, size));
+        Page<AdminInquiryDetailResponse> response = adminService.getAdminInquiryList(userId, AdminInquirySearchConditionRequest.of(keyword, status,type, page, size));
         return ApiResponse.success(SuccessStatus.GET_INQUIRY_LIST_SUCCESS, PageResponse.from(response));
     }
 }

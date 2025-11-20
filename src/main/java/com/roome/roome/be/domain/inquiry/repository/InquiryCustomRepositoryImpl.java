@@ -28,7 +28,7 @@ public class InquiryCustomRepositoryImpl implements InquiryCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Page<AdminInquiryDetailResponse> findInquiryList(AdminInquirySearchCondition condition, Pageable pageable) {
+    public Page<AdminInquiryDetailResponse> findAdminInquiryList(AdminInquirySearchCondition condition, Pageable pageable) {
 
         QUser admin = new QUser("admin");
 
