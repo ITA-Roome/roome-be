@@ -26,5 +26,4 @@ public class InquiryAnswer extends BaseEntity {
     @Column(length = 300, nullable = false)
     private String content;
 
-
 }

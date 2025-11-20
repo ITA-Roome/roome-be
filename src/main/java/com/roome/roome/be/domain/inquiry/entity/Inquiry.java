@@ -34,4 +34,9 @@ public class Inquiry extends BaseEntity {
 
     @OneToOne(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true)
     private InquiryAnswer answer;
+
+    public void updateInquiryStatus(InquiryStatus status) {
+        this.status = status;
+    }
+
 }

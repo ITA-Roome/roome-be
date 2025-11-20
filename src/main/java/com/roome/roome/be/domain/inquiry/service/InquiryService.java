@@ -1,5 +1,7 @@
 package com.roome.roome.be.domain.inquiry.service;
 
+import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchCondition;
 import com.roome.roome.be.domain.inquiry.dto.request.RegisterInquiryRequest;
 import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryResponse;
@@ -49,6 +51,12 @@ public class InquiryService {
             Pageable pageable
     ){
         return inquiryCustomRepository.findUserInquiryList(condition,pageable);
+    }
+
+    public Inquiry getInquiryById(Long id) {
+        return inquiryRepository.findById(id).orElseThrow(
+                () ->  new GeneralException(ErrorStatus.INQUIRY_NOT_FOUND)
+        );
     }
 
 }

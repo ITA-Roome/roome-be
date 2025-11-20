@@ -5,6 +5,7 @@ import com.roome.roome.be.common.s3.dto.request.PresignedUrlRequest;
 import com.roome.roome.be.common.s3.dto.response.PresignedUrlBatchResponse;
 import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.s3.service.S3Service;
+import com.roome.roome.be.domain.admin.dto.request.AdminInquiryAnswerRequest;
 import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchConditionRequest;
 import com.roome.roome.be.domain.admin.service.AdminService;
 import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryResponse;
@@ -155,11 +156,27 @@ public class AdminController {
         return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, responses);
     }
 
+    // 관리자 전용 문의 답변 작성
+    @PostMapping("/inquiries/{inquiryId}/answer")
+    @Operation(summary = "문의 답변 작성",description = "관리자 전용 문의 답변 작성")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 답변 작성 성공", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문의 내역이 존재하지 않는 경우", content = @Content)
+    public ResponseEntity<ApiResponse<Void>> registerInquiryAnswer(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable("inquiryId") Long inquiryId,
+            @Valid @RequestBody AdminInquiryAnswerRequest request
+    ){
+        adminService.registerAdminInquiryAnswer(userId, inquiryId, request);
+        return ApiResponse.success(SuccessStatus.REGISTER_INQUIRY_ANSWER_SUCCESS);
+    }
+
     // 관리자 전용 문의 내역 전체 조회
     @GetMapping("/inquiries")
     @Operation(summary = "문의하기 내역 전체 조회", description = "관리자 전용 문의 내역 전체 조회")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 내역 전체 조회 성공", content = @Content(schema = @Schema(implementation = AdminInquiryResponse.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 답변을 등록한 경우", content = @Content)
     public ResponseEntity<ApiResponse<PageResponse<AdminInquiryResponse>>> getInquiryList(
             @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) String keyword,
