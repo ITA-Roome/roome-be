@@ -1,11 +1,19 @@
 package com.roome.roome.be.domain.user.controller;
 
 import com.roome.roome.be.common.response.ApiResponse;
+import com.roome.roome.be.common.response.PageResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
+import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchConditionRequest;
+import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryDetailResponse;
+import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
+import com.roome.roome.be.domain.inquiry.enums.InquiryType;
+import com.roome.roome.be.domain.inquiry.service.InquiryService;
 import com.roome.roome.be.domain.product.dto.response.ProductToggleLikeResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductToggleScrapResponse;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceToggleScrapResponse;
 import com.roome.roome.be.domain.user.dto.request.UpdateUserProfileRequest;
+import com.roome.roome.be.domain.user.dto.request.UserInquirySearchCondition;
+import com.roome.roome.be.domain.user.dto.request.UserInquirySearchConditionRequest;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
 import com.roome.roome.be.domain.user.dto.response.*;
 import com.roome.roome.be.domain.user.service.*;
@@ -17,6 +25,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,6 +39,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "User", description = "유저 API")
 public class UserController {
 
+    private final InquiryService inquiryService;
     private final UserLikeService userLikeService;
     private final UserOnboardingService userOnboardingService;
     private final UserService userService;
@@ -175,5 +187,20 @@ public class UserController {
     ) {
         UserRecentViewedProductListResponse response = userViewService.getUserRecentViewedProductList(userId);
         return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
+    }
+
+    @GetMapping("/inquiries")
+    @Operation(summary = "문의하기 내역 전체 조회", description = "유저 전용 문의 내역 전체 조회")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 내역 전체 조회 성공", content = @Content(schema = @Schema(implementation = UserInquiryResponse.class)))
+    public ResponseEntity<ApiResponse<PageResponse<UserInquiryResponse>>> getInquiryList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) InquiryStatus status,
+            @RequestParam(required = false) InquiryType type,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
+    ){
+
+        Page<UserInquiryResponse> response = inquiryService.getUserInquiryList(new UserInquirySearchCondition(keyword,status,type), PageRequest.of(page, size));
+        return ApiResponse.success(SuccessStatus.GET_INQUIRY_LIST_SUCCESS, PageResponse.from(response));
     }
 }

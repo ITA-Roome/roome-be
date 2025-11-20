@@ -8,6 +8,8 @@ import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchCondition;
 import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryDetailResponse;
 import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
 import com.roome.roome.be.domain.inquiry.enums.InquiryType;
+import com.roome.roome.be.domain.user.dto.request.UserInquirySearchCondition;
+import com.roome.roome.be.domain.user.dto.response.UserInquiryResponse;
 import com.roome.roome.be.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -71,6 +73,47 @@ public class InquiryCustomRepositoryImpl implements InquiryCustomRepository {
                 );
 
         return PageableExecutionUtils.getPage(content,pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public Page<UserInquiryResponse> findUserInquiryList(UserInquirySearchCondition condition, Pageable pageable) {
+        List<UserInquiryResponse> content = jpaQueryFactory
+                .select(
+                        Projections.constructor(
+                                UserInquiryResponse.class,
+                                inquiry.id,
+                                inquiry.type,
+                                inquiry.status,
+                                inquiry.content,
+                                inquiry.createdAt,
+                                inquiryAnswer.content,
+                                inquiryAnswer.createdAt
+                        )
+                )
+                .from(inquiry)
+                .join(inquiry.user,user)
+                .leftJoin(inquiry.answer,inquiryAnswer)
+                .where(
+                        containKeyword(condition.keyword()),
+                        statusEq(condition.status()),
+                        typeEq(condition.type())
+                )
+                .orderBy(inquiry.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        JPAQuery<Long> queryCount = jpaQueryFactory
+                .select(inquiry.count())
+                .from(inquiry)
+                .where(
+                        containKeyword(condition.keyword()),
+                        statusEq(condition.status()),
+                        typeEq(condition.type())
+                );
+
+        return PageableExecutionUtils.getPage(content,pageable, queryCount::fetchOne);
+
     }
 
     private BooleanExpression containKeyword(String keyword) {

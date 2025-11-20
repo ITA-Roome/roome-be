@@ -7,6 +7,9 @@ import com.roome.roome.be.domain.inquiry.entity.Inquiry;
 import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
 import com.roome.roome.be.domain.inquiry.repository.InquiryCustomRepository;
 import com.roome.roome.be.domain.inquiry.repository.InquiryRepository;
+import com.roome.roome.be.domain.user.dto.request.UserInquirySearchCondition;
+import com.roome.roome.be.domain.user.dto.request.UserInquirySearchConditionRequest;
+import com.roome.roome.be.domain.user.dto.response.UserInquiryResponse;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +43,13 @@ public class InquiryService {
             Pageable pageable
     ) {
         return inquiryCustomRepository.findAdminInquiryList(condition,pageable);
+    }
+
+    public Page<UserInquiryResponse> getUserInquiryList(
+            UserInquirySearchCondition condition,
+            Pageable pageable
+    ){
+        return inquiryCustomRepository.findUserInquiryList(condition,pageable);
     }
 
 }
