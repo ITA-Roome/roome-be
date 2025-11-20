@@ -44,7 +44,7 @@ public class ProductController {
 			@PathVariable Long productId,
 			@AuthenticationPrincipal Long userId
 	) {
-		var dto = productService.getDetail(productId,userId);
+		var dto = productService.getDetail(productId, userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_DETAIL, dto);
 	}
 
@@ -114,21 +114,24 @@ public class ProductController {
 			@Parameter(name = "size", description = "페이지 크기", example = "20")
 	})
 	public ResponseEntity<ApiResponse<Page<ProductListItemResponse>>> getProducts(
-		@RequestParam(required = false) Long shopId,
-		@RequestParam(required = false) Category category,
-		@RequestParam(required = false, name = "color") List<String> colorTags,
-        @RequestParam(required = false, name = "material") List<String> materialTags,
-		@RequestParam(required = false, name = "style") List<String> styleTags,
-		@RequestParam(required = false, name = "feature") List<String> featureTags,
-		@RequestParam(required = false, name = "mood") List<String> moodTags,
-		@RequestParam(required = false, defaultValue = "any") String match,
-		@RequestParam(required = false) String keyWord,
-		@RequestParam(required = false) Integer minPrice,
-		@RequestParam(required = false) Integer maxPrice,
-		@ParameterObject
-		@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+			@RequestParam(required = false) Long shopId,
+			@RequestParam(required = false) Category category,
+			@RequestParam(required = false, name = "color") List<String> colorTags,
+			@RequestParam(required = false, name = "material") List<String> materialTags,
+			@RequestParam(required = false, name = "style") List<String> styleTags,
+			@RequestParam(required = false, name = "feature") List<String> featureTags,
+			@RequestParam(required = false, name = "mood") List<String> moodTags,
+			@RequestParam(required = false, defaultValue = "any") String match,
+			@RequestParam(required = false) String keyWord,
+			@RequestParam(required = false) Integer minPrice,
+			@RequestParam(required = false) Integer maxPrice,
+
+			@AuthenticationPrincipal Long userId,
+
+			@ParameterObject
+			@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
 	) {
-		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags, match, keyWord, minPrice, maxPrice, pageable);
+		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags, match, keyWord, minPrice, maxPrice, pageable, userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_LIST, page);
 	}
 }
