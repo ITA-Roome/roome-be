@@ -14,9 +14,10 @@ public record ProductListItemResponse(
 	String productUrl,
 	String thumbnailUrl,
 	Long shopId,
-	String shopName
+	String shopName,
+	boolean isLiked
 ) {
-	public static ProductListItemResponse from(Product product, ImageUrlBuilder imageUrlBuilder) {
+	public static ProductListItemResponse from(Product product, ImageUrlBuilder imageUrlBuilder, boolean isLiked) {
 		String category = product.getCategory() != null ? product.getCategory().name() : null;
 		String productUrl = product.getProductUrl() != null ? product.getProductUrl() : null;
 
@@ -28,14 +29,15 @@ public record ProductListItemResponse(
 		String shopName = (product.getShop() != null) ? product.getShop().getName() : null;
 
 		return new ProductListItemResponse(
-			product.getId(),
-			product.getName(),
-			product.getPrice(),
-			category,
-			productUrl,
-			thumbnailUrl,
-			shopId,
-			shopName
+				product.getId(),
+				product.getName(),
+				product.getPrice(),
+				category,
+				productUrl,
+				thumbnailUrl,
+				shopId,
+				shopName,
+				isLiked
 		);
 	}
 }
