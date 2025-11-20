@@ -33,7 +33,9 @@ public enum SuccessStatus implements BaseStatus {
     /**
      * Inquiry
      */
+    GET_INQUIRY_LIST_SUCCESS("INQUIRY_200",HttpStatus.OK,"문의하기 전체 내역 조회 성공"),
     REGISTER_INQUIRY_SUCCESS("INQUIRY_201", HttpStatus.CREATED, "문의 등록 성공"),
+
 
     /**
      * User

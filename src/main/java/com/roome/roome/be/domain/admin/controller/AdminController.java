@@ -1,21 +1,24 @@
 package com.roome.roome.be.domain.admin.controller;
 
+import com.roome.roome.be.common.response.PageResponse;
 import com.roome.roome.be.common.s3.dto.request.PresignedUrlRequest;
 import com.roome.roome.be.common.s3.dto.response.PresignedUrlBatchResponse;
 import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.s3.service.S3Service;
+import com.roome.roome.be.domain.admin.dto.request.AdminInquirySearchConditionRequest;
+import com.roome.roome.be.domain.admin.service.AdminService;
+import com.roome.roome.be.domain.inquiry.dto.response.AdminInquiryDetailResponse;
+import com.roome.roome.be.domain.inquiry.enums.InquiryStatus;
+import com.roome.roome.be.domain.inquiry.enums.InquiryType;
 import com.roome.roome.be.domain.shop.dto.request.ShopRegisterRequest;
 import com.roome.roome.be.domain.shop.dto.request.ShopUpdateRequest;
 import com.roome.roome.be.domain.shop.dto.response.ShopRegisterResponse;
 import com.roome.roome.be.domain.shop.service.ShopService;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
@@ -39,6 +42,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
 
+    private final AdminService adminService;
     private final ProductService productService;
     private final ProductImageService productImageService;
     private final ShopService shopService;
@@ -149,5 +153,23 @@ public class AdminController {
     ) {
         var responses = s3Service.generatePresignedPutUrls(StorageScope.PRODUCT_DETAIL, sessionId, files);
         return ApiResponse.success(SuccessStatus.S3_PRESIGNED_ISSUE_SUCCESS, responses);
+    }
+
+    // 관리자 전용 문의 내역 전체 조회
+    @GetMapping("/inquiries")
+    @Operation(summary = "문의하기 내역 전체 조회", description = "관리자 전용 문의 내역 전체 조회")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "문의 내역 전체 조회 성공", content = @Content(schema = @Schema(implementation = AdminInquiryDetailResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한이 없는 경우", content = @Content)
+    public ResponseEntity<ApiResponse<PageResponse<AdminInquiryDetailResponse>>> getInquiryList(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false)InquiryStatus status,
+            @RequestParam(required = false)InquiryType type,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
+    ){
+
+        Page<AdminInquiryDetailResponse> response = adminService.getInquiryList(userId, AdminInquirySearchConditionRequest.of(keyword, status,type, page, size));
+        return ApiResponse.success(SuccessStatus.GET_INQUIRY_LIST_SUCCESS, PageResponse.from(response));
     }
 }

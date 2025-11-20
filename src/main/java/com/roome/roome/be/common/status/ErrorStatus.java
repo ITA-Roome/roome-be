@@ -45,6 +45,7 @@ public enum ErrorStatus implements BaseStatus {
     ID_ALREADY_EXISTS("AUTH_409", HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
     EMAIL_ALREADY_EXISTS("AUTH_409", HttpStatus.CONFLICT, "이미 존재하는 이메일입니다."),
     SEND_VERIFICATION_CODE_EMAIL_INTERNAL_SERVER_ERROR("500", HttpStatus.INTERNAL_SERVER_ERROR, "이메일 인증 코드 발송 중 오류가 발생했습니다."),
+    NOT_ADMIN_ERROR("AUTH_403",HttpStatus.FORBIDDEN,"관리자가 아닙니다."),
 
     /**
      * JWT
