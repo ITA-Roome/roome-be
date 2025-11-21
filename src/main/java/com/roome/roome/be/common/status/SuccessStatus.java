@@ -89,7 +89,9 @@ public enum SuccessStatus implements BaseStatus {
      * Search
      */
     GET_POPULAR_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "인기 검색어 조회 성공"),
-    RECORD_SEARCH_KEYWORD_SUCCESS( "SEARCH_201", HttpStatus.OK,"검색어 기록 성공");
+    RECORD_SEARCH_KEYWORD_SUCCESS( "SEARCH_201", HttpStatus.OK,"검색어 기록 성공"),
+    GET_RECENT_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "최근 검색어 조회 성공");
+
     private final String code;
     private final HttpStatus httpStatus;
     private final String message;
