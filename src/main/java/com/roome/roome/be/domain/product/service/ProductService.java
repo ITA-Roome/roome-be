@@ -4,7 +4,6 @@ import java.util.*;
 
 import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.TagType;
-import com.roome.roome.be.domain.product.repository.ProductCustomRepository;
 import com.roome.roome.be.domain.user.repository.UserLikeRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;

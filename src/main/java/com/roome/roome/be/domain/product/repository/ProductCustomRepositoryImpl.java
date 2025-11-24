@@ -92,6 +92,10 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 select(Projections.constructor(
                         RelatedProductResponse.class,
                         product.id,
+                        product.name,
+                        product.category,
+                        product.description,
+                        product.price,
                         productImage.imageUrl
                 ))
                 .from(product)
