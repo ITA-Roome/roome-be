@@ -29,7 +29,7 @@ public class UserLikeService {
     // 상품 좋아요 or 좋아요 취소 기능 구현
     @Transactional
     public ProductToggleLikeResponse toggleProductLike(Long productId, Long userId) {
-        Product product = productService.findProductById(productId);
+        Product product = productService.getProductById(productId);
         User user = userService.getUserById(userId);
 
         boolean liked;
