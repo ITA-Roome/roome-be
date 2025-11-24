@@ -1,9 +1,13 @@
 package com.roome.roome.be.domain.product.repository;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
 import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.enums.TagType;
@@ -17,13 +21,14 @@ import java.util.Map;
 
 import static com.roome.roome.be.domain.product.entity.QProduct.product;
 import static com.roome.roome.be.domain.product.entity.QProductTag.productTag;
+import static com.roome.roome.be.domain.product.entity.QProductImage.productImage;
 import static com.roome.roome.be.domain.product.entity.QTag.tag;
 import static com.roome.roome.be.domain.shop.entity.QShop.shop;
 
 @RequiredArgsConstructor
 public class ProductCustomRepositoryImpl implements ProductCustomRepository {
 
-    private final JPAQueryFactory queryFactory; // QueryDSL 사용을 위해 주입
+    private final JPAQueryFactory jpaQueryFactory; // QueryDSL 사용을 위해 주입
 
     @Override
     public Page<Product> findByDynamicFilters(
@@ -38,7 +43,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     ) {
 
         // 1. 기본 쿼리 (SELECT p FROM Product p ...)
-        JPAQuery<Product> query = queryFactory
+        JPAQuery<Product> query = jpaQueryFactory
                 .selectFrom(product)
                 .leftJoin(product.shop, shop).fetchJoin() // N+1 방지
                 .distinct();
@@ -62,7 +67,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         List<Product> content = query.fetch();
 
         // 5. Count 쿼리 실행 (페이징을 위해)
-        JPAQuery<Long> countQuery = queryFactory
+        JPAQuery<Long> countQuery = jpaQueryFactory
                 .select(product.countDistinct())
                 .from(product)
                 .where(
@@ -75,6 +80,27 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, Category category, List<Long> tagIdList) {
+
+        NumberExpression<Integer> relevanceScore =
+                buildRelevanceScore(category, tagIdList);
+
+        return jpaQueryFactory.
+                select(Projections.constructor(
+                        RelatedProductResponse.class,
+                        product.id,
+                        productImage.imageUrl
+                ))
+                .from(product)
+                .leftJoin(productImage).on(product.id.eq(productImage.product.id).and(productImage.sortOrder.eq(1)))
+                .leftJoin(productTag).on(product.id.eq(productTag.product.id))
+                .where(product.id.ne(excludeProductId))
+                .orderBy(relevanceScore.desc())
+                .limit(20)
+                .fetch();
     }
 
     private BooleanExpression shopIdEq(Long shopId) {
@@ -127,9 +153,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 }
             }
             return allMatch;
-        }
-
-        else {
+        } else {
             BooleanExpression anyMatch = null;
             for (Map.Entry<TagType, List<String>> entry : tagFilters.entrySet()) {
                 TagType type = entry.getKey();
@@ -151,4 +175,17 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
             return anyMatch;
         }
     }
+
+    private NumberExpression<Integer> buildRelevanceScore(
+            Category category,
+            List<Long> tagIds
+    ) {
+        return new CaseBuilder()
+                .when(product.category.eq(category)).then(1).otherwise(0)
+                .add(
+                        new CaseBuilder()
+                                .when(productTag.tag.id.in(tagIds)).then(1).otherwise(0)
+                );
+    }
+
 }

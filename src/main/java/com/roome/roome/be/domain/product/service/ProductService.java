@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.TagType;
+import com.roome.roome.be.domain.product.repository.ProductCustomRepository;
 import com.roome.roome.be.domain.user.repository.UserLikeRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,12 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ProductService {
 
-	private final ProductRepository productRepository;
-	private final ShopRepository shopRepository;
-	private final ProductImageRepository productImageRepository;
-	private final ProductTagRepository productTagRepository;
+    private final ProductRepository productRepository;
+    private final ShopRepository shopRepository;
+    private final ProductImageRepository productImageRepository;
+    private final ProductTagRepository productTagRepository;
     private final UserLikeRepository userLikeRepository;
-
 
     private final ProductTagService productTagService;
     private final ProductImageService productImageService;
@@ -49,21 +49,21 @@ public class ProductService {
     private final ImageUrlBuilder imageUrlBuilder;
     private final UserViewService userViewService;
 
-	@Value("${storage.defaults.shop-logo}")
-	private String defaultShopLogoUrl;
+    @Value("${storage.defaults.shop-logo}")
+    private String defaultShopLogoUrl;
 
-	// 상품 등록
-	@Transactional
-	public Long register(RegisterProductRequest registerProductRequest) {
-		Product product = productRepository.save(Product.builder()
-			.name(registerProductRequest.name())
-			.price(registerProductRequest.price())
-			.category(registerProductRequest.category())
-			.productUrl(registerProductRequest.productUrl())
-			.description(registerProductRequest.description())
-			.shop(shopRepository.findById(registerProductRequest.shopId())
-				.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND)))
-			.build());
+    // 상품 등록
+    @Transactional
+    public Long register(RegisterProductRequest registerProductRequest) {
+        Product product = productRepository.save(Product.builder()
+                .name(registerProductRequest.name())
+                .price(registerProductRequest.price())
+                .category(registerProductRequest.category())
+                .productUrl(registerProductRequest.productUrl())
+                .description(registerProductRequest.description())
+                .shop(shopRepository.findById(registerProductRequest.shopId())
+                        .orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND)))
+                .build());
 
         if (registerProductRequest.images() != null) {
             productImageService.commitSessionImages(product.getId(), registerProductRequest.images());
@@ -76,48 +76,49 @@ public class ProductService {
     // 상품 상세 조회
     @Transactional
     public ProductDetailResponse getDetail(Long productId, Long userId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
+        Product product = getProductById(productId);
 
-		var images = productImageRepository.findByProductIdOrderBySortOrder(productId).stream()
-			.map(productImage -> new ProductImageResponse(
-				productImage.getObjectKey(),
-				imageUrlBuilder.build(productImage.getObjectKey()),
-				productImage.getSortOrder()
-			))
-			.toList();
+        // ------------------------------
+        // 1) 대표 이미지 + 상세 이미지
+        // ------------------------------
+        var images = productImageRepository.findByProductIdOrderBySortOrder(productId)
+                .stream()
+                .map(productImage -> ProductImageResponse.from(productImage, imageUrlBuilder))
+                .toList();
 
-		String thumbnailUrl = (product.getThumbnailKey() != null)
-			? imageUrlBuilder.build(product.getThumbnailKey())
-			: (images.isEmpty() ? null : images.get(0).url());
+        String thumbnailUrl = (product.getThumbnailKey() != null)
+                ? imageUrlBuilder.build(product.getThumbnailKey())
+                : (images.isEmpty() ? null : images.get(0).url());
 
-		var tags = productTagRepository.findByProductIdWithTag(productId).stream()
-			.map(productTag -> new ProductTagResponse(
-				productTag.getTag().getId(),
-				productTag.getTag().getType(),
-				productTag.getTag().getName()))
-			.toList();
+        // ------------------------------
+        // 2) 상품 태그
+        // ------------------------------
+        var tags = productTagRepository.findByProductIdWithTag(productId).stream()
+                .map(productTag -> ProductTagResponse.from(productTag.getTag()))
+                .toList();
 
-		String logoUrl = (product.getShop().getLogoObjectKey() != null && !product.getShop().getLogoObjectKey().isBlank())
-			? imageUrlBuilder.build(product.getShop().getLogoObjectKey())
-			: defaultShopLogoUrl;
+        // ------------------------------
+        // 3) Shop 정보
+        // ------------------------------
+        String logoUrl = (product.getShop().getLogoObjectKey() != null && !product.getShop().getLogoObjectKey().isBlank())
+                ? imageUrlBuilder.build(product.getShop().getLogoObjectKey())
+                : defaultShopLogoUrl;
 
-		var shop = ShopSummaryResponse.from(product.getShop(), logoUrl);
-
+        // ------------------------------
+        // 4) 유저 조회 로그 저장
+        // ------------------------------
+        var shop = ShopSummaryResponse.from(product.getShop(), logoUrl);
         userViewService.registerUserView(product, userId);
 
-        return new ProductDetailResponse(
-                product.getId(),
-                product.getName(),
-                product.getPrice(),
-                product.getProductUrl(),
-                product.getCategory().name(),
-                product.getDescription(),
-                shop,
-                thumbnailUrl,
-                images,
-                tags
-        );
+        List<Long> tagIdList = tags.stream().map(ProductTagResponse::id).toList();
+
+        List<RelatedProductResponse> relatedProductList =
+                productRepository.findRelatedProductList(
+                        productId,
+                        product.getCategory(),
+                        tagIdList
+                );
+        return ProductDetailResponse.from(product, thumbnailUrl, images, tags, shop, relatedProductList);
     }
 
     // 상품 목록 조회
@@ -227,7 +228,7 @@ public class ProductService {
         });
     }
 
-    public Product findProductById(Long productId) {
+    public Product getProductById(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
     }
