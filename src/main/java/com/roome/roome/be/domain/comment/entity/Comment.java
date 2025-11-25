@@ -54,7 +54,7 @@ public class Comment extends BaseEntity {
     @Column(name = "commentable_id", nullable = false)
     private Long commentableId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 200)
     private String content;
 
     @Column(name = "like_count", nullable = false)

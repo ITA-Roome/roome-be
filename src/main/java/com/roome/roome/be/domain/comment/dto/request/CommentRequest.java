@@ -3,6 +3,7 @@ package com.roome.roome.be.domain.comment.dto.request;
 import com.roome.roome.be.domain.comment.enums.CommentableType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class CommentRequest {
     private Long commentableId;
 
     @NotBlank(message = "댓글 내용은 필수입니다.")
+    @Size(max = 200, message = "댓글 내용은 최대 200자까지 입력 가능합니다.")
     private String content;
 
     private Long parentCommentId;
