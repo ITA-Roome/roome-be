@@ -1,9 +1,12 @@
 package com.roome.roome.be.domain.comment.service;
 
+import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.comment.entity.Comment;
 import com.roome.roome.be.domain.comment.entity.CommentLike;
 import com.roome.roome.be.domain.comment.repository.CommentLikeRepository;
 import com.roome.roome.be.domain.comment.repository.CommentRepository;
+import com.roome.roome.be.domain.comment.validator.CommentValidator;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,16 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CommentLikeService {
 
-    private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final UserRepository userRepository;
+    private final CommentValidator commentValidator;
 
     public void toggleLike(Long userId, Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        Comment comment = commentValidator.findCommentById(commentId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         // 좋아요 상태 확인 및 토글
         commentLikeRepository.findByCommentIdAndUserId(commentId, userId)

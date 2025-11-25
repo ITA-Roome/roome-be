@@ -1,5 +1,7 @@
 package com.roome.roome.be.domain.comment.service;
 
+import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.comment.converter.CommentConverter;
 import com.roome.roome.be.domain.comment.dto.request.CommentRequest;
 import com.roome.roome.be.domain.comment.dto.request.CommentUpdateRequest;
@@ -7,6 +9,7 @@ import com.roome.roome.be.domain.comment.dto.response.CommentResponse;
 import com.roome.roome.be.domain.comment.entity.Comment;
 import com.roome.roome.be.domain.comment.repository.CommentRepository;
 import com.roome.roome.be.domain.comment.repository.CommentLikeRepository;
+import com.roome.roome.be.domain.comment.validator.CommentValidator;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,26 +25,18 @@ public class CommentCoreService {
     private final UserRepository userRepository;
     private final CommentConverter commentConverter;
     private final CommentLikeRepository commentLikeRepository;
-
-    private Comment findCommentById(Long commentId) {
-        return commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-    }
-
-    private void validateCommentAuthor(Comment comment, Long userId) {
-        if (!comment.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("댓글 수정/삭제 권한이 없습니다.");
-        }
-    }
+    private final CommentValidator commentValidator;
 
     // 댓글 생성
     public CommentResponse createComment(Long userId, CommentRequest requestDto) {
+        commentValidator.validateCommentContent(requestDto.getContent());
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
+        commentValidator.validateCommentableEntity(requestDto.getCommentableType(), requestDto.getCommentableId());
         Comment parentComment = null;
         if (requestDto.getParentCommentId() != null) {
-            parentComment = findCommentById(requestDto.getParentCommentId());
+            parentComment = commentValidator.findCommentById(requestDto.getParentCommentId());
         }
 
         Comment comment = commentConverter.toEntity(requestDto, user, parentComment);
@@ -52,20 +47,18 @@ public class CommentCoreService {
 
     // 댓글 수정
     public CommentResponse updateComment(Long userId, Long commentId, CommentUpdateRequest updateDto) {
-        Comment comment = findCommentById(commentId);
-        validateCommentAuthor(comment, userId);
-
+        Comment comment = commentValidator.findCommentById(commentId);
+        commentValidator.validateCommentAuthor(comment, userId);
         comment.updateContent(updateDto.getContent());
 
         boolean isLiked = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
-
         return commentConverter.toDto(comment, userId, isLiked);
     }
 
     // 댓글 삭제
     public void deleteComment(Long userId, Long commentId) {
-        Comment comment = findCommentById(commentId);
-        validateCommentAuthor(comment, userId);
+        Comment comment = commentValidator.findCommentById(commentId);
+        commentValidator.validateCommentAuthor(comment, userId);
 
         commentRepository.delete(comment);
     }
