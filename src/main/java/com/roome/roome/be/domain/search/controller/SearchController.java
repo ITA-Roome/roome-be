@@ -20,36 +20,19 @@ import com.roome.roome.be.domain.search.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/search")
+@Tag(name = "Search")
 public class SearchController {
 
 	private final SearchService searchService;
 
-	// 1) 검색이 발생할 때 프론트에서 호출
-	@PostMapping("/keywords")
-	@Operation(
-		summary = "검색어 기록",
-		description = "검색 발생 시 인기·최근 검색어로 기록합니다."
-	)
-	@io.swagger.v3.oas.annotations.responses.ApiResponse(
-		responseCode = "200",
-		description = "검색어 기록 성공",
-		content = @Content(mediaType = "application/json", schema = @Schema())
-	)
-	public ResponseEntity<ApiResponse<Void>> recordKeyword(
-		@AuthenticationPrincipal Long userId,
-		@RequestBody SearchRequest request
-	) {
-		searchService.recordSearch(request.keyword(), userId);
-		return ApiResponse.success(SuccessStatus.RECORD_SEARCH_KEYWORD_SUCCESS);
-	}
 
-
-	// 2) 인기 검색어 리스트 조회 (검색 화면 진입 시)
+	// 인기 검색어 리스트 조회 (검색 화면 진입 시)
 	@GetMapping(value = "/keywords/popular", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(
 		summary = "인기 검색어 조회",
@@ -66,6 +49,7 @@ public class SearchController {
 		return ApiResponse.success(SuccessStatus.GET_POPULAR_KEYWORDS_LIST_SUCCESS, response);
 	}
 
+	//최근 검색어
 	@GetMapping("/keywords/recent")
 	@Operation(
 		summary = "최근 검색어 조회",
