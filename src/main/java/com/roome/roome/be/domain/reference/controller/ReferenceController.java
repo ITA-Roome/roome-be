@@ -37,10 +37,8 @@ public class ReferenceController {
         @AuthenticationPrincipal Long userId,
         @RequestParam(required = false) String keyword
     ){
-        if (keyword != null && !keyword.isBlank() && userId != null) {
-            searchService.recordSearch(keyword, userId);
-        }
 
+        searchService.recordSearch(keyword, userId);
         ReferenceListResponse response = referenceService.getReferenceList(userId);
         return ApiResponse.success(SuccessStatus.GET_REFERENCE_LIST_SUCCESS,response);
     }
