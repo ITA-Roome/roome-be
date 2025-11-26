@@ -86,6 +86,15 @@ public enum SuccessStatus implements BaseStatus {
     GET_REFERENCE_LIST_SUCCESS("REFERENCE_200",HttpStatus.OK,"레퍼런스 리스트 조회 성공"),
 
     /**
+     * Comment
+     */
+    CREATE_COMMENT_SUCCESS("COMMENT_201", HttpStatus.CREATED, "댓글 생성 성공"),
+    GET_COMMENT_LIST_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 목록 조회 성공"),
+    UPDATE_COMMENT_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 수정 성공"),
+    DELETE_COMMENT_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 삭제 성공"),
+    TOGGLE_COMMENT_LIKE_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 좋아요 토글 성공"),
+
+    /**
      * Search
      */
     GET_POPULAR_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "인기 검색어 조회 성공"),

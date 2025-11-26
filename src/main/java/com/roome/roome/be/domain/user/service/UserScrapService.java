@@ -45,7 +45,7 @@ public class UserScrapService {
     @Transactional
     public ProductToggleScrapResponse toggleProductScrap(Long productId, Long userId) {
         User user = userService.getUserById(userId);
-        Product product = productService.findProductById(productId);
+        Product product = productService.getProductById(productId);
 
         boolean scrapped;
 

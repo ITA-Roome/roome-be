@@ -98,8 +98,15 @@ public enum ErrorStatus implements BaseStatus {
     /**
      * Reference
      */
-    REFERENCE_NOT_FOUND("REFERENCE_404", HttpStatus.NOT_FOUND, "존재하지 않는 레퍼런스입니다.");
-        
+    REFERENCE_NOT_FOUND("REFERENCE_404", HttpStatus.NOT_FOUND, "존재하지 않는 레퍼런스입니다."),
+
+    /**
+     * Comment
+     */
+    COMMENT_NOT_FOUND("COMMENT_404", HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."),
+    COMMENTABLE_ENTITY_NOT_FOUND("COMMENT_404", HttpStatus.NOT_FOUND, "댓글을 달 대상(게시글/상품 등)이 존재하지 않습니다."),
+    COMMENT_AUTHOR_MISMATCH("COMMENT_403", HttpStatus.FORBIDDEN, "댓글 수정/삭제 권한이 없습니다."),
+    COMMENT_CONTENT_TOO_LONG("COMMENT_400", HttpStatus.BAD_REQUEST, "댓글 내용은 최대 400자까지 입력 가능합니다.");
 
     private final String code;
     private final HttpStatus httpStatus;
