@@ -1,6 +1,7 @@
 package com.roome.roome.be.domain.shop.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
+import com.roome.roome.be.domain.search.service.SearchService;
 import com.roome.roome.be.domain.shop.dto.response.ShopDetailResponse;
 import com.roome.roome.be.domain.shop.dto.response.ShopListResponse;
 import com.roome.roome.be.domain.shop.service.ShopService;
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class ShopController {
 
 	private final ShopService shopService;
+	private final SearchService searchService;
 
     //가게 상세 조회
 	@GetMapping("/{shopId}")
@@ -46,6 +49,7 @@ public class ShopController {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "가게 상세 조회 성공", content = @Content)
 	@Operation(summary = "가게 목록 조회: 페이지 최근 가게부터 보여줌(역순)")
 	public ResponseEntity<ApiResponse<ShopListResponse>> getShops(
+		@AuthenticationPrincipal Long userId,
 		@Parameter(description = "조회할 페이지 번호 (0부터 시작)", example = "0")
 		@RequestParam(defaultValue = "0") int page,
 		@Parameter(description = "페이지당 항목 개수", example = "10")
@@ -53,6 +57,9 @@ public class ShopController {
 		@Parameter(description = "가게 이름 검색어(선택사항), 포함된 검색어가 있으면 반환", example = "이케아")
 		@RequestParam(required = false) String name
 	) {
+		if (name != null && !name.isBlank() && userId != null) {
+			searchService.recordSearch(name, userId);
+		}
 		ShopListResponse shopListResponse = shopService.getShopList(page, size, name);
 		return ApiResponse.success(SuccessStatus.GET_SHOP_LIST_SUCCESS, shopListResponse);
 	}

@@ -17,6 +17,7 @@ import com.roome.roome.be.domain.product.dto.response.ProductDetailResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductListItemResponse;
 import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.service.ProductService;
+import com.roome.roome.be.domain.search.service.SearchService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductController {
 
 	private final ProductService productService;
+	private final SearchService searchService;
 
 	//상품 상세 조회
 	@GetMapping("/{productId}")
@@ -114,6 +116,7 @@ public class ProductController {
 			@Parameter(name = "size", description = "페이지 크기", example = "20")
 	})
 	public ResponseEntity<ApiResponse<Page<ProductListItemResponse>>> getProducts(
+
 			@RequestParam(required = false) Long shopId,
 			@RequestParam(required = false) Category category,
 			@RequestParam(required = false, name = "color") List<String> colorTags,
@@ -131,6 +134,9 @@ public class ProductController {
 			@ParameterObject
 			@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
 	) {
+		if (keyWord != null && !keyWord.isBlank() && userId != null) {
+			searchService.recordSearch(keyWord, userId);
+		}
 		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags, match, keyWord, minPrice, maxPrice, pageable, userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_LIST, page);
 	}
