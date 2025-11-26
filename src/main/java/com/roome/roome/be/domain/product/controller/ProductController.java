@@ -134,9 +134,7 @@ public class ProductController {
 			@ParameterObject
 			@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
 	) {
-		if (keyWord != null && !keyWord.isBlank() && userId != null) {
-			searchService.recordSearch(keyWord, userId);
-		}
+		searchService.recordSearch(keyWord, userId);
 		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags, match, keyWord, minPrice, maxPrice, pageable, userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_LIST, page);
 	}

@@ -35,10 +35,10 @@ public class ReferenceController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReferenceListResponse.class)))
     public ResponseEntity<ApiResponse<ReferenceListResponse>> getReferenceList(
         @AuthenticationPrincipal Long userId,
-        @RequestParam(required = false) String keyword
+        @RequestParam(required = false) String keyWord
     ){
 
-        searchService.recordSearch(keyword, userId);
+        searchService.recordSearch(keyWord, userId);
         ReferenceListResponse response = referenceService.getReferenceList(userId);
         return ApiResponse.success(SuccessStatus.GET_REFERENCE_LIST_SUCCESS,response);
     }

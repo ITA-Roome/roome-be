@@ -57,9 +57,7 @@ public class ShopController {
 		@Parameter(description = "가게 이름 검색어(선택사항), 포함된 검색어가 있으면 반환", example = "이케아")
 		@RequestParam(required = false) String name
 	) {
-		if (name != null && !name.isBlank() && userId != null) {
-			searchService.recordSearch(name, userId);
-		}
+		searchService.recordSearch(name, userId);
 		ShopListResponse shopListResponse = shopService.getShopList(page, size, name);
 		return ApiResponse.success(SuccessStatus.GET_SHOP_LIST_SUCCESS, shopListResponse);
 	}
