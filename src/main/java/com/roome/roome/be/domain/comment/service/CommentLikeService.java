@@ -5,7 +5,6 @@ import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.comment.entity.Comment;
 import com.roome.roome.be.domain.comment.entity.CommentLike;
 import com.roome.roome.be.domain.comment.repository.CommentLikeRepository;
-import com.roome.roome.be.domain.comment.repository.CommentRepository;
 import com.roome.roome.be.domain.comment.validator.CommentValidator;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.repository.UserRepository;

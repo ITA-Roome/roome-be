@@ -10,12 +10,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.ArrayList;
+
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true) // 읽기 전용 트랜잭션
+@Transactional(readOnly = true)
 public class CommentReadService {
 
     private final CommentRepository commentRepository;
