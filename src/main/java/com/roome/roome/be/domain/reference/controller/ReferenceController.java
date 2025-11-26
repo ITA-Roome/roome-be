@@ -4,6 +4,8 @@ import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceListResponse;
 import com.roome.roome.be.domain.reference.service.ReferenceService;
+import com.roome.roome.be.domain.search.service.SearchService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,6 +25,7 @@ import java.util.List;
 @Tag(name = "Reference")
 public class ReferenceController {
     private final ReferenceService referenceService;
+    private final SearchService searchService;
 
     @GetMapping("")
     @Operation(
@@ -31,8 +34,13 @@ public class ReferenceController {
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReferenceListResponse.class)))
     public ResponseEntity<ApiResponse<ReferenceListResponse>> getReferenceList(
-      @AuthenticationPrincipal Long userId
+        @AuthenticationPrincipal Long userId,
+        @RequestParam(required = false) String keyword
     ){
+        if (keyword != null && !keyword.isBlank() && userId != null) {
+            searchService.recordSearch(keyword, userId);
+        }
+
         ReferenceListResponse response = referenceService.getReferenceList(userId);
         return ApiResponse.success(SuccessStatus.GET_REFERENCE_LIST_SUCCESS,response);
     }
