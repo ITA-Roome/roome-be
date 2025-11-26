@@ -92,8 +92,14 @@ public enum SuccessStatus implements BaseStatus {
     GET_COMMENT_LIST_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 목록 조회 성공"),
     UPDATE_COMMENT_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 수정 성공"),
     DELETE_COMMENT_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 삭제 성공"),
-    TOGGLE_COMMENT_LIKE_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 좋아요 토글 성공");
+    TOGGLE_COMMENT_LIKE_SUCCESS("COMMENT_200", HttpStatus.OK, "댓글 좋아요 토글 성공"),
 
+    /**
+     * Search
+     */
+    GET_POPULAR_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "인기 검색어 조회 성공"),
+    RECORD_SEARCH_KEYWORD_SUCCESS( "SEARCH_201", HttpStatus.OK,"검색어 기록 성공"),
+    GET_RECENT_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "최근 검색어 조회 성공");
 
     private final String code;
     private final HttpStatus httpStatus;

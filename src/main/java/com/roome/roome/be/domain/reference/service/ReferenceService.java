@@ -11,6 +11,7 @@ import com.roome.roome.be.domain.reference.entity.Reference;
 import com.roome.roome.be.domain.reference.entity.ReferenceImage;
 import com.roome.roome.be.domain.reference.repository.ReferenceImageRepository;
 import com.roome.roome.be.domain.reference.repository.ReferenceRepository;
+import com.roome.roome.be.domain.search.service.SearchService;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository;
@@ -32,6 +33,7 @@ public class ReferenceService {
 
     private final S3Service s3Service;
     private final ImageUrlBuilder imageUrlBuilder;
+
 
     // 레퍼런스 등록
     public void registerReference(Long userId, List<MultipartFile> images ) {
