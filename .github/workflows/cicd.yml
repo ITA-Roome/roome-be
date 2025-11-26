@@ -95,6 +95,9 @@ jobs:
             SHOP_LOGO=${{ secrets.SHOP_LOGO }}
             STORAGE_CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
             
+            REDIS_HOST=${{ secrets.REDIS_HOST }}  
+            REDIS_PORT=${{ secrets.REDIS_PORT }}
+            
             EOF
          
             sudo chmod +x deploy.sh
