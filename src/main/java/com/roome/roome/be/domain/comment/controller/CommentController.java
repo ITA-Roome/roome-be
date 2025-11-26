@@ -99,7 +99,7 @@ public class CommentController {
         return ApiResponse.success(SuccessStatus.DELETE_COMMENT_SUCCESS);
     }
 
-    @PostMapping("/{commentId}/like")
+    @PostMapping("likes/{commentId}")
     @Operation(summary = "댓글 좋아요 토글", description = "댓글에 좋아요를 추가하거나 취소합니다.")
     @Parameters({
             @Parameter(name = "commentId", description = "좋아요를 토글할 댓글의 ID", example = "456"),
