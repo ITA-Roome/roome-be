@@ -18,7 +18,7 @@ public class CommentValidator {
     private final ProductRepository productRepository;
     private final ReferenceRepository referenceRepository;
 
-    private static final int MAX_CONTENT_LENGTH = 200;
+    private static final int MAX_CONTENT_LENGTH = 400;
 
     // 댓글이 달릴 대상이 존재하는지 확인
     public void validateCommentableEntity(CommentableType type, Long commentableId) {

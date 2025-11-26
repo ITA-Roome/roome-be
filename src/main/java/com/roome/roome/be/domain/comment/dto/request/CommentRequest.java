@@ -22,7 +22,7 @@ public class CommentRequest {
     private Long commentableId;
 
     @NotBlank(message = "댓글 내용은 필수입니다.")
-    @Size(max = 200, message = "댓글 내용은 최대 200자까지 입력 가능합니다.")
+    @Size(max = 400, message = "댓글 내용은 최대 400자까지 입력 가능합니다.")
     private String content;
 
     private Long parentCommentId;

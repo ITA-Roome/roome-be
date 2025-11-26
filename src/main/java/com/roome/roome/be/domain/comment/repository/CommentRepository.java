@@ -16,7 +16,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.parentComment.id = :parentId ORDER BY c.createdAt ASC")
     List<Comment> findChildCommentsByParentId(@Param("parentId") Long parentId);
 
-    // 여러 부모 댓글 ID에 속하는 모든 자식 댓글을 한 번에 조회. (N+1 문제 방지)
     @Query("SELECT c FROM Comment c JOIN FETCH c.user JOIN FETCH c.parentComment WHERE c.parentComment.id IN :parentIds ORDER BY c.createdAt ASC")
     List<Comment> findChildCommentsByParentIds(@Param("parentIds") List<Long> parentIds);
 }
