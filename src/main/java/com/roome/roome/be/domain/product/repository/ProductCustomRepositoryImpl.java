@@ -1,5 +1,7 @@
 package com.roome.roome.be.domain.product.repository;
 
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -14,6 +16,7 @@ import com.roome.roome.be.domain.product.enums.TagType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
@@ -59,9 +62,10 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         );
 
         // 3. 페이징 및 정렬 적용
-        query
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize());
+        applySort(query, pageable);
+
+        query.offset(pageable.getOffset())
+            .limit(pageable.getPageSize());
 
         // 4. 쿼리 실행 (Content)
         List<Product> content = query.fetch();
@@ -190,6 +194,37 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                         new CaseBuilder()
                                 .when(productTag.tag.id.in(tagIds)).then(1).otherwise(0)
                 );
+    }
+    private void applySort(JPAQuery<Product> query, Pageable pageable) {
+
+        // 기본 정렬 (pageable에 sort 없으면)
+        if (pageable.getSort().isUnsorted()) {
+            query.orderBy(product.id.desc());
+            return;
+        }
+
+        boolean hasIdSort = false;
+
+        for (Sort.Order o : pageable.getSort()) {
+            String prop = o.getProperty();          // "price", "id", "createdAt" ...
+            Order dir = o.isAscending() ? Order.ASC : Order.DESC;
+
+            OrderSpecifier<?> spec = switch (prop) {
+                case "id" -> {
+                    hasIdSort = true;
+                    yield new OrderSpecifier<>(dir, product.id);
+                }
+                case "price" -> new OrderSpecifier<>(dir, product.price);
+                case "createdAt" -> new OrderSpecifier<>(dir, product.createdAt);
+                default -> null;
+            };
+
+            if (spec != null) query.orderBy(spec);
+        }
+
+        if (!hasIdSort) {
+            query.orderBy(product.id.desc());
+        }
     }
 
 }
