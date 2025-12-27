@@ -197,7 +197,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     }
     private void applySort(JPAQuery<Product> query, Pageable pageable) {
 
-        // 기본 정렬 (pageable에 sort 없으면)
+        // 기본 정렬
         if (pageable.getSort().isUnsorted()) {
             query.orderBy(product.id.desc());
             return;
@@ -206,7 +206,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         boolean hasIdSort = false;
 
         for (Sort.Order o : pageable.getSort()) {
-            String prop = o.getProperty();          // "price", "id", "createdAt" ...
+            String prop = o.getProperty();
             Order dir = o.isAscending() ? Order.ASC : Order.DESC;
 
             OrderSpecifier<?> spec = switch (prop) {
@@ -216,6 +216,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 }
                 case "price" -> new OrderSpecifier<>(dir, product.price);
                 case "createdAt" -> new OrderSpecifier<>(dir, product.createdAt);
+                case "popularity" -> new OrderSpecifier<>(dir, product.likeCount); //좋아요 순
                 default -> null;
             };
 
