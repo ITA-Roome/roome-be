@@ -5,10 +5,15 @@ import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
 import com.roome.roome.be.common.s3.service.S3Service;
 import com.roome.roome.be.common.status.ErrorStatus;
+import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
+import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
 import com.roome.roome.be.domain.reference.dto.response.CommonReferenceInfo;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceListResponse;
 import com.roome.roome.be.domain.reference.entity.Reference;
 import com.roome.roome.be.domain.reference.entity.ReferenceImage;
+import com.roome.roome.be.domain.reference.enums.ReferenceCategoryMapping;
+import com.roome.roome.be.domain.reference.enums.ReferenceMood;
+import com.roome.roome.be.domain.reference.enums.ReferenceStyle;
 import com.roome.roome.be.domain.reference.repository.ReferenceImageRepository;
 import com.roome.roome.be.domain.reference.repository.ReferenceRepository;
 import com.roome.roome.be.domain.search.service.SearchService;
@@ -21,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +35,6 @@ public class ReferenceService {
     private final ReferenceRepository referenceRepository;
     private final ReferenceImageRepository referenceImageRepository;
     private final UserRepository userRepository;
-    private final UserScrapReferenceRepository userScrapReferenceRepository;
 
     private final S3Service s3Service;
     private final ImageUrlBuilder imageUrlBuilder;
@@ -93,5 +98,15 @@ public class ReferenceService {
     public Reference findReferenceById(Long referenceId) {
         return referenceRepository.findById(referenceId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REFERENCE_NOT_FOUND));
+    }
+
+    public List<CandidateReferenceInfo> getCandidateReferenceList(
+            List<ReferenceCategoryMapping> matchedCategories,
+            Set<ReferenceMood> moodList,
+            Set<ReferenceStyle> styleList,
+            Integer minBudget,
+            Integer maxBudget
+    ) {
+        return referenceRepository.findCandidateReferenceList(matchedCategories,moodList,styleList,minBudget,maxBudget);
     }
 }

@@ -1,16 +1,24 @@
 package com.roome.roome.be.domain.chat.service;
 
 import com.roome.roome.be.domain.ai.dto.request.AiProductRequest;
+import com.roome.roome.be.domain.ai.dto.request.AiReferenceRequest;
 import com.roome.roome.be.domain.ai.dto.response.AiProductResponse;
+import com.roome.roome.be.domain.ai.dto.response.AiReferenceResponse;
 import com.roome.roome.be.domain.ai.service.AiService;
-import com.roome.roome.be.domain.chat.dto.request.ChatScenarioRequest;
-import com.roome.roome.be.domain.chat.dto.response.ChatScenarioResponse;
+import com.roome.roome.be.domain.chat.dto.request.ChatProductScenarioRequest;
+import com.roome.roome.be.domain.chat.dto.request.ChatReferenceScenarioRequest;
+import com.roome.roome.be.domain.chat.dto.response.ChatProductScenarioResponse;
 import com.roome.roome.be.domain.chat.dto.response.ProductSummaryResponse;
+import com.roome.roome.be.domain.chat.dto.response.ChatReferenceScenarioResponse;
 import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
 import com.roome.roome.be.domain.product.service.ProductService;
+import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
 import com.roome.roome.be.domain.reference.enums.*;
+import com.roome.roome.be.domain.reference.service.ReferenceService;
+import com.roome.roome.be.domain.user.entity.User;
+import com.roome.roome.be.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,16 +33,12 @@ import java.util.stream.Collectors;
 public class ChatService {
 
     private final ProductService productService;
+    private final ReferenceService referenceService;
+    private final UserService userService;
     private final AiService aiService;
 
-    public ChatScenarioResponse processChatScenario(Long userId, ChatScenarioRequest request) {
-        return switch (request.chatMode()) {
-            case PRODUCT -> processProductScenario(request);
-            case REFERENCE -> processChatReferenceScenario(request);
-        };
-    }
-
-    private ChatScenarioResponse processChatReferenceScenario(ChatScenarioRequest request) {
+    public ChatReferenceScenarioResponse processChatReferenceScenario(Long userId, ChatReferenceScenarioRequest request) {
+        User user = userService.getUserById(userId);
 
         // 무드와 공간 크기 매칭
         List<ReferenceCategoryMapping> matchedCategories = Arrays.stream(ReferenceCategoryMapping.values())
@@ -52,10 +56,33 @@ public class ChatService {
         Set<ReferenceMood> referenceMoodList= ReferenceMoodMapping.findMoodsByDescription(request.referenceMood().name());
         Set<ReferenceStyle> referenceStyleList= ReferenceStyleMapping.findStylesByDescription(request.referenceStyle().name());
 
-        return null;
+        // 2. DB 필터링
+        List<CandidateReferenceInfo> candidateReferenceList =
+                referenceService.getCandidateReferenceList(
+                        matchedCategories,
+                        referenceMoodList,
+                        referenceStyleList,
+                        request.minBudget(),
+                        request.maxBudget()
+                );
+
+        if (candidateReferenceList.isEmpty()) {
+            // 정책에 따라 빈 카드 or 예외 처리 선택
+            return ChatReferenceScenarioResponse.empty();
+        }
+
+        // AI 요청
+        AiReferenceResponse aiResult =
+                aiService.recommendReferenceList(
+                        AiReferenceRequest.from(user.getNickname(),request, candidateReferenceList)
+                );
+
+        // 응답 변환
+        return ChatReferenceScenarioResponse.from(aiResult);
+
     }
 
-    private ChatScenarioResponse processProductScenario(ChatScenarioRequest request) {
+    public ChatProductScenarioResponse processChatProductScenario(Long userId, ChatProductScenarioRequest request) {
 
         // 1. 카테고리 변환
         List<ProductCategory> categories =
@@ -71,7 +98,7 @@ public class ChatService {
 
         if (candidateProductList.isEmpty()) {
             log.warn("후보 상품 없음");
-            return ChatScenarioResponse.from(List.of());
+            return ChatProductScenarioResponse.from(List.of());
         }
 
         // 3. AI 추천
@@ -100,7 +127,7 @@ public class ChatService {
                         .filter(Objects::nonNull)
                         .toList();
 
-        return ChatScenarioResponse.from(result);
+        return ChatProductScenarioResponse.from(result);
     }
 }
 

@@ -1,6 +1,7 @@
 package com.roome.roome.be.domain.reference.entity;
 
 import com.roome.roome.be.common.base.BaseEntity;
+import com.roome.roome.be.domain.product.entity.ProductTag;
 import com.roome.roome.be.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,4 +43,7 @@ public class Reference extends BaseEntity {
 
     @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
     private List<ReferenceImage> referenceImageList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
+    private List<ReferenceTag> referenceTagList = new ArrayList<>();
 }

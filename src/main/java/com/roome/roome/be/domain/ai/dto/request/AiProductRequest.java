@@ -1,6 +1,6 @@
 package com.roome.roome.be.domain.ai.dto.request;
 
-import com.roome.roome.be.domain.chat.dto.request.ChatScenarioRequest;
+import com.roome.roome.be.domain.chat.dto.request.ChatProductScenarioRequest;
 import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 
@@ -14,15 +14,15 @@ public record AiProductRequest(
         List<CandidateProductInfo> candidateList
 ) {
     public static AiProductRequest from(
-            ChatScenarioRequest req,
+            ChatProductScenarioRequest request,
             List<CandidateProductInfo> candidates,
             List<ProductCategory> categories
     ) {
         return new AiProductRequest(
                 categories.stream().map(Enum::name).toList(),
-                req.preferredColors(),
-                req.minBudget(),
-                req.maxBudget(),
+                request.preferredColors(),
+                request.minBudget(),
+                request.maxBudget(),
                 candidates
         );
     }

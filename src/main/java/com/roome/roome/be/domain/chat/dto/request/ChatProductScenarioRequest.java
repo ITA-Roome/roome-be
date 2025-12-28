@@ -11,15 +11,9 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-public record ChatScenarioRequest(
-        @NotNull(message = "chatMode는 필수입니다.")
-        ChatMode chatMode,
+public record ChatProductScenarioRequest(
 
-        // ===== 인테리어 모드 =====
-        ReferenceType referenceType,
-        ReferenceSize referenceSize,
-        ReferenceMood referenceMood,
-        ReferenceStyle referenceStyle,
+
 
         @Size(max = 3)
         List<String> preferredColors,
