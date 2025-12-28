@@ -130,6 +130,7 @@ public class ProductService {
             List<String> styleTags,
             List<String> featureTags,
             List<String> moodTags,
+            List<String> usageTags,
             String match,                // 기본 any
             String keyWord,
             Integer minPrice,
@@ -147,6 +148,8 @@ public class ProductService {
         if (styleTags != null && !styleTags.isEmpty()) tagFilters.put(TagType.STYLE, styleTags);
         if (featureTags != null && !featureTags.isEmpty()) tagFilters.put(TagType.FEATURE, featureTags);
         if (moodTags != null && !moodTags.isEmpty()) tagFilters.put(TagType.MOOD, moodTags);
+        if (usageTags != null && !usageTags.isEmpty()) tagFilters.put(TagType.USAGE, usageTags);
+
 
         Page<Product> page = productRepository.findByDynamicFilters(
                 shopId,
