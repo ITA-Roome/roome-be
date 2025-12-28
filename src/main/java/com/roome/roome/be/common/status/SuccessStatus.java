@@ -45,6 +45,7 @@ public enum SuccessStatus implements BaseStatus {
     SAVE_USER_ONBOARDING_SUCCESS("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공"),
     CHECK_USER_ONBOARDING_EXISTENCE_SUCCESS("AUTH_200", HttpStatus.OK, "유저 온보딩 존재 여부 조회 성공"),
     GET_USER_LIKE_PRODUCT_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 좋아요 상품 리스트 조회 성공"),
+    GET_USER_LIKE_REFERENCE_LIST_SUCCESS("PRODUCT_200",HttpStatus.OK,"유저 좋아요 레퍼런스 리스트 조회 성공" ),
     GET_USER_SCRAP_PRODUCT_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 스크랩 상품 리스트 조회 성공"),
     GET_USER_SCRAP_REFERENCE_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 스크랩 레퍼런스 리스트 조회 성공"),
     GET_USER_PROFILE_SUCCESS("USER_200",HttpStatus.OK,"유저 프로필 조회 성공"),
@@ -84,6 +85,7 @@ public enum SuccessStatus implements BaseStatus {
     REGISTER_REFERENCE_IMAGE_SUCCESS("REFERENCE_201", HttpStatus.CREATED,"레퍼런스 이미지 등록 성공"),
     CREATE_REFERENCE_SCRAP("REFERENCE_200", HttpStatus.OK, "레퍼런스 스크랩 토글 성공"),
     GET_REFERENCE_LIST_SUCCESS("REFERENCE_200",HttpStatus.OK,"레퍼런스 리스트 조회 성공"),
+    CREATE_REFERENCE_LIKE("REFERENCE_200",HttpStatus.OK,"레퍼런스 좋아요 토글 성공" ),
 
     /**
      * Comment
