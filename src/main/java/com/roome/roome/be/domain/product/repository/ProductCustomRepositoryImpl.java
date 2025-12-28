@@ -203,9 +203,9 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 .leftJoin(product.productTagList, productTag)
                 .leftJoin(productTag.tag, tag)
                 .where(
-                        productCategoryIn(categoryList),
                         priceBetween(minBudget, maxBudget)
                 )
+                .limit(50)
                 .transform(
                         groupBy(product.id).list(
                                 Projections.constructor(CandidateProductInfo.class,
@@ -244,15 +244,4 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         return null;
     }
 
-    private BooleanExpression productCategoryIn(List<ProductCategory> categoryList){
-        if(categoryList == null || categoryList.isEmpty())
-            return null;
-
-        return tag.type.eq(TagType.PRODUCT_TYPE)
-                .and(tag.name.in(
-                        categoryList.stream()
-                                .map(Enum::name)
-                                .toList()
-                ));
-    }
 }

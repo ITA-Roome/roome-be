@@ -10,7 +10,6 @@ public record CandidateProductInfo(
         Integer productPrice,
         String description,
         Set<String> productImageList,
-        Set<Tag> tagList,
-        String summary
+        Set<ProductTagInfo> tagList
 ) {
 }
