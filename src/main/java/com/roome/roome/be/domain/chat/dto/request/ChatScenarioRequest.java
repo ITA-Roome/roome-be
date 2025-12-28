@@ -25,9 +25,11 @@ public record ChatScenarioRequest(
         List<String> preferredColors,
 
         @NotNull
-        Integer budget,
+        Integer maxBudget,
+        Integer minBudget,
 
         // ===== 제품 모드 =====
+        @Size(max = 3)
         List<ProductType> productTypes
 ) {
 }

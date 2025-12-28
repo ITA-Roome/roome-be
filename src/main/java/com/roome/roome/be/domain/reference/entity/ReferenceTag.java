@@ -1,7 +1,6 @@
 package com.roome.roome.be.domain.reference.entity;
 
 import com.roome.roome.be.common.base.BaseEntity;
-import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.entity.Tag;
 import jakarta.persistence.*;
 import lombok.*;

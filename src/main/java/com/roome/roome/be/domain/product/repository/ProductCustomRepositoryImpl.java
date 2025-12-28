@@ -1,5 +1,6 @@
 package com.roome.roome.be.domain.product.repository;
 
+import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -7,9 +8,11 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
+import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
 import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
 import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +22,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import java.util.List;
 import java.util.Map;
 
+import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.roome.roome.be.domain.product.entity.QProduct.product;
 import static com.roome.roome.be.domain.product.entity.QProductTag.productTag;
 import static com.roome.roome.be.domain.product.entity.QProductImage.productImage;
@@ -33,7 +37,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     @Override
     public Page<Product> findByDynamicFilters(
             Long shopId,
-            Category category,
+            ProductCategory category,
             String keyWord,
             Integer minPrice,
             Integer maxPrice,
@@ -59,8 +63,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         );
 
         // 3. 페이징 및 정렬 적용
-        query
-                .offset(pageable.getOffset())
+        query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
 
         // 4. 쿼리 실행 (Content)
@@ -83,7 +86,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     }
 
     @Override
-    public List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, Category category, List<Long> tagIdList) {
+    public List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, ProductCategory category, List<Long> tagIdList) {
 
         NumberExpression<Integer> relevanceScore =
                 buildRelevanceScore(category, tagIdList);
@@ -111,7 +114,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         return shopId != null ? product.shop.id.eq(shopId) : null;
     }
 
-    private BooleanExpression categoryEq(Category category) {
+    private BooleanExpression categoryEq(ProductCategory category) {
         return category != null ? product.category.eq(category) : null;
     }
 
@@ -181,7 +184,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     }
 
     private NumberExpression<Integer> buildRelevanceScore(
-            Category category,
+            ProductCategory category,
             List<Long> tagIds
     ) {
         return new CaseBuilder()
@@ -192,4 +195,64 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 );
     }
 
+    @Override
+    public List<CandidateProductInfo> findCandidateProductList(List<ProductCategory> categoryList, Integer maxBudget, Integer minBudget) {
+        return jpaQueryFactory
+                .from(product)
+                .leftJoin(product.productImageList, productImage)
+                .leftJoin(product.productTagList, productTag)
+                .leftJoin(productTag.tag, tag)
+                .where(
+                        productCategoryIn(categoryList),
+                        priceBetween(minBudget, maxBudget)
+                )
+                .transform(
+                        groupBy(product.id).list(
+                                Projections.constructor(CandidateProductInfo.class,
+                                        product.id,
+                                        product.name,
+                                        product.price,
+                                        product.description,
+                                        GroupBy.set(productImage.imageUrl),
+                                        GroupBy.set(
+                                                Projections.constructor(
+                                                        ProductTagInfo.class,
+                                                        tag.id,
+                                                        tag.name,
+                                                        tag.type
+                                                )
+                                        )
+
+                                )
+                        )
+                );
+
+
+    }
+
+    private BooleanExpression priceBetween(Integer minBudget, Integer maxBudget) {
+        if(minBudget !=null && maxBudget !=null) {
+            return product.price.between(minBudget, maxBudget);
+        }
+
+        if(minBudget!=null)
+            return product.price.goe(minBudget);
+
+        if(maxBudget!=null)
+            return product.price.loe(maxBudget);
+
+        return null;
+    }
+
+    private BooleanExpression productCategoryIn(List<ProductCategory> categoryList){
+        if(categoryList == null || categoryList.isEmpty())
+            return null;
+
+        return tag.type.eq(TagType.PRODUCT_TYPE)
+                .and(tag.name.in(
+                        categoryList.stream()
+                                .map(Enum::name)
+                                .toList()
+                ));
+    }
 }

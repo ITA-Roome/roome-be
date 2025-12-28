@@ -101,6 +101,12 @@ public enum ErrorStatus implements BaseStatus {
     REFERENCE_NOT_FOUND("REFERENCE_404", HttpStatus.NOT_FOUND, "존재하지 않는 레퍼런스입니다."),
 
     /**
+     * AI
+     * */
+    AI_RESPONSE_NOT_JSON("AI_500",HttpStatus.INTERNAL_SERVER_ERROR, "AI 응답이 JSON 형식이 아님"),
+    AI_RESPONSE_NOT_PARSE("AI_5OO", HttpStatus.INTERNAL_SERVER_ERROR, "AI 응답 파싱 실패"),
+
+    /**
      * Comment
      */
     COMMENT_NOT_FOUND("COMMENT_404", HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."),

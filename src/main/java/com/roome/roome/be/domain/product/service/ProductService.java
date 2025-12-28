@@ -3,6 +3,7 @@ package com.roome.roome.be.domain.product.service;
 import java.util.*;
 
 import com.roome.roome.be.domain.product.dto.response.*;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.user.repository.UserLikeRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
@@ -21,7 +22,6 @@ import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.product.dto.request.RegisterProductRequest;
 import com.roome.roome.be.domain.product.dto.request.UpdateProductRequest;
 import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.repository.ProductImageRepository;
 import com.roome.roome.be.domain.product.repository.ProductRepository;
 import com.roome.roome.be.domain.product.repository.ProductTagRepository;
@@ -124,7 +124,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<ProductListItemResponse> getList(
             Long shopId,                 // 가게 필터
-            Category category,
+            ProductCategory category,
             List<String> colorTags,
             List<String> materialTags,
             List<String> styleTags,
@@ -230,6 +230,14 @@ public class ProductService {
     public Product getProductById(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
+    }
+
+    public List<CandidateProductInfo> getCandidateProductList(
+            List<ProductCategory> categories,
+            Integer maxBudget,
+            Integer minBudget
+    ) {
+        return productRepository.findCandidateProductList(categories,maxBudget,minBudget);
     }
 
 }

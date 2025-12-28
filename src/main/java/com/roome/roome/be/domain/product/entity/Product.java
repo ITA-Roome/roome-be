@@ -4,20 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.roome.roome.be.common.base.BaseEntity;
-import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.shop.entity.Shop;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,10 +31,6 @@ public class Product extends BaseEntity {
 	@Column(nullable = false)
 	private Integer price;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Category category;
-
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
@@ -67,10 +53,14 @@ public class Product extends BaseEntity {
 	@Column(name = "like_count",nullable = false)
 	private Integer likeCount;
 
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ProductCategory category;
+
 	public void updateName(String name) { this.name = name; }
 	public void updatePrice(Integer price) { this.price = price; }
-	public void updateCategory(Category category) { this.category = category; }
 	public void updateDescription(String description) { this.description = description; }
+	public void updateCategory(ProductCategory category) { this.category = category; }
 	public void updateProductUrl(String productUrl) { this.productUrl = productUrl; }
 	public void updateThumbnail(String thumbnailKey) { this.thumbnailKey = thumbnailKey; }
 	public void incrementLikeCount() { this.likeCount++; }

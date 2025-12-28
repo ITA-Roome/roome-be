@@ -1,7 +1,7 @@
 package com.roome.roome.be.domain.product.dto.response;
 
 import com.roome.roome.be.domain.product.entity.Tag;
-import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -9,7 +9,7 @@ import java.util.Set;
 public record CommonProductInfo(
         Long id,
         String name,
-        Category category,
+        ProductCategory category,
         Integer price,
         String description,
         String productUrl,
