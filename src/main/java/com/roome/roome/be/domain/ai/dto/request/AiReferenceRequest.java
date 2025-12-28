@@ -1,7 +1,6 @@
 package com.roome.roome.be.domain.ai.dto.request;
 
 import com.roome.roome.be.domain.chat.dto.request.ChatReferenceScenarioRequest;
-import com.roome.roome.be.domain.chat.dto.response.ReferenceCandidate;
 import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
 
 import java.util.List;
@@ -12,7 +11,7 @@ public record AiReferenceRequest(
         String size,
         String mood,
         String style,
-        List<ReferenceCandidate> candidates
+        List<CandidateReferenceInfo> candidates
 ) {
 
     public static AiReferenceRequest from(
@@ -27,7 +26,7 @@ public record AiReferenceRequest(
                 request.referenceMood().name(),
                 request.referenceStyle().name(),
                 list.stream()
-                        .map(ReferenceCandidate::from)
+                        .map(CandidateReferenceInfo::from)
                         .toList()
         );
     }

@@ -2,7 +2,7 @@ package com.roome.roome.be.domain.ai.prompt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.roome.roome.be.domain.ai.dto.request.AiReferenceRequest;
-import com.roome.roome.be.domain.chat.dto.response.ReferenceCandidate;
+import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceTagInfo;
 
 import java.util.Collections;
@@ -80,7 +80,7 @@ public class ReferencePromptBuilder {
         }
     }
 
-    private static String formatCandidate(ReferenceCandidate r) {
+    private static String formatCandidate(CandidateReferenceInfo r) {
         String tags = Optional.ofNullable(r.tagList())
                 .orElse(Collections.emptySet())
                 .stream()
