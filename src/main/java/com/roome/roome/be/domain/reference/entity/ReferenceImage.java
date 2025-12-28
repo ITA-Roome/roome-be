@@ -21,4 +21,10 @@ public class ReferenceImage extends BaseEntity {
     @Column(nullable = false, length = 256, unique = true)
     private String objectKey;
 
+    @Column(nullable = false)
+    private int sortOrder;
+
+    @Column(nullable = false, length = 512, unique = true)
+    private String imageUrl;
+
 }

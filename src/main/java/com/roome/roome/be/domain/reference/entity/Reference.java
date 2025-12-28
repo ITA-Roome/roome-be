@@ -27,4 +27,15 @@ public class Reference extends BaseEntity {
 
     @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
     private List<ReferenceImage> referenceImageList = new ArrayList<>();
+
+    @Column(name = "like_count",nullable = false)
+    private Integer likeCount;
+
+    public void incrementLikeCount() { this.likeCount++; }
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+
+    }
 }
