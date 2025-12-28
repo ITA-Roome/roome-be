@@ -63,13 +63,30 @@ public class AiService {
     }
 
     private String extractJson(String raw) {
-        int start = raw.indexOf("{");
-        int end = raw.lastIndexOf("}");
+        int objStart = raw.indexOf("{");
+        int arrStart = raw.indexOf("[");
 
-        if (start < 0 || end < 0 || start >= end) {
+        int start;
+
+        if (objStart == -1 && arrStart == -1) {
+            throw new GeneralException(ErrorStatus.AI_RESPONSE_NOT_JSON);
+        }
+
+        // 둘 중 먼저 나온 쪽 선택
+        if (objStart == -1) start = arrStart;
+        else if (arrStart == -1) start = objStart;
+        else start = Math.min(objStart, arrStart);
+
+        char openChar = raw.charAt(start);
+        char closeChar = (openChar == '{') ? '}' : ']';
+
+        int end = raw.lastIndexOf(closeChar);
+        if (end == -1 || end <= start) {
             throw new GeneralException(ErrorStatus.AI_RESPONSE_NOT_JSON);
         }
 
         return raw.substring(start, end + 1);
     }
+
+
 }
