@@ -4,7 +4,7 @@ import java.util.*;
 
 import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.TagType;
-import com.roome.roome.be.domain.user.repository.UserLikeRepository;
+import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -40,7 +40,7 @@ public class ProductService {
     private final ShopRepository shopRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductTagRepository productTagRepository;
-    private final UserLikeRepository userLikeRepository;
+    private final UserLikeProductRepository userLikeProductRepository;
 
     private final ProductTagService productTagService;
     private final ProductImageService productImageService;
@@ -169,7 +169,7 @@ public class ProductService {
                     .toList();
 
             if (!productIds.isEmpty()) {
-                likedProductIds = userLikeRepository.findLikedProductIds(userId, productIds);
+                likedProductIds = userLikeProductRepository.findLikedProductIds(userId, productIds);
             }
         }
 

@@ -15,24 +15,24 @@ import static com.roome.roome.be.domain.product.entity.QProduct.product;
 import static com.roome.roome.be.domain.product.entity.QProductImage.productImage;
 import static com.roome.roome.be.domain.product.entity.QProductTag.productTag;
 import static com.roome.roome.be.domain.product.entity.QTag.tag;
-import static com.roome.roome.be.domain.user.entity.QUserLike.userLike;
+import static com.roome.roome.be.domain.user.entity.QUserLikeProduct.*;
 
 @Repository
 @RequiredArgsConstructor
-public class UserLikeCustomRepositoryImpl implements UserLikeCustomRepository {
+public class UserLikeProductCustomRepositoryImpl implements UserLikeProductCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public List<CommonProductInfo> findUserLikeProductListByUserId(Long userId) {
         return jpaQueryFactory
-                .from(userLike)
-                .join(userLike.product, product)
+                .from(userLikeProduct)
+                .join(userLikeProduct.product, product)
                 .leftJoin(product.productImageList, productImage)
                 .leftJoin(product.productTagList, productTag)
                 .leftJoin(productTag.tag, tag)
-                .where(userLike.user.id.eq(userId))
-                .orderBy(userLike.updatedAt.desc())
+                .where(userLikeProduct.user.id.eq(userId))
+                .orderBy(userLikeProduct.updatedAt.desc())
                 .transform(
                         groupBy(product.id).list(
                                 Projections.constructor(CommonProductInfo.class,

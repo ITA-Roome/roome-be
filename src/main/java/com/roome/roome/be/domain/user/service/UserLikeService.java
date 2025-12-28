@@ -6,9 +6,9 @@ import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.service.ProductService;
 import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
 import com.roome.roome.be.domain.user.entity.User;
-import com.roome.roome.be.domain.user.entity.UserLike;
-import com.roome.roome.be.domain.user.repository.UserLikeCustomRepository;
-import com.roome.roome.be.domain.user.repository.UserLikeRepository;
+import com.roome.roome.be.domain.user.entity.UserLikeProduct;
+import com.roome.roome.be.domain.user.repository.UserLikeProductCustomRepository;
+import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +20,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserLikeService {
 
-    private final UserLikeRepository userLikeRepository;
-    private final UserLikeCustomRepository userLikeCustomRepository;
+    private final UserLikeProductRepository userLikeRepository;
+    private final UserLikeProductCustomRepository userLikeCustomRepository;
 
     private final UserService userService;
     private final ProductService productService;
@@ -34,13 +34,13 @@ public class UserLikeService {
 
         boolean liked;
 
-        Optional<UserLike> existing = userLikeRepository.findByUserAndProduct(user, product);
+        Optional<UserLikeProduct> existing = userLikeRepository.findByUserAndProduct(user, product);
         if (existing.isEmpty()) {
-            UserLike userLike = UserLike.builder()
+            UserLikeProduct userLikeProduct = UserLikeProduct.builder()
                     .user(user)
                     .product(product)
                     .build();
-            userLikeRepository.save(userLike);
+            userLikeRepository.save(userLikeProduct);
             liked = true;
             product.incrementLikeCount();
         }
