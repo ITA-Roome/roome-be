@@ -233,11 +233,11 @@ public class ProductService {
     }
 
     public List<CandidateProductInfo> getCandidateProductList(
-            List<ProductCategory> categories,
             Integer maxBudget,
-            Integer minBudget
+            Integer minBudget,
+            List<String> preferredColors
     ) {
-        return productRepository.findCandidateProductList(categories,maxBudget,minBudget);
+        return productRepository.findCandidateProductList(maxBudget,minBudget,preferredColors);
     }
 
 }

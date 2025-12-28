@@ -2,8 +2,10 @@ package com.roome.roome.be.domain.ai.prompt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.roome.roome.be.domain.ai.dto.request.AiProductRequest;
+import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ProductPromptBuilder {
@@ -25,7 +27,7 @@ public class ProductPromptBuilder {
 
             ────────────────────
             점수 산정 기준 (총 100점)
-            ────────────────────
+            ────────────────────                      
             1️⃣ 공간 적합도 (0~30점)
             - 사용자의 공간 유형(거실/침실/서재 등)에 적합한가?
 
@@ -40,7 +42,7 @@ public class ProductPromptBuilder {
             - STYLE, MOOD, FEATURE 태그가 많을수록 가점
 
             ────────────────────
-            📤 출력 형식 (반드시 이 형식)
+            출력 형식 (반드시 이 형식)
             ────────────────────
             [
               {
@@ -60,19 +62,18 @@ public class ProductPromptBuilder {
                     req.candidateList().stream()
                             .map(p -> String.format(
                                     """
-                                            ID:%d
-                                            이름:%s
-                                            가격:%d
-                                            태그:%s
-                                            """,
+                                    ID:%d
+                                    이름:%s
+                                    가격:%d
+                                    태그:%s
+                                    """,
                                     p.productId(),
                                     p.productName(),
                                     p.productPrice(),
-                                    (p.tagList() == null
-                                            ? Collections.emptyList()
-                                            : p.tagList()
-                                    ).stream()
-                                            .map(t -> t.getClass().getName())
+                                    Optional.ofNullable(p.tagList())
+                                            .orElse(Collections.emptySet())
+                                            .stream()
+                                            .map(ProductTagInfo::name)
                                             .collect(Collectors.joining(", "))
                             ))
                             .collect(Collectors.joining("\n"));

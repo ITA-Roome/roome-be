@@ -39,8 +39,8 @@ public interface ProductCustomRepository {
      */
     List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, ProductCategory category, List<Long> tagIdList);
     List<CandidateProductInfo> findCandidateProductList(
-            List<ProductCategory> categories,
             Integer maxBudget,
-            Integer minBudget
+            Integer minBudget,
+            List<String> preferredColors
     );
 }

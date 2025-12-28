@@ -10,6 +10,7 @@ import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
 import com.roome.roome.be.domain.product.service.ProductService;
+import com.roome.roome.be.domain.reference.enums.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,29 @@ public class ChatService {
     public ChatScenarioResponse processChatScenario(Long userId, ChatScenarioRequest request) {
         return switch (request.chatMode()) {
             case PRODUCT -> processProductScenario(request);
-            case REFERENCE -> throw new UnsupportedOperationException();
+            case REFERENCE -> processChatReferenceScenario(request);
         };
+    }
+
+    private ChatScenarioResponse processChatReferenceScenario(ChatScenarioRequest request) {
+
+        // 무드와 공간 크기 매칭
+        List<ReferenceCategoryMapping> matchedCategories = Arrays.stream(ReferenceCategoryMapping.values())
+                .filter(category -> category.isMatch(request.referenceType(), request.referenceSize()))
+                .toList();
+
+        if(matchedCategories.isEmpty()) {
+            matchedCategories = List.of(
+                    ReferenceCategoryMapping.LIGHTING_LED_BULB,
+                    ReferenceCategoryMapping.HOME_DECOR_FRAME_POSTER
+            );
+        }
+
+        // 선호하는 분위기와 스타일 매칭
+        Set<ReferenceMood> referenceMoodList= ReferenceMoodMapping.findMoodsByDescription(request.referenceMood().name());
+        Set<ReferenceStyle> referenceStyleList= ReferenceStyleMapping.findStylesByDescription(request.referenceStyle().name());
+
+        return null;
     }
 
     private ChatScenarioResponse processProductScenario(ChatScenarioRequest request) {
@@ -42,9 +64,9 @@ public class ChatService {
         // 2. 상품 조회 (여기서 필터 끝)
         List<CandidateProductInfo> candidateProductList =
                 productService.getCandidateProductList(
-                        categories,
                         request.maxBudget(),
-                        request.minBudget()
+                        request.minBudget(),
+                        request.preferredColors()
                 );
 
         if (candidateProductList.isEmpty()) {
@@ -55,7 +77,7 @@ public class ChatService {
         // 3. AI 추천
         List<AiProductResponse> aiResult =
                 aiService.recommendProductList(
-                        AiProductRequest.from(request, candidateProductList)
+                        AiProductRequest.from(request, candidateProductList, categories )
                 );
 
         // 4. productId → entity 매핑

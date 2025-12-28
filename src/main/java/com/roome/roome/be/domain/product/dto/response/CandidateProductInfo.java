@@ -1,6 +1,5 @@
 package com.roome.roome.be.domain.product.dto.response;
 
-import com.roome.roome.be.domain.product.entity.Tag;
 
 import java.util.Set;
 

@@ -196,14 +196,15 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     }
 
     @Override
-    public List<CandidateProductInfo> findCandidateProductList(List<ProductCategory> categoryList, Integer maxBudget, Integer minBudget) {
+    public List<CandidateProductInfo> findCandidateProductList(Integer maxBudget, Integer minBudget, List<String> preferredColors) {
         return jpaQueryFactory
                 .from(product)
                 .leftJoin(product.productImageList, productImage)
                 .leftJoin(product.productTagList, productTag)
                 .leftJoin(productTag.tag, tag)
                 .where(
-                        priceBetween(minBudget, maxBudget)
+                        priceBetween(minBudget, maxBudget),
+                        colorIn(preferredColors)
                 )
                 .limit(50)
                 .transform(
@@ -242,6 +243,15 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
             return product.price.loe(maxBudget);
 
         return null;
+    }
+
+    private BooleanExpression colorIn(List<String> colors) {
+        if (colors == null || colors.isEmpty()) {
+            return null;
+        }
+
+        return tag.type.eq(TagType.COLOR)
+                .and(tag.name.in(colors));
     }
 
 }
