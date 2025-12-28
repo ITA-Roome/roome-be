@@ -36,6 +36,5 @@ public class Reference extends BaseEntity {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
-
     }
 }

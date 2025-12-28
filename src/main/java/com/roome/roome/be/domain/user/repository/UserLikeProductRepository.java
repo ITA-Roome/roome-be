@@ -15,6 +15,6 @@ import java.util.Set;
 public interface UserLikeProductRepository extends JpaRepository<UserLikeProduct, Long> {
     public Optional<UserLikeProduct> findByUserAndProduct(User user, Product product);
 
-    @Query("SELECT ul.product.id FROM UserLikeProduct ul WHERE ul.user.id = :userId AND ul.product.id IN :productIds")
+    @Query("SELECT ulp.product.id FROM UserLikeProduct ulp WHERE ulp.user.id = :userId AND ulp.product.id IN :productIds")
     Set<Long> findLikedProductIds(@Param("userId") Long userId, @Param("productIds") List<Long> productIds);
 }

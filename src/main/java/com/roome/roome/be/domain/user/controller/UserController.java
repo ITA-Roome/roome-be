@@ -1,5 +1,20 @@
 package com.roome.roome.be.domain.user.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.response.PageResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
@@ -8,12 +23,25 @@ import com.roome.roome.be.domain.inquiry.enums.InquiryType;
 import com.roome.roome.be.domain.inquiry.service.InquiryService;
 import com.roome.roome.be.domain.product.dto.response.ProductToggleLikeResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductToggleScrapResponse;
+import com.roome.roome.be.domain.reference.dto.response.ReferenceToggleLikeResponse;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceToggleScrapResponse;
 import com.roome.roome.be.domain.user.dto.request.UpdateUserProfileRequest;
 import com.roome.roome.be.domain.user.dto.request.UserInquirySearchCondition;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
-import com.roome.roome.be.domain.user.dto.response.*;
-import com.roome.roome.be.domain.user.service.*;
+import com.roome.roome.be.domain.user.dto.response.UserInquiryResponse;
+import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
+import com.roome.roome.be.domain.user.dto.response.UserLikeReferenceListResponse;
+import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
+import com.roome.roome.be.domain.user.dto.response.UserProfileResponse;
+import com.roome.roome.be.domain.user.dto.response.UserRecentViewedProductListResponse;
+import com.roome.roome.be.domain.user.dto.response.UserScrappedProductListResponse;
+import com.roome.roome.be.domain.user.dto.response.UserScrappedReferenceListResponse;
+import com.roome.roome.be.domain.user.service.UserLikeService;
+import com.roome.roome.be.domain.user.service.UserOnboardingService;
+import com.roome.roome.be.domain.user.service.UserScrapService;
+import com.roome.roome.be.domain.user.service.UserService;
+import com.roome.roome.be.domain.user.service.UserViewService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -22,12 +50,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -90,7 +112,7 @@ public class UserController {
     }
 
     // 상품 좋아요 기능 구현
-    @PostMapping("/likes/{productId}")
+    @PostMapping("/likes/product/{productId}")
     @Operation(
             summary = "상품 좋아요 토글",
             description = "이미 좋아요가 눌려 있으면 취소하고, 눌려 있지 않으면 좋아요를 추가합니다."
@@ -108,7 +130,7 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.CREATE_PRODUCT_LIKE,response);
     }
 
-    @GetMapping("/likes")
+    @GetMapping("/likes/product")
     @Operation(summary = "유저가 좋아요를 누른 상품 리스트 조회")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "좋아요 상품 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserLikeProductListResponse.class)))
     public ResponseEntity<ApiResponse<UserLikeProductListResponse>> getUserLikedProductList(
@@ -118,8 +140,37 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.GET_USER_LIKE_PRODUCT_LIST_SUCCESS, response);
     }
 
+    // 레퍼런스 좋아요 기능 구현
+    @PostMapping("/likes/reference/{referenceId}")
+    @Operation(
+        summary = "레퍼런스 좋아요 토글",
+        description = "이미 좋아요가 눌려 있으면 취소하고, 눌려 있지 않으면 좋아요를 추가합니다."
+    )
+    @Parameters({
+        @Parameter(name = "referenceId", description = "좋아요를 누를 레퍼런스의 ID", example = "123"),
+    })
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "좋아요 토글 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReferenceToggleLikeResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저가 존재하지 않거나 레퍼런스가 존재하지 않음", content = @Content(mediaType = "application/json"))
+    public ResponseEntity<ApiResponse<ReferenceToggleLikeResponse>> toggleReferenceLike(
+        @PathVariable("referenceId") Long referenceId,
+        @AuthenticationPrincipal Long userId
+    ) {
+        ReferenceToggleLikeResponse response = userLikeService.toggleReferenceLike(referenceId, userId);
+        return ApiResponse.success(SuccessStatus.CREATE_REFERENCE_LIKE,response);
+    }
+
+    @GetMapping("/likes/reference")
+    @Operation(summary = "유저가 좋아요를 누른 레퍼런스 리스트 조회")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "좋아요 레퍼런스 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserLikeReferenceListResponse.class)))
+    public ResponseEntity<ApiResponse<UserLikeReferenceListResponse>> getUserLikedReferenceList(
+        @AuthenticationPrincipal Long userId
+    ) {
+        UserLikeReferenceListResponse response = userLikeService.getUserLikedReferenceList(userId);
+        return ApiResponse.success(SuccessStatus.GET_USER_LIKE_REFERENCE_LIST_SUCCESS, response);
+    }
+
     // 상품 스크랩 기능 구현
-    @PostMapping("/scraps/{productId}")
+    @PostMapping("/scraps/product/{productId}")
     @Operation(
             summary = "상품 스크랩 토글",
             description = "이미 스크랩이 되어 있으면 취소하고, 되어 있지 않으면 스크랩에 추가합니다."
@@ -137,7 +188,7 @@ public class UserController {
         return ApiResponse.success(SuccessStatus.CREATE_PRODUCT_LIKE,response);
     }
 
-    @PostMapping("/scraps/{referenceId}")
+    @PostMapping("/scraps/reference/{referenceId}")
     @Operation(
             summary = "레퍼런스 스크랩 토글 ",
             description = "이미 스크랩이 되어 있으면 취소하고, 되어 있지 않으면 스크랩에 추가합니다."

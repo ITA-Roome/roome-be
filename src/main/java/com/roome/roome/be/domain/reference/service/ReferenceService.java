@@ -1,5 +1,11 @@
 package com.roome.roome.be.domain.reference.service;
 
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.roome.roome.be.common.exception.GeneralException;
 import com.roome.roome.be.common.s3.enums.StorageScope;
 import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
@@ -11,16 +17,11 @@ import com.roome.roome.be.domain.reference.entity.Reference;
 import com.roome.roome.be.domain.reference.entity.ReferenceImage;
 import com.roome.roome.be.domain.reference.repository.ReferenceImageRepository;
 import com.roome.roome.be.domain.reference.repository.ReferenceRepository;
-import com.roome.roome.be.domain.search.service.SearchService;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Comparator;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -94,4 +95,5 @@ public class ReferenceService {
         return referenceRepository.findById(referenceId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REFERENCE_NOT_FOUND));
     }
+
 }
