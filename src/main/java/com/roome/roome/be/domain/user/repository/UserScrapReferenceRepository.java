@@ -11,4 +11,5 @@ import java.util.Optional;
 @Repository
 public interface UserScrapReferenceRepository extends JpaRepository<UserScrapReference, Long> {
     Optional<UserScrapReference> findByUserAndReference(User user, Reference reference);
+    boolean existsByUserIdAndReferenceId(Long userId, Long referenceId);
 }
