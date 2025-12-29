@@ -27,6 +27,14 @@ spring:
           auth: true
           starttls:
             enable: true
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.3
+          max-tokens: 800
   data:
     redis:
       host: ${REDIS_HOST}

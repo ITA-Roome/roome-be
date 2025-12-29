@@ -1,11 +1,11 @@
 package com.roome.roome.be.domain.product.dto.response;
 
-import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 
 public record RelatedProductResponse(
         Long productId,
         String name,
-        Category category,
+        ProductCategory category,
         String description,
         Integer price,
         String imageUrl

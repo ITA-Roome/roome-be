@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.product.controller;
 
 import java.util.List;
 
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +16,6 @@ import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
 import com.roome.roome.be.domain.product.dto.response.ProductDetailResponse;
 import com.roome.roome.be.domain.product.dto.response.ProductListItemResponse;
-import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.service.ProductService;
 import com.roome.roome.be.domain.search.service.SearchService;
 
@@ -123,7 +123,7 @@ public class ProductController {
 	public ResponseEntity<ApiResponse<Page<ProductListItemResponse>>> getProducts(
 
 			@RequestParam(required = false) Long shopId,
-			@RequestParam(required = false) Category category,
+			@RequestParam(required = false) ProductCategory category,
 			@RequestParam(required = false, name = "color") List<String> colorTags,
 			@RequestParam(required = false, name = "material") List<String> materialTags,
 			@RequestParam(required = false, name = "style") List<String> styleTags,
