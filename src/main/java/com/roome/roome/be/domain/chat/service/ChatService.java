@@ -1,5 +1,6 @@
 package com.roome.roome.be.domain.chat.service;
 
+import com.roome.roome.be.common.redis.RedisService;
 import com.roome.roome.be.domain.ai.dto.request.AiProductRequest;
 import com.roome.roome.be.domain.ai.dto.request.AiReferenceRequest;
 import com.roome.roome.be.domain.ai.dto.response.AiProductResponse;
@@ -10,6 +11,8 @@ import com.roome.roome.be.domain.chat.dto.request.ChatReferenceScenarioRequest;
 import com.roome.roome.be.domain.chat.dto.response.ChatProductScenarioResponse;
 import com.roome.roome.be.domain.chat.dto.response.ProductSummaryResponse;
 import com.roome.roome.be.domain.chat.dto.response.ChatReferenceScenarioResponse;
+import com.roome.roome.be.domain.chat.enums.ChatMode;
+import com.roome.roome.be.domain.chat.model.ChatSession;
 import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
@@ -36,6 +39,7 @@ public class ChatService {
     private final ReferenceService referenceService;
     private final UserService userService;
     private final AiService aiService;
+    private final RedisService redisService;
 
     public ChatReferenceScenarioResponse processChatReferenceScenario(Long userId, ChatReferenceScenarioRequest request) {
         User user = userService.getUserById(userId);
@@ -77,8 +81,11 @@ public class ChatService {
                         AiReferenceRequest.from(user.getNickname(),request, candidateReferenceList)
                 );
 
+
         // 응답 변환
-        return ChatReferenceScenarioResponse.from(aiResult);
+        ChatReferenceScenarioResponse response = ChatReferenceScenarioResponse.from(aiResult);
+        redisService.save(ChatSession.from(userId, ChatMode.REFERENCE, request, response));
+        return response;
 
     }
 
@@ -127,7 +134,9 @@ public class ChatService {
                         .filter(Objects::nonNull)
                         .toList();
 
-        return ChatProductScenarioResponse.from(result);
+        ChatProductScenarioResponse response = ChatProductScenarioResponse.from(result);
+        redisService.save(ChatSession.from(userId,ChatMode.PRODUCT, request,response));
+        return response;
     }
 }
 
