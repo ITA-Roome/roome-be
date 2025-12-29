@@ -1,8 +1,10 @@
 package com.roome.roome.be.domain.reference.service;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
+import com.roome.roome.be.domain.reference.dto.response.RelatedReferenceResponse;
+import com.roome.roome.be.domain.reference.repository.ReferenceCustomRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +28,7 @@ import com.roome.roome.be.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,15 +37,16 @@ public class ReferenceService {
     private final ReferenceRepository referenceRepository;
     private final ReferenceImageRepository referenceImageRepository;
     private final UserRepository userRepository;
+    private final ReferenceCustomRepository referenceCustomRepository;
 
     private final S3Service s3Service;
     private final ImageUrlBuilder imageUrlBuilder;
 
 
     // 레퍼런스 등록
-    public void registerReference(Long userId, List<MultipartFile> images ) {
+    public void registerReference(Long userId, List<MultipartFile> images) {
 
-        if(images == null || images.isEmpty()) return;
+        if (images == null || images.isEmpty()) return;
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
@@ -75,23 +78,23 @@ public class ReferenceService {
         List<CommonReferenceInfo> commonReferenceInfoList = referenceList.stream()
                 .sorted(Comparator.comparing(Reference::getScrapCount).reversed())
                 .map(
-                reference -> {
-                    List<String> imageUrlList = reference.getReferenceImageList().stream()
-                            .map(refImg -> imageUrlBuilder.build(
-                                    refImg.getObjectKey()
-                            ))
-                            .toList();
+                        reference -> {
+                            List<String> imageUrlList = reference.getReferenceImageList().stream()
+                                    .map(refImg -> imageUrlBuilder.build(
+                                            refImg.getObjectKey()
+                                    ))
+                                    .toList();
 
-                    return new CommonReferenceInfo(
-                            reference.getId(),
-                            reference.getUser().getNickname(),
-                            reference.getUser().getId(),
-                            imageUrlList,
-                            reference.getScrapCount()
-                    );
-                }
+                            return new CommonReferenceInfo(
+                                    reference.getId(),
+                                    reference.getUser().getNickname(),
+                                    reference.getUser().getId(),
+                                    imageUrlList,
+                                    reference.getScrapCount()
+                            );
+                        }
 
-        ).toList();
+                ).toList();
         return new ReferenceListResponse(commonReferenceInfoList);
     }
 
@@ -107,6 +110,42 @@ public class ReferenceService {
             Integer minBudget,
             Integer maxBudget
     ) {
-        return referenceRepository.findCandidateReferenceList(matchedCategories,moodList,styleList,minBudget,maxBudget);
+        return referenceCustomRepository.findCandidateReferenceList(matchedCategories, moodList, styleList, minBudget, maxBudget);
     }
+
+    // 상품 관련 레퍼런스 조회
+    @Transactional
+    public List<RelatedReferenceResponse> getRelatedReferences(Long productId, int limit) {
+
+        var matches = referenceCustomRepository.findRelatedReferencesByProductTags(productId, 1, limit);
+        if (matches.isEmpty()) return List.of();
+
+        var referenceIds = matches.stream().map(ReferenceCustomRepository.ReferenceMatchResult::referenceId).toList();
+        var references = referenceRepository.findAllById(referenceIds);
+
+        var matchCountMap = matches.stream()
+                .collect(Collectors.toMap(ReferenceCustomRepository.ReferenceMatchResult::referenceId, ReferenceCustomRepository.ReferenceMatchResult::matchedTagCount));
+
+        return referenceIds.stream()
+                .map(id -> references.stream().filter(ref -> ref.getId().equals(id)).findFirst().orElse(null))
+                .filter(Objects::nonNull)
+                .map(ref -> {
+                    List<String> imageUrls = ref.getReferenceImageList().stream()
+                            .map(ReferenceImage::getImageUrl)
+                            .toList();
+
+                    String thumbnailUrl = imageUrls.isEmpty() ? null : imageUrls.get(0);
+
+                    return new RelatedReferenceResponse(
+                            ref.getId(),
+                            thumbnailUrl,
+                            imageUrls,
+                            ref.getScrapCount(),
+                            ref.getUser().getNickname(),
+                            (Integer) matchCountMap.get(ref.getId())
+                    );
+                })
+                .toList();
+    }
+
 }
