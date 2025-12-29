@@ -5,7 +5,7 @@ import java.util.*;
 import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
-import com.roome.roome.be.domain.user.repository.UserLikeRepository;
+import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -40,7 +40,7 @@ public class ProductService {
     private final ShopRepository shopRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductTagRepository productTagRepository;
-    private final UserLikeRepository userLikeRepository;
+    private final UserLikeProductRepository userLikeProductRepository;
 
     private final ProductTagService productTagService;
     private final ProductImageService productImageService;
@@ -130,6 +130,7 @@ public class ProductService {
             List<String> styleTags,
             List<String> featureTags,
             List<String> moodTags,
+            List<String> usageTags,
             String match,                // 기본 any
             String keyWord,
             Integer minPrice,
@@ -147,6 +148,8 @@ public class ProductService {
         if (styleTags != null && !styleTags.isEmpty()) tagFilters.put(TagType.STYLE, styleTags);
         if (featureTags != null && !featureTags.isEmpty()) tagFilters.put(TagType.FEATURE, featureTags);
         if (moodTags != null && !moodTags.isEmpty()) tagFilters.put(TagType.MOOD, moodTags);
+        if (usageTags != null && !usageTags.isEmpty()) tagFilters.put(TagType.USAGE, usageTags);
+
 
         Page<Product> page = productRepository.findByDynamicFilters(
                 shopId,
@@ -166,7 +169,7 @@ public class ProductService {
                     .toList();
 
             if (!productIds.isEmpty()) {
-                likedProductIds = userLikeRepository.findLikedProductIds(userId, productIds);
+                likedProductIds = userLikeProductRepository.findLikedProductIds(userId, productIds);
             }
         }
 

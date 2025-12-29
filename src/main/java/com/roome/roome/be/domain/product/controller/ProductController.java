@@ -62,11 +62,11 @@ public class ProductController {
 - shopId: 특정 가게의 상품만 조회
 - keyWord: **상품명(name)** 에서만 부분 일치 검색
 - minPrice, maxPrice: 가격 범위 필터
-- **tags: color, material, style, feature, mood (다중 지정 가능)**
+- **tags: color, material, style, feature, mood, usage (다중 지정 가능)**
 - **match: 태그 매칭 방식 (any | all). 기본값 any**
 
 [정렬 가능 필드]
-- id, price, createdAt, popularity (있다면)
+- id, price, createdAt, popularity
 
 [예시]
 - **(신규)** /api/products?category=DININGROOM_CHAIR&color=WHITE&material=WOOD&match=all
@@ -107,6 +107,11 @@ public class ProductController {
 					array = @ArraySchema(schema = @Schema(type = "string"))
 			),
 			@Parameter(
+				name = "usage",
+				description = "사용되는 공간 및 용도(다중 지정 가능) 예: usage=BATHROOM",
+				array = @ArraySchema(schema = @Schema(type = "string"))
+			),
+			@Parameter(
 					name = "match",
 					description = "태그 매칭 방식(any: 하나라도 일치, all: 전부 일치)",
 					schema = @Schema(allowableValues = {"any", "all"}, defaultValue = "any")
@@ -124,6 +129,7 @@ public class ProductController {
 			@RequestParam(required = false, name = "style") List<String> styleTags,
 			@RequestParam(required = false, name = "feature") List<String> featureTags,
 			@RequestParam(required = false, name = "mood") List<String> moodTags,
+			@RequestParam(required = false, name = "usage") List<String> usageTags,
 			@RequestParam(required = false, defaultValue = "any") String match,
 			@RequestParam(required = false) String keyWord,
 			@RequestParam(required = false) Integer minPrice,
@@ -135,7 +141,7 @@ public class ProductController {
 			@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
 	) {
 		searchService.recordSearch(keyWord, userId);
-		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags, match, keyWord, minPrice, maxPrice, pageable, userId);
+		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags,usageTags, match, keyWord, minPrice, maxPrice, pageable, userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_LIST, page);
 	}
 }

@@ -67,19 +67,6 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                 );
     }
 
-//    private BooleanExpression categoryIn(List<ReferenceCategoryMapping> categories) {
-//        if (categories == null || categories.isEmpty()) {
-//            return null;
-//        }
-//
-//        return tag.type.eq(TagType.USAGE)
-//                .and(
-//                    tag.name.in(categories.stream()
-//                        .map(Enum::name)
-//                        .toList())
-//        );
-//    }
-
     private BooleanExpression moodIn(Set<ReferenceMood> moodList) {
         if (moodList == null || moodList.isEmpty()) {
             return null;
