@@ -41,6 +41,9 @@ public class Reference extends BaseEntity {
     private String referenceUrl;
 
     @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
+    private List<ReferenceItem> referenceItemList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
     private List<ReferenceImage> referenceImageList = new ArrayList<>();
 
     @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
