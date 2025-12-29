@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.reference.controller;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
+import com.roome.roome.be.domain.reference.dto.response.ReferenceDetailResponse;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceListResponse;
 import com.roome.roome.be.domain.reference.service.ReferenceService;
 import com.roome.roome.be.domain.search.service.SearchService;
@@ -54,5 +55,23 @@ public class ReferenceController {
     ){
         referenceService.registerReference(userId,files);
         return ApiResponse.success(SuccessStatus.REGISTER_REFERENCE_SUCCESS);
+    }
+
+    @GetMapping("/{referenceId}")
+    @Operation(
+            summary = "레퍼런스 상세 조회",
+            description = "레퍼런스의 상세 정보를 조회합니다. 로그인한 유저의 경우 좋아요/스크랩 여부가 반영됩니다."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "레퍼런스 상세 조회 성공",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReferenceDetailResponse.class))
+    )
+    public ResponseEntity<ApiResponse<ReferenceDetailResponse>> getReferenceDetail(
+            @PathVariable Long referenceId,
+            @AuthenticationPrincipal Long userId
+    ) {
+        ReferenceDetailResponse response = referenceService.getReferenceDetail(referenceId, userId);
+        return ApiResponse.success(SuccessStatus.GET_REFERENCE_DETAIL_SUCCESS, response);
     }
 }
