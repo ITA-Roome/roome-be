@@ -2,7 +2,7 @@ package com.roome.roome.be.domain.product.controller;
 
 import java.util.List;
 
-import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.reference.dto.response.RelatedReferenceResponse;
 import com.roome.roome.be.domain.reference.service.ReferenceService;
 import org.springdoc.core.annotations.ParameterObject;
@@ -126,7 +126,7 @@ public class ProductController {
 	public ResponseEntity<ApiResponse<Page<ProductListItemResponse>>> getProducts(
 
 			@RequestParam(required = false) Long shopId,
-			@RequestParam(required = false) ProductCategory category,
+			@RequestParam(required = false) Category category,
 			@RequestParam(required = false, name = "color") List<String> colorTags,
 			@RequestParam(required = false, name = "material") List<String> materialTags,
 			@RequestParam(required = false, name = "style") List<String> styleTags,

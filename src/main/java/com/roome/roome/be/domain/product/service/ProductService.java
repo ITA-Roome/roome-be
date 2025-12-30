@@ -3,7 +3,7 @@ package com.roome.roome.be.domain.product.service;
 import java.util.*;
 
 import com.roome.roome.be.domain.product.dto.response.*;
-import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
@@ -124,7 +124,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<ProductListItemResponse> getList(
             Long shopId,                 // 가게 필터
-            ProductCategory category,
+            Category category,
             List<String> colorTags,
             List<String> materialTags,
             List<String> styleTags,
