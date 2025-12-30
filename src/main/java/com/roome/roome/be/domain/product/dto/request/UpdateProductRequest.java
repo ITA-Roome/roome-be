@@ -2,7 +2,7 @@ package com.roome.roome.be.domain.product.dto.request;
 
 import java.util.List;
 
-import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.Category;
 import org.hibernate.validator.constraints.URL;
 
 import jakarta.validation.constraints.Positive;
@@ -15,7 +15,7 @@ public record UpdateProductRequest(
 	@Positive(message = "가격은 0보다 커야 합니다.")
 	Integer price,
 
-	ProductCategory category,
+	Category category,
 
 	@Size(max = 2000, message = "상품 설명은 최대 2000자까지 가능합니다.")
 	String description,
