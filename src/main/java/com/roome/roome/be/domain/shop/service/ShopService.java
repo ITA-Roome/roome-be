@@ -39,17 +39,18 @@ public class ShopService {
 	//가게 등록
 	@Transactional
 	public ShopRegisterResponse registerShop(ShopRegisterRequest shopRegisterRequest) {
-		Shop saved = shopRepository.save(Shop.builder()
+		Shop shop = shopRepository.save(Shop.builder()
 			.name(shopRegisterRequest.name())
+				.description(shopRegisterRequest.description())
 			.build());
 
-		commitLogoIfPresent(saved, shopRegisterRequest.logoObjectKey());
+		commitLogoIfPresent(shop, shopRegisterRequest.logoObjectKey());
 
-		String logoUrl = (saved.getLogoObjectKey() != null && !saved.getLogoObjectKey().isBlank())
-			? imageUrlBuilder.build(saved.getLogoObjectKey())
+		String logoUrl = (shop.getLogoObjectKey() != null && !shop.getLogoObjectKey().isBlank())
+			? imageUrlBuilder.build(shop.getLogoObjectKey())
 			: defaultShopLogoUrl;
 
-		return ShopRegisterResponse.from(saved, logoUrl);
+		return ShopRegisterResponse.from(shop, logoUrl);
 	}
 
 	//가게 수정
@@ -59,6 +60,7 @@ public class ShopService {
 			.orElseThrow(() -> new GeneralException(ErrorStatus.SHOP_NOT_FOUND));
 
 		if (shopUpdateRequest.name() != null) shop.updateName(shopUpdateRequest.name());
+		if (shopUpdateRequest.description() != null) shop.updateDescription(shopUpdateRequest.description());
 		commitLogoIfPresent(shop, shopUpdateRequest.logoObjectKey());
 	}
 
@@ -114,7 +116,6 @@ public class ShopService {
 		);
 	}
 
-	// ShopService.java
 	private void commitLogoIfPresent(Shop shop, String logoObjectKey) {
 		if (logoObjectKey == null || logoObjectKey.isBlank()) return;
 

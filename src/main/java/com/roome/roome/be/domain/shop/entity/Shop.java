@@ -30,12 +30,14 @@ public class Shop extends BaseEntity {
 	@Column(name = "logo_object_key", length = 300)
 	private String logoObjectKey;
 
+	@Column(columnDefinition = "TEXT")
+	private String description;
+
 	public void updateName(String name) {
 		this.name = name;
 	}
-
 	public void updateLogoObjectKey(String objectKey) {
 		this.logoObjectKey = objectKey;
 	}
-
+	public void updateDescription(String description){ this.description = description; }
 }

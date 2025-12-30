@@ -7,6 +7,9 @@ public record ShopRegisterRequest (
 	String name,
 
 	@NotBlank(message = "로고 objectKey는 필수입니다.")
-	String logoObjectKey
+	String logoObjectKey,
+
+	@NotBlank(message = "가게 설명은 필수입니다.")
+	String description
 
 ) { }
