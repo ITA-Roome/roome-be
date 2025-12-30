@@ -14,7 +14,7 @@ import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
 import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
 import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.product.enums.TagType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,7 +40,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     @Override
     public Page<Product> findByDynamicFilters(
             Long shopId,
-            ProductCategory category,
+            Category category,
             String keyWord,
             Integer minPrice,
             Integer maxPrice,
@@ -91,7 +91,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     }
 
     @Override
-    public List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, ProductCategory category, List<Long> tagIdList) {
+    public List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, Category category, List<Long> tagIdList) {
 
         NumberExpression<Integer> relevanceScore =
                 buildRelevanceScore(category, tagIdList);
@@ -119,7 +119,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         return shopId != null ? product.shop.id.eq(shopId) : null;
     }
 
-    private BooleanExpression categoryEq(ProductCategory category) {
+    private BooleanExpression categoryEq(Category category) {
         return category != null ? product.category.eq(category) : null;
     }
 
@@ -189,7 +189,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     }
 
     private NumberExpression<Integer> buildRelevanceScore(
-            ProductCategory category,
+            Category category,
             List<Long> tagIds
     ) {
         return new CaseBuilder()

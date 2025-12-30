@@ -17,4 +17,15 @@ public interface ReferenceCustomRepository {
             Integer maxBudget
     );
 
+    List<ReferenceMatchResult> findRelatedReferencesByProductTags(
+            Long productId,
+            int minMatchCount,
+            int limit
+    );
+
+    record ReferenceMatchResult(
+            Long referenceId,
+            Integer matchedTagCount
+    ) {
+    }
 }
