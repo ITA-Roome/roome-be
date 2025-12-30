@@ -156,9 +156,8 @@ public enum Category {
 	BATHROOM_COUNTERTOP("세면대 상판"),
 	BATHROOM_SINK("욕실 세면기"),
 	BATHROOM_FAUCET("욕실 수전"),
-	BATHROOM_SHOWER("욕실 샤워기");
-//    BATHROOM_ACCESSORY(""),
-//    HOME_DECOR_DECORATIVE();
+	BATHROOM_SHOWER("욕실 샤워기"),
+    HOME_DECOR_DECORATIVE("홈");
 
 	private final String description;
 
