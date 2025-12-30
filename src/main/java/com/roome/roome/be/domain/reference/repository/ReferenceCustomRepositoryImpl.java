@@ -11,16 +11,19 @@ import com.roome.roome.be.domain.reference.enums.ReferenceCategoryMapping;
 import com.roome.roome.be.domain.reference.enums.ReferenceMood;
 import com.roome.roome.be.domain.reference.enums.ReferenceStyle;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Set;
 
+import static com.roome.roome.be.domain.product.entity.QProductTag.productTag;
 import static com.roome.roome.be.domain.product.entity.QTag.tag;
 import static com.roome.roome.be.domain.reference.entity.QReference.reference;
 import static com.roome.roome.be.domain.reference.entity.QReferenceImage.referenceImage;
 import static com.roome.roome.be.domain.reference.entity.QReferenceTag.referenceTag;
 
 @RequiredArgsConstructor
+@Repository
 public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory; // QueryDSL 사용을 위해 주입
@@ -114,4 +117,32 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
         return null;
     }
 
+    @Override
+    public List<ReferenceMatchResult> findRelatedReferencesByProductTags(
+            Long productId,
+            int minMatchCount,
+            int limit
+    ) {
+        return jpaQueryFactory
+                .select(Projections.constructor(
+                        ReferenceMatchResult.class,
+                        reference.id,
+                        referenceTag.tag.id.countDistinct().intValue()
+                ))
+                .from(reference)
+                .join(reference.referenceTagList, referenceTag)
+                .where(
+                        referenceTag.tag.id.in(
+                                jpaQueryFactory
+                                        .select(tag.id)
+                                        .from(productTag)
+                                        .join(productTag.tag, tag)
+                                        .where(productTag.product.id.eq(productId))
+                        )
+                )
+                .groupBy(reference.id)
+                .having(referenceTag.tag.id.countDistinct().goe(minMatchCount))
+                .limit(limit)
+                .fetch();
+    }
 }

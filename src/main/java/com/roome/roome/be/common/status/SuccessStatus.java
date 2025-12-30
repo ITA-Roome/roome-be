@@ -86,6 +86,8 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_REFERENCE_SCRAP("REFERENCE_200", HttpStatus.OK, "레퍼런스 스크랩 토글 성공"),
     GET_REFERENCE_LIST_SUCCESS("REFERENCE_200",HttpStatus.OK,"레퍼런스 리스트 조회 성공"),
     CREATE_REFERENCE_LIKE("REFERENCE_200",HttpStatus.OK,"레퍼런스 좋아요 토글 성공" ),
+    GET_RELATED_REFERENCES_SUCCESS("REFERENCE_200", HttpStatus.OK, "연관 레퍼런스 조회에 성공했습니다."),
+    GET_REFERENCE_DETAIL_SUCCESS("REFERENCE_200", HttpStatus.OK, "레퍼런스 상세 조회에 성공했습니다."),
 
     /**
      * Comment

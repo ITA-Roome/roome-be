@@ -3,6 +3,8 @@ package com.roome.roome.be.domain.product.controller;
 import java.util.List;
 
 import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.reference.dto.response.RelatedReferenceResponse;
+import com.roome.roome.be.domain.reference.service.ReferenceService;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +38,7 @@ public class ProductController {
 
 	private final ProductService productService;
 	private final SearchService searchService;
+	private final ReferenceService referenceService;
 
 	//상품 상세 조회
 	@GetMapping("/{productId}")
@@ -143,5 +146,33 @@ public class ProductController {
 		searchService.recordSearch(keyWord, userId);
 		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags,usageTags, match, keyWord, minPrice, maxPrice, pageable, userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_LIST, page);
+	}
+
+	// 상품 기반 연관 레퍼런스 조회
+	@GetMapping("/{productId}/related-references")
+	@Operation(
+			summary = "상품 연관 레퍼런스 조회",
+			description = "특정 상품의 태그와 매칭되는 레퍼런스 목록을 조회합니다. 태그 매칭 개수가 많을수록 우선 표시됩니다."
+	)
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "200",
+			description = "연관 레퍼런스 조회 성공",
+			content = @Content(schema = @Schema(implementation = RelatedReferenceResponse.class))
+	)
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "404",
+			description = "상품이 존재하지 않음",
+			content = @Content
+	)
+	public ResponseEntity<ApiResponse<List<RelatedReferenceResponse>>> getRelatedReferences(
+			@PathVariable Long productId,
+			@Parameter(description = "조회할 레퍼런스 최대 개수", example = "10")
+			@RequestParam(defaultValue = "10") int limit
+	) {
+		// 상품 존재 여부 확인
+		productService.getProductById(productId);
+
+		var references = referenceService.getRelatedReferences(productId, limit);
+		return ApiResponse.success(SuccessStatus.GET_RELATED_REFERENCES_SUCCESS, references);
 	}
 }

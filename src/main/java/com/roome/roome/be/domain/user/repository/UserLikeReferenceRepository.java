@@ -17,4 +17,7 @@ public interface UserLikeReferenceRepository extends JpaRepository<UserLikeRefer
 
     @Query("SELECT ulr.reference.id FROM UserLikeReference ulr WHERE ulr.user.id = :userId AND ulr.reference.id IN :referenceIds")
     Set<Long> findLikedReferenceIds(@Param("userId") Long userId, @Param("referenceIds") List<Long> referenceIds);
+
+    boolean existsByUserIdAndReferenceId(Long userId, Long referenceId);
 }
+
