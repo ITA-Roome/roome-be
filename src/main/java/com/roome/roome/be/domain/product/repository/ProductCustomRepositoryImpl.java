@@ -14,7 +14,7 @@ import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
 import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
 import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,7 +40,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     @Override
     public Page<Product> findByDynamicFilters(
             Long shopId,
-            Category category,
+            ProductCategory category,
             String keyWord,
             Integer minPrice,
             Integer maxPrice,
@@ -91,7 +91,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     }
 
     @Override
-    public List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, Category category, List<Long> tagIdList) {
+    public List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, ProductCategory category, List<Long> tagIdList) {
 
         NumberExpression<Integer> relevanceScore =
                 buildRelevanceScore(category, tagIdList);
@@ -101,7 +101,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                         RelatedProductResponse.class,
                         product.id,
                         product.name,
-                        product.category,
+                        tag.name,
                         product.description,
                         product.price,
                         productImage.imageUrl
@@ -109,6 +109,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 .from(product)
                 .leftJoin(productImage).on(product.id.eq(productImage.product.id).and(productImage.sortOrder.eq(1)))
                 .leftJoin(productTag).on(product.id.eq(productTag.product.id))
+                .leftJoin(tag).on(productTag.tag.id.eq(tag.id).and(tag.type.eq(TagType.PRODUCT_TYPE)))
                 .where(product.id.ne(excludeProductId))
                 .orderBy(relevanceScore.desc())
                 .limit(20)
@@ -119,8 +120,19 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         return shopId != null ? product.shop.id.eq(shopId) : null;
     }
 
-    private BooleanExpression categoryEq(Category category) {
-        return category != null ? product.category.eq(category) : null;
+    private BooleanExpression categoryEq(ProductCategory category) {
+        if (category == null) return null;
+
+        return JPAExpressions
+            .selectOne()
+            .from(productTag)
+            .join(productTag.tag, tag)
+            .where(
+                productTag.product.eq(product),
+                tag.type.eq(TagType.PRODUCT_TYPE),
+                tag.name.eq(category.name())
+            )
+            .exists();
     }
 
     private BooleanExpression nameContains(String keyWord) {
@@ -188,17 +200,32 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         }
     }
 
-    private NumberExpression<Integer> buildRelevanceScore(
-            Category category,
-            List<Long> tagIds
-    ) {
-        return new CaseBuilder()
-                .when(product.category.eq(category)).then(1).otherwise(0)
-                .add(
-                        new CaseBuilder()
-                                .when(productTag.tag.id.in(tagIds)).then(1).otherwise(0)
-                );
+    private BooleanExpression sameProductType(ProductCategory category) {
+        if (category == null) return null;
+
+        return JPAExpressions
+            .selectOne()
+            .from(productTag)
+            .join(productTag.tag, tag)
+            .where(
+                productTag.product.eq(product),
+                tag.type.eq(TagType.PRODUCT_TYPE),
+                tag.name.eq(category.name())
+            )
+            .exists();
     }
+
+
+    private NumberExpression<Integer> buildRelevanceScore(ProductCategory category, List<Long> tagIds) {
+        NumberExpression<Integer> typeScore =
+            new CaseBuilder().when(sameProductType(category)).then(1).otherwise(0);
+
+        NumberExpression<Integer> tagScore =
+            new CaseBuilder().when(hasAnyTags(tagIds)).then(1).otherwise(0);
+
+        return typeScore.add(tagScore);
+    }
+
     private void applySort(JPAQuery<Product> query, Pageable pageable) {
 
         // 기본 정렬
@@ -291,4 +318,15 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 .and(tag.name.in(colors));
     }
 
+    private BooleanExpression hasAnyTags(List<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) return null;
+
+        return JPAExpressions.selectOne()
+            .from(productTag)
+            .where(
+                productTag.product.eq(product),
+                productTag.tag.id.in(tagIds)
+            )
+            .exists();
+    }
 }

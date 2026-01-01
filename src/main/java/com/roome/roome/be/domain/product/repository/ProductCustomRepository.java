@@ -3,7 +3,7 @@ package com.roome.roome.be.domain.product.repository;
 import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
 import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +24,7 @@ public interface ProductCustomRepository {
      */
     Page<Product> findByDynamicFilters(
             Long shopId,
-            Category category,
+            ProductCategory category,
             String keyWord,
             Integer minPrice,
             Integer maxPrice,
@@ -37,7 +37,7 @@ public interface ProductCustomRepository {
      *
      * 상품 상세 정보 조회 시 관련 상품들을 조회
      */
-    List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, Category category, List<Long> tagIdList);
+    List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, ProductCategory productCategory, List<Long> tagIdList);
     List<CandidateProductInfo> findCandidateProductList(
             Integer maxBudget,
             Integer minBudget,
