@@ -91,16 +91,22 @@ public class GoogleService {
     // 구글 정보로 회원 조회 또는 생성
     private User findOrCreateUser(GoogleInfoDto googleInfo) {
         String providerId = googleInfo.getId();
+        String email = googleInfo.getEmail();
 
         return userRepository.findByLoginTypeAndProviderId(LoginType.GOOGLE, providerId)
-                .orElseGet(() -> userRepository.save(
-                        User.builder()
-                                .providerId(providerId)
-                                .nickname(googleInfo.getName())
-                                .email(googleInfo.getEmail())
-                                .loginType(LoginType.GOOGLE)
-                                .role(Role.USER)
-                                .build()
-                ));
+                .orElseGet(() -> {
+                    return userRepository.findByEmail(email)
+                            .orElseGet(() -> {
+                                return userRepository.save(
+                                        User.builder()
+                                                .providerId(providerId)
+                                                .nickname(googleInfo.getName())
+                                                .email(email)
+                                                .loginType(LoginType.GOOGLE)
+                                                .role(Role.USER)
+                                                .build()
+                                );
+                            });
+                });
     }
 }
