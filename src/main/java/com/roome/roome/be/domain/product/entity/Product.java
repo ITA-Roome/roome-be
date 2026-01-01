@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.roome.roome.be.common.base.BaseEntity;
-import com.roome.roome.be.domain.product.enums.Category;
 import com.roome.roome.be.domain.shop.entity.Shop;
 
 import jakarta.persistence.*;
@@ -53,14 +52,9 @@ public class Product extends BaseEntity {
 	@Column(name = "like_count",nullable = false)
 	private Integer likeCount;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Category category;
-
 	public void updateName(String name) { this.name = name; }
 	public void updatePrice(Integer price) { this.price = price; }
 	public void updateDescription(String description) { this.description = description; }
-	public void updateCategory(Category category) { this.category = category; }
 	public void updateProductUrl(String productUrl) { this.productUrl = productUrl; }
 	public void updateThumbnail(String thumbnailKey) { this.thumbnailKey = thumbnailKey; }
 	public void incrementLikeCount() { this.likeCount++; }
