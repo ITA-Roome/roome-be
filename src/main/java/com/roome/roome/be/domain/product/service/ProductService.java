@@ -1,9 +1,10 @@
 package com.roome.roome.be.domain.product.service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.roome.roome.be.domain.product.dto.response.*;
-import com.roome.roome.be.domain.product.enums.Category;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
@@ -57,7 +58,6 @@ public class ProductService {
         Product product = productRepository.save(Product.builder()
                 .name(registerProductRequest.name())
                 .price(registerProductRequest.price())
-                .category(registerProductRequest.category())
                 .productUrl(registerProductRequest.productUrl())
                 .description(registerProductRequest.description())
                 .shop(shopRepository.findById(registerProductRequest.shopId())
@@ -96,6 +96,13 @@ public class ProductService {
                 .map(productTag -> ProductTagResponse.from(productTag.getTag()))
                 .toList();
 
+        ProductCategory category = tags.stream()
+            .filter(t -> t.tagType() == TagType.PRODUCT_TYPE)
+            .findFirst()
+            .map(ProductTagResponse::name)
+            .map(ProductCategory::valueOf)
+            .orElseThrow(() -> new GeneralException(ErrorStatus.PRODUCT_NOT_FOUND));
+
         // ------------------------------
         // 3) Shop 정보
         // ------------------------------
@@ -114,17 +121,17 @@ public class ProductService {
         List<RelatedProductResponse> relatedProductList =
                 productRepository.findRelatedProductList(
                         productId,
-                        product.getCategory(),
+                        category,
                         tagIdList
                 );
-        return ProductDetailResponse.from(product, thumbnailUrl, images, tags, shop, relatedProductList);
+        return ProductDetailResponse.from(product, thumbnailUrl,category,  images, tags, shop, relatedProductList);
     }
 
     // 상품 목록 조회
     @Transactional(readOnly = true)
     public Page<ProductListItemResponse> getList(
             Long shopId,                 // 가게 필터
-            Category category,
+            ProductCategory category,
             List<String> colorTags,
             List<String> materialTags,
             List<String> styleTags,
@@ -150,7 +157,6 @@ public class ProductService {
         if (moodTags != null && !moodTags.isEmpty()) tagFilters.put(TagType.MOOD, moodTags);
         if (usageTags != null && !usageTags.isEmpty()) tagFilters.put(TagType.USAGE, usageTags);
 
-
         Page<Product> page = productRepository.findByDynamicFilters(
                 shopId,
                 category,
@@ -162,24 +168,37 @@ public class ProductService {
                 pageable
         );
 
+        if (page.isEmpty())
+            return Page.empty(pageable);
+
+        List<Long> productIds = page.getContent().stream()
+            .map(Product::getId)
+            .toList();
+
+        Map<Long, ProductCategory> categoryByProductId = productTagRepository
+            .findProductTypeByProductIds(productIds, TagType.PRODUCT_TYPE)
+            .stream()
+            .collect(Collectors.toMap(
+                ProductTagRepository.ProductTypeRow::getProductId,
+                row -> ProductCategory.valueOf(row.getCategoryName())
+            ));
+
         Set<Long> likedProductIds = new HashSet<>();
-        if (userId != null && !page.isEmpty()) {
-            List<Long> productIds = page.getContent().stream()
-                    .map(Product::getId)
-                    .toList();
-
-            if (!productIds.isEmpty()) {
-                likedProductIds = userLikeProductRepository.findLikedProductIds(userId, productIds);
-            }
+        if (userId != null && !productIds.isEmpty()) {
+            likedProductIds = userLikeProductRepository.findLikedProductIds(userId, productIds);
         }
-
-        // [수정] map 할 때 likedProductIds에 포함되어 있는지 확인하여 true/false 전달
         final Set<Long> finalLikedProductIds = likedProductIds;
-        return page.map(p -> ProductListItemResponse.from(
+
+
+        return page.map(p -> {
+            ProductCategory cat = categoryByProductId.get(p.getId());
+            return ProductListItemResponse.from(
                 p,
+                cat,
                 imageUrlBuilder,
                 finalLikedProductIds.contains(p.getId())
-        ));
+            );
+        });
     }
 
     // 상품 수정
@@ -190,7 +209,6 @@ public class ProductService {
 
         if (updateProductRequest.name() != null) product.updateName(updateProductRequest.name());
         if (updateProductRequest.price() != null) product.updatePrice(updateProductRequest.price());
-        if (updateProductRequest.category() != null) product.updateCategory(updateProductRequest.category());
         if (updateProductRequest.productUrl() != null) product.updateProductUrl(updateProductRequest.productUrl());
         if (updateProductRequest.description() != null) product.updateDescription(updateProductRequest.description());
 
