@@ -2,9 +2,13 @@ package com.roome.roome.be.domain.user.repository;
 
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.roome.be.domain.product.dto.response.CommonProductInfo;
 import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
+import com.roome.roome.be.domain.product.enums.TagType;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -23,6 +27,12 @@ public class UserLikeProductCustomRepositoryImpl implements UserLikeProductCusto
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    SimpleExpression category =
+        new CaseBuilder()
+            .when(tag.type.eq(TagType.PRODUCT_TYPE))
+            .then(tag.name)
+            .otherwise((String) null);
+
     @Override
     public List<CommonProductInfo> findUserLikeProductListByUserId(Long userId) {
         return jpaQueryFactory
@@ -38,7 +48,7 @@ public class UserLikeProductCustomRepositoryImpl implements UserLikeProductCusto
                                 Projections.constructor(CommonProductInfo.class,
                                         product.id,
                                         product.name,
-                                        product.category,
+                                        category,
                                         product.price,
                                         product.description,
                                         product.productUrl,
