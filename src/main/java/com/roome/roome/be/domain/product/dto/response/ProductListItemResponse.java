@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.product.dto.response;
 
 import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
 import com.roome.roome.be.domain.product.entity.Product;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 
 import lombok.Builder;
 
@@ -10,15 +11,14 @@ public record ProductListItemResponse(
 	Long id,
 	String name,
 	Integer price,
-	String category,
+	ProductCategory category,
 	String productUrl,
 	String thumbnailUrl,
 	Long shopId,
 	String shopName,
 	boolean isLiked
 ) {
-	public static ProductListItemResponse from(Product product, ImageUrlBuilder imageUrlBuilder, boolean isLiked) {
-		String category = product.getCategory() != null ? product.getCategory().name() : null;
+	public static ProductListItemResponse from(Product product, ProductCategory category, ImageUrlBuilder imageUrlBuilder, boolean isLiked) {
 		String productUrl = product.getProductUrl() != null ? product.getProductUrl() : null;
 
 		String thumbnailUrl = product.getThumbnailKey() != null
