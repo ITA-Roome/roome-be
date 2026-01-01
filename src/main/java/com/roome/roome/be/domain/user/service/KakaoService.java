@@ -91,16 +91,23 @@ public class KakaoService {
     // 카카오 정보로 회원 조회 또는 생성
     private User findOrCreateUser(KakaoInfoDto kakaoInfo) {
         String providerId = String.valueOf(kakaoInfo.getId());
+        String email = kakaoInfo.getKakaoAccount().getEmail();
+        String nickname = kakaoInfo.getKakaoAccount().getProfile().getNickname();
 
         return userRepository.findByLoginTypeAndProviderId(LoginType.KAKAO, providerId)
-                .orElseGet(() -> userRepository.save(
-                        User.builder()
-                                .providerId(providerId)
-                                .nickname(kakaoInfo.getKakaoAccount().getProfile().getNickname())
-                                .email(kakaoInfo.getKakaoAccount().getEmail())
-                                .loginType(LoginType.KAKAO)
-                                .role(Role.USER)
-                                .build()
-                ));
+                .orElseGet(() -> {
+                    return userRepository.findByEmail(email)
+                            .orElseGet(() -> {
+                                return userRepository.save(
+                                        User.builder()
+                                                .providerId(providerId)
+                                                .nickname(nickname)
+                                                .email(email)
+                                                .loginType(LoginType.KAKAO)
+                                                .role(Role.USER)
+                                                .build()
+                                );
+                            });
+                });
     }
 }
