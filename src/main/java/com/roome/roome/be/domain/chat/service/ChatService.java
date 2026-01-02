@@ -11,10 +11,7 @@ import com.roome.roome.be.domain.ai.service.AiService;
 import com.roome.roome.be.domain.chat.dto.request.ChatMessageRequest;
 import com.roome.roome.be.domain.chat.dto.request.ChatProductScenarioRequest;
 import com.roome.roome.be.domain.chat.dto.request.ChatReferenceScenarioRequest;
-import com.roome.roome.be.domain.chat.dto.response.ChatMessageResponse;
-import com.roome.roome.be.domain.chat.dto.response.ChatProductScenarioResponse;
-import com.roome.roome.be.domain.chat.dto.response.ProductSummaryResponse;
-import com.roome.roome.be.domain.chat.dto.response.ChatReferenceScenarioResponse;
+import com.roome.roome.be.domain.chat.dto.response.*;
 import com.roome.roome.be.domain.chat.enums.ChatInputType;
 import com.roome.roome.be.domain.chat.enums.ChatMode;
 import com.roome.roome.be.domain.chat.model.ChatSession;
@@ -50,22 +47,19 @@ public class ChatService {
     private final AiService aiService;
     private final AiIntentService aiIntentService;
     private final RedisService redisService;
+    private final ChatSessionService chatSessionService;
 
     private final ChatSessionRepository chatSessionRepository;
     private final InMemoryChatSessionRepository inMemoryChatSessionRepository; // newSessionId용(추후 factory로 분리 추천)
 
 
     public ChatMessageResponse handle(Long userId, ChatMessageRequest request) {
-        ChatSession chatSession = loadSession();
-        AiIntentResult intent = aiIntentService.analyze(chatSession, request.message());
-//        return switch (intent.intent()) {
-//            case RESET -> handleReset();
-//            case CHANGE_FLOW -> handleFlowChange();
-//            case SET_INFO -> handleSetInfo(intent);
-//            case REQUEST_RECOMMEND -> handleRecommendRequest();
-//            default -> handleUnknown();
-//        };
-        return null;
+        return chatSessionService.handle(
+                userId,
+                request.sessionId(),
+                request.inputType(),
+                request.message()
+        );
     }
 
 
