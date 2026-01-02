@@ -17,6 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Optional<User> findById(Long id);
     Optional<User> findUserByPhoneNumber(String phoneNumber);
+    Optional<User> findByEmailAndIsDeletedFalse(String email);
 
     @Modifying
     @Query("DELETE FROM User u " +

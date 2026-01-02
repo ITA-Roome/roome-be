@@ -39,13 +39,14 @@ public class AuthService {
     // 회원탈퇴
     @Transactional
     public void withdraw(Long userId) {
-        userService.withdrawUser(userId);
+        User user = userService.getUserById(userId);
+        user.withdraw();
     }
 
     // 로그인
     @Transactional
     public EmailLoginResponse login(LoginRequest request) {
-        User user = userService.getUserByEmail(request.email());
+        User user = userService.findByEmailAndIsDeleted(request.email());
         validatePasswordMatch(request.password(), user.getPassword(), PasswordValidationType.LOGIN);
 
         String accessToken = jwtService.generateAccessToken(user);

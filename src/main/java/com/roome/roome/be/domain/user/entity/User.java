@@ -7,6 +7,8 @@ import com.roome.roome.be.domain.user.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -42,6 +44,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role;
 
+    private Boolean isDeleted;
+    private LocalDateTime deletedAt;
+
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
@@ -60,5 +65,16 @@ public class User extends BaseEntity {
 
     public void updateProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    // 탈퇴 처리
+    public void withdraw() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+        this.email = null;
+        this.password = null;
+        this.nickname = "탈퇴한 사용자";
+        this.phoneNumber = null;
+        this.refreshToken = null;
     }
 }
