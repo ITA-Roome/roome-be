@@ -85,9 +85,16 @@ public class UserService {
                 .phoneNumber(request.phoneNumber())
                 .loginType(LoginType.EMAIL)
                 .role(Role.USER)
+                .isDeleted(false)
                 .providerId(null)
                 .build();
         userRepository.save(user);
+    }
+
+    // 이메일과 isDeleted로 유저 찾기
+    public User findByEmailAndIsDeleted(String email) {
+        return userRepository.findByEmailAndIsDeletedFalse(email)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
     }
 
     // 이메일로 유저 찾기
