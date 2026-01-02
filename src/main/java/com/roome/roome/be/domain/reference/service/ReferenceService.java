@@ -124,7 +124,9 @@ public class ReferenceService {
 
         List<String> images = ref.getReferenceImageList().stream()
                 .sorted(Comparator.comparing(ReferenceImage::getSortOrder))
-                .map(ReferenceImage::getImageUrl)
+                .map(ReferenceImage::getObjectKey)              // objectKey 가져와서
+                .filter(Objects::nonNull)
+                .map(imageUrlBuilder::build)                    // 우리 빌더로 URL 생성
                 .toList();
 
         List<ReferenceItemProductInfo> items = ref.getReferenceItemList().stream()
@@ -212,8 +214,8 @@ public class ReferenceService {
                 .filter(Objects::nonNull)
                 .map(ref -> {
                     String thumbnail = ref.getReferenceImageList().isEmpty()
-                            ? null
-                            : ref.getReferenceImageList().get(0).getImageUrl();
+                        ? null
+                        : imageUrlBuilder.build(ref.getReferenceImageList().get(0).getObjectKey());
 
                     return new RelatedReferenceResponse(
                             ref.getId(),
