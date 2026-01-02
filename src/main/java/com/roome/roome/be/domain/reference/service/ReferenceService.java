@@ -124,9 +124,9 @@ public class ReferenceService {
 
         List<String> images = ref.getReferenceImageList().stream()
                 .sorted(Comparator.comparing(ReferenceImage::getSortOrder))
-                .map(ReferenceImage::getObjectKey)              // objectKey 가져와서
+                .map(ReferenceImage::getObjectKey)
                 .filter(Objects::nonNull)
-                .map(imageUrlBuilder::build)                    // 우리 빌더로 URL 생성
+                .map(imageUrlBuilder::build)
                 .toList();
 
         List<ReferenceItemProductInfo> items = ref.getReferenceItemList().stream()
