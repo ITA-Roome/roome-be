@@ -1,5 +1,6 @@
 package com.roome.roome.be.domain.search.service;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,7 @@ public class SearchService {
 	private static final double RANKING_INCREMENT_SCORE = 1;
 	private static final long RANKING_START = 0L;
 	private static final long RANKING_END = 9L;
+	private static final Duration RECENT_TTL = Duration.ofDays(90);
 
 	//키워드 검색
 	public void recordSearch(String rawKeyword, Long userId) {
@@ -90,10 +92,10 @@ public class SearchService {
 	private void addRecentKeyword(Long userId, String keyword) {
 
 		String key = recentKey(userId);
-
 		redisTemplate.opsForList().remove(key, 0, keyword);
 		redisTemplate.opsForList().rightPush(key, keyword);
 		redisTemplate.opsForList().trim(key, -RECENT_LIMIT, -1);
+		redisTemplate.expire(key, RECENT_TTL);
 	}
 
 	private String recentKey(Long userId) {
