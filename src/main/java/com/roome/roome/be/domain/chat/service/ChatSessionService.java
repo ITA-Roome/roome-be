@@ -22,16 +22,17 @@ public class ChatSessionService {
 
     public ChatMessageResponse handle(Long userId, String sessionId, ChatInputType inputType, String message) {
 
+        // 세션 불러오기
         ChatSession session = loadSession(userId, sessionId);
 
-        AiIntentResult intent =
-                aiIntentService.analyze(session, message);
+        // 현재 Session 상태와 사용자의 메시지를 분석해서 의도 분석(추천 받을려는 제품의 정보를 입력하는지, 추천 결과를 받을려는 것인지 기타 등등)
+        AiIntentResult intent = aiIntentService.analyze(session, message);
 
-        ChatSession updatedSession =
-                applyIntent(session, intent);
-
+        // 사용자의 의도 분석 후 ChatSession 업데이트
+        ChatSession updatedSession = applyIntent(session, intent);
         sessionRepository.save(updatedSession);
 
+        // 그 다음 로직 수행
         return decideNextResponse(updatedSession, intent);
     }
 
@@ -115,6 +116,7 @@ public class ChatSessionService {
             AiIntentResult intent
     ) {
 
+        // 초기화 요청인 경우
         if (intent.intent() == ChatIntentType.RESET) {
             return ChatMessageResponse.question(
                     session.sessionId(),
@@ -123,8 +125,10 @@ public class ChatSessionService {
             );
         }
 
-        if (intent.intent() == ChatIntentType.REQUEST_RECOMMEND) {
+        // 추천 요청인 경우
+        else if (intent.intent() == ChatIntentType.REQUEST_RECOMMEND) {
 
+            // 제품인 경우
             if (session.mode() == ChatMode.PRODUCT) {
                 if (!session.canRecommendProduct()) {
                     return askNextProductQuestion(session);
@@ -137,7 +141,8 @@ public class ChatSessionService {
                 );
             }
 
-            if (session.mode() == ChatMode.REFERENCE) {
+            // 인테리어인 경우
+            else if (session.mode() == ChatMode.REFERENCE) {
                 if (!session.canRecommendReference()) {
                     return askNextReferenceQuestion(session);
                 }
@@ -150,12 +155,14 @@ public class ChatSessionService {
             }
         }
 
-        if (intent.intent() == ChatIntentType.SET_INFO) {
+        // 추가적인 정보 입력
+        else if (intent.intent() == ChatIntentType.SET_INFO) {
             return session.mode() == ChatMode.PRODUCT
                     ? askNextProductQuestion(session)
                     : askNextReferenceQuestion(session);
         }
 
+        // 기타
         return ChatMessageResponse.question(
                 session.sessionId(),
                 "조금만 더 자세히 알려주세요 🙂",
@@ -166,7 +173,6 @@ public class ChatSessionService {
     /* =========================
        Question Builders
     ========================= */
-
     private ChatMessageResponse askNextProductQuestion(ChatSession session) {
 
         if (session.productTypes() == null || session.productTypes().isEmpty()) {
