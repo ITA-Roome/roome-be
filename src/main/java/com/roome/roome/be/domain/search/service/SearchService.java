@@ -98,6 +98,12 @@ public class SearchService {
 		redisTemplate.expire(key, RECENT_TTL);
 	}
 
+	// 최근 검색어 개별 삭제
+	public void deleteRecentKeyword(Long userId, String keyword) {
+		String key = recentKey(userId);
+		redisTemplate.opsForList().remove(key, 0, keyword);
+	}
+
 	private String recentKey(Long userId) {
 		return RECENT_KEY_PREFIX + userId;
 	}

@@ -4,8 +4,10 @@ package com.roome.roome.be.domain.search.controller;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.roome.roome.be.common.response.ApiResponse;
@@ -63,6 +65,24 @@ public class SearchController {
 	) {
 		RecentSearchListResponse response = searchService.getRecentSearchList(userId);
 		return ApiResponse.success(SuccessStatus.GET_RECENT_KEYWORDS_LIST_SUCCESS, response);
+	}
+
+	// 최근 검색어 개별 삭제
+	@DeleteMapping("/keywords/recent")
+	@Operation(
+		summary = "최근 검색어 삭제",
+		description = "로그인한 유저의 최근 검색어 중 특정 키워드를 삭제합니다."
+	)
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+		responseCode = "200",
+		description = "최근 검색어 삭제 성공"
+	)
+	public ResponseEntity<ApiResponse<Void>> deleteRecentKeyword(
+		@AuthenticationPrincipal Long userId,
+		@RequestParam String keyword
+	) {
+		searchService.deleteRecentKeyword(userId, keyword);
+		return ApiResponse.success(SuccessStatus.DELETE_RECENT_KEYWORD_SUCCESS, null);
 	}
 
 }
