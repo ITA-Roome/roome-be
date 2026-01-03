@@ -105,6 +105,7 @@ public enum SuccessStatus implements BaseStatus {
     RECORD_SEARCH_KEYWORD_SUCCESS( "SEARCH_201", HttpStatus.OK,"검색어 기록 성공"),
     GET_RECENT_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "최근 검색어 조회 성공"),
     DELETE_RECENT_KEYWORD_SUCCESS("SEARCH_200", HttpStatus.OK,"최근 검색어 개별 삭제 성공" ),
+    DELETE_ALL_RECENT_KEYWORDS_SUCCESS("SEARCH_200", HttpStatus.OK,"최근 검색어 전체 삭제 성공" ),
 
 
     /**

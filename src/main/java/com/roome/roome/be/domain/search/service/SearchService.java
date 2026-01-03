@@ -104,6 +104,12 @@ public class SearchService {
 		redisTemplate.opsForList().remove(key, 0, keyword);
 	}
 
+	// 최근 검색어 전체 삭제
+	public void deleteAllRecentKeywords(Long userId) {
+		String key = recentKey(userId);
+		redisTemplate.delete(key);
+	}
+
 	private String recentKey(Long userId) {
 		return RECENT_KEY_PREFIX + userId;
 	}

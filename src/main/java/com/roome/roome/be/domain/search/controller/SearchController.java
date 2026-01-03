@@ -85,4 +85,21 @@ public class SearchController {
 		return ApiResponse.success(SuccessStatus.DELETE_RECENT_KEYWORD_SUCCESS, null);
 	}
 
+	// 최근 검색어 전체 삭제
+	@DeleteMapping("/keywords/recent/all")
+	@Operation(
+		summary = "최근 검색어 전체 삭제",
+		description = "로그인한 유저의 최근 검색어를 모두 삭제합니다."
+	)
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+		responseCode = "200",
+		description = "최근 검색어 전체 삭제 성공"
+	)
+	public ResponseEntity<ApiResponse<Void>> deleteAllRecentKeywords(
+		@AuthenticationPrincipal Long userId
+	) {
+		searchService.deleteAllRecentKeywords(userId);
+		return ApiResponse.success(SuccessStatus.DELETE_ALL_RECENT_KEYWORDS_SUCCESS, null);
+	}
+
 }
