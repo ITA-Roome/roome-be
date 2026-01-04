@@ -167,6 +167,18 @@ public class AuthController {
         return ApiResponse.success(SuccessStatus.UPDATE_PASSWORD_SUCCESS);
     }
 
+    @PostMapping("/password/confirm")
+    @Operation(summary = "비밀번호 검증")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "비밀번호 검증 성공", content = @Content(mediaType = "application/json"))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "비밀번호 틀린 경우", content = @Content)
+    public ResponseEntity<ApiResponse<Void>> confirmPassword(
+            @RequestBody @Valid ConfirmPasswordRequest request,
+            @AuthenticationPrincipal Long userId
+    ) {
+        authService.confirmPassword(userId, request);
+        return ApiResponse.success(SuccessStatus.CONFIRM_PASSWORD_SUCCESS);
+    }
+
     @PostMapping("/find-email")
     @Operation(summary = "이메일 찾기")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일 찾기 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindEmailResponse.class)))
