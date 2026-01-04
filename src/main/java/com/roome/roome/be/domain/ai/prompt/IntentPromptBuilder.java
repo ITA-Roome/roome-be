@@ -1,11 +1,16 @@
 package com.roome.roome.be.domain.ai.prompt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.roome.roome.be.domain.chat.model.ChatSession;
 
 public class IntentPromptBuilder {
 
-    private static final ObjectMapper om = new ObjectMapper();
+    private static final ObjectMapper om =
+            JsonMapper.builder()
+                    .addModule(new JavaTimeModule())
+                    .build();
 
     private static final String SYSTEM_PROMPT = """
             너는 인테리어 추천 서비스의 "의도 분석 전용 파서(AI Parser)"이다.

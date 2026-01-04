@@ -9,12 +9,15 @@ import com.roome.roome.be.domain.chat.enums.ChatMode;
 import com.roome.roome.be.domain.chat.model.ChatSession;
 import com.roome.roome.be.domain.chat.repository.ChatSessionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatSessionService {
 
     private final ChatSessionRepository sessionRepository;
@@ -23,10 +26,12 @@ public class ChatSessionService {
     public ChatMessageResponse handle(Long userId, String sessionId, ChatInputType inputType, String message) {
 
         // 세션 불러오기
-        ChatSession session = loadSession(userId, sessionId);
+        ChatSession session = loadOrCreateSession(userId, sessionId);
+        log.error("현재 세션 값 {}", session);
 
         // 현재 Session 상태와 사용자의 메시지를 분석해서 의도 분석(추천 받을려는 제품의 정보를 입력하는지, 추천 결과를 받을려는 것인지 기타 등등)
         AiIntentResult intent = aiIntentService.analyze(session, message);
+        log.error("의도 분석 {}", intent);
 
         // 사용자의 의도 분석 후 ChatSession 업데이트
         ChatSession updatedSession = applyIntent(session, intent);
@@ -40,14 +45,19 @@ public class ChatSessionService {
        Session Handling
     ========================= */
 
-    private ChatSession loadSession(Long userId, String sessionId) {
-        if (sessionId == null || sessionId.isBlank()) {
-            return sessionRepository.create(userId);
+    private ChatSession loadOrCreateSession(Long userId, String sessionId) {
+
+        if (sessionId == null) {
+            return ChatSession.create(
+                    UUID.randomUUID().toString(),
+                    userId
+            );
         }
 
         return sessionRepository.findById(sessionId)
-                .orElseGet(() -> sessionRepository.create(userId));
+                .orElseThrow(() -> new IllegalStateException("세션이 존재하지 않습니다."));
     }
+
 
     private ChatSession applyIntent(ChatSession session, AiIntentResult intent) {
 

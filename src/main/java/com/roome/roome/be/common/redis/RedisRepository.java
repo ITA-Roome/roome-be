@@ -16,7 +16,7 @@ public class RedisRepository {
 
     public void save(ChatSession chatSession) {
         redisTemplate.opsForValue()
-                .set(PREFIX + chatSession.getUserId(), chatSession, Duration.ofHours(3));
+                .set(PREFIX + chatSession.userId(), chatSession, Duration.ofHours(3));
     }
 
     public ChatSession find(Long userId) {
