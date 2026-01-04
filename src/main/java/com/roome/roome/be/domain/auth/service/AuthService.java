@@ -72,6 +72,11 @@ public class AuthService {
         userService.updatePassword(user, passwordEncoder.encode(request.password()));
     }
 
+    public void confirmPassword(Long userId, ConfirmPasswordRequest request) {
+        User user = userService.getUserById(userId);
+        validatePasswordMatch(request.password(), user.getPassword(), PasswordValidationType.OTHER);
+    }
+
     // 전화번호로 이메일 찾기
     public FindEmailResponse findEmail(FindEmailRequest request) {
         User user = userService.getUserByPhoneNumber(request.phoneNumber())
@@ -129,12 +134,13 @@ public class AuthService {
         boolean isMatch = passwordEncoder.matches(rawPassword, encodedPassword);
 
         switch (type) {
-            case LOGIN -> {
+            case LOGIN, OTHER -> {
                 if (!isMatch) throw new GeneralException(ErrorStatus.INVALID_PASSWORD);
             }
             case UPDATE -> {
                 if (isMatch) throw new GeneralException(ErrorStatus.PASSWORD_SAME_AS_OLD);
             }
+
             default -> throw new IllegalStateException("Unexpected value: " + type);
         }
     }
