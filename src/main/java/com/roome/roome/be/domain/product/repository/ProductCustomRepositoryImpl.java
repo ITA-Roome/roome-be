@@ -111,6 +111,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 .leftJoin(productTag).on(product.id.eq(productTag.product.id))
                 .leftJoin(tag).on(productTag.tag.id.eq(tag.id).and(tag.type.eq(TagType.PRODUCT_TYPE)))
                 .where(product.id.ne(excludeProductId))
+                .groupBy(product.id)
                 .orderBy(relevanceScore.desc())
                 .limit(20)
                 .fetch();
