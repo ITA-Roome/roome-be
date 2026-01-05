@@ -6,6 +6,7 @@ public record RelatedReferenceResponse(
         String thumbnailUrl,
         Integer scrapCount,
         String userName,
+        Long userId,
         Integer matchedTagCount
 ) {
 }

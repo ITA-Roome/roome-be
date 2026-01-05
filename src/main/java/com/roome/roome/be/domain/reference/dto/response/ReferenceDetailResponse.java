@@ -13,6 +13,7 @@ public record ReferenceDetailResponse(
         Boolean isScrapped,
         Boolean isLiked,
         String userName,
+        Long userId,
         String userProfileUrl,
         String referenceUrl
 ) {}
