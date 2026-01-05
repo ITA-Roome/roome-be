@@ -1,5 +1,7 @@
 package com.roome.roome.be.domain.reference.repository;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -123,6 +125,28 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
             int minMatchCount,
             int limit
     ) {
+        List<Tuple> productTags = jpaQueryFactory
+                .select(tag.name, tag.type)
+                .from(productTag)
+                .join(productTag.tag, tag)
+                .where(productTag.product.id.eq(productId))
+                .fetch();
+
+        if (productTags.isEmpty()) {
+            return List.of();
+        }
+
+        BooleanBuilder builder = new BooleanBuilder();
+        for (Tuple tuple : productTags) {
+            String tagName = tuple.get(tag.name);
+            TagType type = tuple.get(tag.type);
+
+            TagType referenceType = mapToReferenceTagType(type);
+            if (referenceType != null) {
+                builder.or(tag.name.eq(tagName).and(tag.type.eq(referenceType)));
+            }
+        }
+
         return jpaQueryFactory
                 .select(Projections.constructor(
                         ReferenceMatchResult.class,
@@ -131,18 +155,21 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                 ))
                 .from(reference)
                 .join(reference.referenceTagList, referenceTag)
-                .where(
-                        referenceTag.tag.id.in(
-                                jpaQueryFactory
-                                        .select(tag.id)
-                                        .from(productTag)
-                                        .join(productTag.tag, tag)
-                                        .where(productTag.product.id.eq(productId))
-                        )
-                )
+                .join(referenceTag.tag, tag)
                 .groupBy(reference.id)
                 .having(referenceTag.tag.id.countDistinct().goe(minMatchCount))
+                .orderBy(referenceTag.tag.id.countDistinct().desc()) // 많이 일치하는 순서대로 정렬
                 .limit(limit)
                 .fetch();
+    }
+
+    private TagType mapToReferenceTagType(TagType productTagType) {
+        if (productTagType == null) return null;
+
+        try {
+            return TagType.valueOf("REFERENCE_" + productTagType.name());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }
