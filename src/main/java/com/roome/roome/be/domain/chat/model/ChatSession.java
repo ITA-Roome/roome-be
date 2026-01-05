@@ -12,7 +12,6 @@ public record ChatSession(
         /* =========================
          * 기본 정보
          * ========================= */
-        String sessionId,
         Long userId,
         ChatMode mode,                 // 현재 대화 모드
         Instant updatedAt,
@@ -40,9 +39,8 @@ public record ChatSession(
         /* =========================
          * 생성
          * ========================= */
-        public static ChatSession create(String sessionId, Long userId) {
+        public static ChatSession create(Long userId) {
                 return new ChatSession(
-                        sessionId,
                         userId,
                         ChatMode.UNDECIDED,
                         Instant.now(),
@@ -67,8 +65,9 @@ public record ChatSession(
          * ========================= */
         public ChatSession withMode(ChatMode mode) {
                 return new ChatSession(
-                        sessionId, userId,
-                        mode, Instant.now(),
+                        userId,
+                        mode,
+                        Instant.now(),
 
                         productTypes,
                         productColors,
@@ -92,8 +91,9 @@ public record ChatSession(
                 Integer maxBudget
         ) {
                 return new ChatSession(
-                        sessionId, userId,
-                        ChatMode.PRODUCT, Instant.now(),
+                        userId,
+                        ChatMode.PRODUCT,
+                        Instant.now(),
 
                         productTypes,
                         productColors,
@@ -120,8 +120,9 @@ public record ChatSession(
                 Integer maxBudget
         ) {
                 return new ChatSession(
-                        sessionId, userId,
-                        ChatMode.REFERENCE, Instant.now(),
+                        userId,
+                        ChatMode.REFERENCE,
+                        Instant.now(),
 
                         productTypes,
                         productColors,

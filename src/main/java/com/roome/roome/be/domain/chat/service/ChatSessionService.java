@@ -19,13 +19,18 @@ import java.util.UUID;
 @Slf4j
 public class ChatSessionService {
 
-    private final ChatSessionRepository sessionRepository;
+    private final ChatSessionRepository chatSessionRepository;
     private final AiIntentService aiIntentService;
 
     public ChatDecision handle(Long userId, String sessionId, ChatInputType inputType, String message) {
+
+        String key = sessionId != null ? sessionId : UUID.randomUUID().toString();
+
         // 세션 불러오기
-        ChatSession session = loadOrCreateSession(userId, sessionId);
-        log.error("현재 세션 값 {}", session);
+        ChatSession session = chatSessionRepository.
+                find(key).
+                orElseGet(()-> chatSessionRepository.create(key, userId));
+        log.info("현재 세션 값 {}", session);
 
         // 현재 Session 상태와 사용자의 메시지를 분석해서 의도 분석(추천 받을려는 제품의 정보를 입력하는지, 추천 결과를 받을려는 것인지 기타 등등)
         AiIntentResult intent = aiIntentService.analyze(session, message);
@@ -33,34 +38,18 @@ public class ChatSessionService {
 
         // 사용자의 의도 분석 후 ChatSession 업데이트
         ChatSession updatedSession = applyIntent(session, intent);
-        sessionRepository.save(updatedSession);
+        chatSessionRepository.save(key, updatedSession);
 
         // 그 다음 로직 수행
-        return new ChatDecision(updatedSession, intent);
+        return new ChatDecision(key,updatedSession, intent);
     }
 
-
-    /* =========================
-       Session Handling
-    ========================= */
-    private ChatSession loadOrCreateSession(Long userId, String sessionId) {
-
-        if (sessionId == null) {
-            return ChatSession.create(
-                    UUID.randomUUID().toString(),
-                    userId
-            );
-        }
-
-        return sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalStateException("세션이 존재하지 않습니다."));
-    }
 
 
     private ChatSession applyIntent(ChatSession session, AiIntentResult intent) {
 
         return switch (intent.intent()) {
-            case RESET -> sessionRepository.create(session.userId());
+            case RESET -> ChatSession.create(session.userId());
 
             case CHANGE_FLOW -> session.withMode(resolveMode(intent));
 

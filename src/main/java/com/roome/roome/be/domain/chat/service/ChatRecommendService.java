@@ -1,6 +1,5 @@
 package com.roome.roome.be.domain.chat.service;
 
-import com.roome.roome.be.common.redis.RedisService;
 import com.roome.roome.be.domain.ai.dto.request.AiProductRequest;
 import com.roome.roome.be.domain.ai.dto.request.AiReferenceRequest;
 import com.roome.roome.be.domain.ai.dto.response.AiProductResponse;
@@ -11,8 +10,6 @@ import com.roome.roome.be.domain.chat.dto.request.ChatReferenceScenarioRequest;
 import com.roome.roome.be.domain.chat.dto.response.ChatProductScenarioResponse;
 import com.roome.roome.be.domain.chat.dto.response.ChatReferenceScenarioResponse;
 import com.roome.roome.be.domain.chat.dto.response.ProductSummaryResponse;
-import com.roome.roome.be.domain.chat.enums.ChatMode;
-import com.roome.roome.be.domain.chat.model.ChatSession;
 import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
@@ -39,7 +36,6 @@ public class ChatRecommendService {
     private final AiService aiService;
     private final ProductService productService;
     private final ReferenceService referenceService;
-    private final RedisService redisService;
 
 
     public ChatReferenceScenarioResponse processChatReferenceScenario(ChatReferenceScenarioRequest request) {
