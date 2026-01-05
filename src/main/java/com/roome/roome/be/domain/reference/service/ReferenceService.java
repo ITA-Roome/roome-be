@@ -130,17 +130,24 @@ public class ReferenceService {
                 .toList();
 
         List<ReferenceItemProductInfo> items = ref.getReferenceItemList().stream()
-                .map(item -> {
-                    Product p = item.getProduct();
+                .map(com.roome.roome.be.domain.reference.entity.ReferenceItem::getProduct)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        Product::getId,
+                        product -> product,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new
+                ))
+                .values().stream()
+                .map(p -> {
 
                     String thumb = null;
 
                     if (p.getThumbnailKey() != null && !p.getThumbnailKey().isBlank()) {
                         thumb = imageUrlBuilder.build(p.getThumbnailKey());
-                    }
-                    else if (!p.getProductImageList().isEmpty()) {
+                    } else if (!p.getProductImageList().isEmpty()) {
                         thumb = p.getProductImageList().stream()
-                                .sorted(Comparator.comparingInt(ProductImage::getSortOrder)) // 순서대로 정렬
+                                .sorted(Comparator.comparingInt(ProductImage::getSortOrder))
                                 .findFirst()
                                 .map(ProductImage::getImageUrl)
                                 .orElse(null);
@@ -192,6 +199,7 @@ public class ReferenceService {
                 ref.getReferenceUrl()
         );
     }
+
 
     // 상품 관련 레퍼런스 조회
     @Transactional
