@@ -156,6 +156,7 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                 .from(reference)
                 .join(reference.referenceTagList, referenceTag)
                 .join(referenceTag.tag, tag)
+                .where(builder)
                 .groupBy(reference.id)
                 .having(referenceTag.tag.id.countDistinct().goe(minMatchCount))
                 .orderBy(referenceTag.tag.id.countDistinct().desc()) // 많이 일치하는 순서대로 정렬
@@ -166,10 +167,12 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
     private TagType mapToReferenceTagType(TagType productTagType) {
         if (productTagType == null) return null;
 
-        try {
-            return TagType.valueOf("REFERENCE_" + productTagType.name());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return switch (productTagType) {
+            case USAGE -> TagType.REFERENCE_TYPE;
+            case MOOD -> TagType.REFERENCE_MOOD;
+            case STYLE -> TagType.REFERENCE_STYLE;
+            case SIZE -> TagType.REFERENCE_SIZE;
+            default -> null;
+        };
     }
 }

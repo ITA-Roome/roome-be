@@ -228,7 +228,6 @@ public class ReferenceService {
                     return new RelatedReferenceResponse(
                             ref.getId(),
                             thumbnail,
-                            null,
                             ref.getScrapCount(),
                             ref.getUser().getNickname(),
                             matchCountMap.get(ref.getId())
