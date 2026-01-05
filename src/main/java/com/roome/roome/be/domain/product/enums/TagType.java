@@ -8,5 +8,11 @@ public enum TagType {
     SIZE,
     USAGE,
     STYLE,
-    MOOD
+    MOOD,
+
+    REFERENCE_COLOR,
+    REFERENCE_TYPE,
+    REFERENCE_SIZE,
+    REFERENCE_STYLE,
+    REFERENCE_MOOD
 }

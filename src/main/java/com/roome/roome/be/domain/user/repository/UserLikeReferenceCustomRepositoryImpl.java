@@ -10,6 +10,7 @@ import static com.roome.roome.be.domain.user.entity.QUserLikeReference.*;
 
 import java.util.List;
 
+import com.querydsl.core.types.dsl.Expressions;
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
@@ -41,7 +42,9 @@ public class UserLikeReferenceCustomRepositoryImpl implements UserLikeReferenceC
                         user.nickname,
                         user.id,
                         list(referenceImage.imageUrl),
-                        reference.scrapCount
+                        reference.scrapCount,
+                            Expressions.asBoolean(false),            // 6. isScrapped (스크랩 목록 조희니까 True)
+                            Expressions.asBoolean(true)
                     )
                 )
             );
