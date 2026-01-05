@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/references")
@@ -35,12 +36,12 @@ public class ReferenceController {
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크랩 내역 리스트 조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReferenceListResponse.class)))
     public ResponseEntity<ApiResponse<ReferenceListResponse>> getReferenceList(
-        @AuthenticationPrincipal Long userId,
-        @RequestParam(required = false) String keyWord
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) String keyWord
     ){
 
-        searchService.recordSearch(keyWord, userId);
-        ReferenceListResponse response = referenceService.getReferenceList(userId);
+        // searchService.recordSearch(keyWord, userId);
+        ReferenceListResponse response = referenceService.getReferenceList(userId, keyWord);
         return ApiResponse.success(SuccessStatus.GET_REFERENCE_LIST_SUCCESS,response);
     }
 
