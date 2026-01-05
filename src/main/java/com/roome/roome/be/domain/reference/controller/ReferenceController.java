@@ -40,7 +40,7 @@ public class ReferenceController {
             @RequestParam(required = false) String keyWord
     ){
 
-        // searchService.recordSearch(keyWord, userId);
+        searchService.recordSearch(keyWord, userId);
         ReferenceListResponse response = referenceService.getReferenceList(userId, keyWord);
         return ApiResponse.success(SuccessStatus.GET_REFERENCE_LIST_SUCCESS,response);
     }
