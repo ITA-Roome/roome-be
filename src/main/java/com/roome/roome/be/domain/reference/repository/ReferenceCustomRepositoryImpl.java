@@ -164,10 +164,10 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                 .fetch();
     }
 
-    private TagType mapToReferenceTagType(TagType productTagType) {
-        if (productTagType == null) return null;
+    private TagType mapToReferenceTagType(TagType referenceTagType) {
+        if (referenceTagType == null) return null;
 
-        return switch (productTagType) {
+        return switch (referenceTagType) {
             case USAGE -> TagType.REFERENCE_TYPE;
             case MOOD -> TagType.REFERENCE_MOOD;
             case STYLE -> TagType.REFERENCE_STYLE;
