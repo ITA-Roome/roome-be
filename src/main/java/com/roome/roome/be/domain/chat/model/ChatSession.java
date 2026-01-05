@@ -21,6 +21,7 @@ public record ChatSession(
          * PRODUCT (제품 추천)
          * ========================= */
         List<ProductType> productTypes,
+        List<String> productColors,
         Integer productMinBudget,
         Integer productMaxBudget,
 
@@ -47,6 +48,7 @@ public record ChatSession(
                         Instant.now(),
 
                         List.of(),
+                        List.of(),
                         null,
                         null,
 
@@ -63,13 +65,13 @@ public record ChatSession(
         /* =========================
          * 상태 갱신 (불변)
          * ========================= */
-
         public ChatSession withMode(ChatMode mode) {
                 return new ChatSession(
                         sessionId, userId,
                         mode, Instant.now(),
 
                         productTypes,
+                        productColors,
                         productMinBudget,
                         productMaxBudget,
 
@@ -85,6 +87,7 @@ public record ChatSession(
 
         public ChatSession withProductInfo(
                 List<ProductType> productTypes,
+                List<String> productColors,
                 Integer minBudget,
                 Integer maxBudget
         ) {
@@ -93,6 +96,7 @@ public record ChatSession(
                         ChatMode.PRODUCT, Instant.now(),
 
                         productTypes,
+                        productColors,
                         minBudget,
                         maxBudget,
 
@@ -120,6 +124,7 @@ public record ChatSession(
                         ChatMode.REFERENCE, Instant.now(),
 
                         productTypes,
+                        productColors,
                         productMinBudget,
                         productMaxBudget,
 

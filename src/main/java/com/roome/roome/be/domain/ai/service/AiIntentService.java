@@ -8,11 +8,13 @@ import com.roome.roome.be.domain.ai.dto.response.AiIntentResult;
 import com.roome.roome.be.domain.ai.prompt.IntentPromptBuilder;
 import com.roome.roome.be.domain.chat.model.ChatSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.ChatClient;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AiIntentService {
 
     private final ChatClient chatClient;
@@ -30,6 +32,7 @@ public class AiIntentService {
         String rawResponse = chatClient.call(prompt);
 
         // JSON 파싱
+        log.error("응답 값: {}", rawResponse);
         return parseIntentResult(rawResponse);
     }
 

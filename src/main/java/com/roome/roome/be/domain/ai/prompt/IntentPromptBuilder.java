@@ -78,6 +78,7 @@ public class IntentPromptBuilder {
 
               "product": {
                 "productTypes": [],
+                "productColors" : [],
                 "minBudget": null,
                 "maxBudget": null
               },

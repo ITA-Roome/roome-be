@@ -2,6 +2,8 @@ package com.roome.roome.be.domain.chat.service;
 
 import com.roome.roome.be.domain.ai.dto.response.AiIntentResult;
 import com.roome.roome.be.domain.ai.service.AiIntentService;
+import com.roome.roome.be.domain.chat.dto.request.ChatProductScenarioRequest;
+import com.roome.roome.be.domain.chat.dto.request.ChatReferenceScenarioRequest;
 import com.roome.roome.be.domain.chat.dto.response.ChatMessageResponse;
 import com.roome.roome.be.domain.chat.enums.ChatInputType;
 import com.roome.roome.be.domain.chat.enums.ChatIntentType;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Slf4j
 public class ChatSessionService {
 
+    private final ChatRecommendService chatRecommendService;
     private final ChatSessionRepository sessionRepository;
     private final AiIntentService aiIntentService;
 
@@ -87,6 +90,7 @@ public class ChatSessionService {
 
             result = result.withProductInfo(
                     mergeList(session.productTypes(), p.productTypes()),
+                    mergeList(session.productColors(), p.productColors()),
                     firstNonNull(p.minBudget(), session.productMinBudget()),
                     firstNonNull(p.maxBudget(), session.productMaxBudget())
             );
@@ -144,10 +148,13 @@ public class ChatSessionService {
                     return askNextProductQuestion(session);
                 }
 
-                return ChatMessageResponse.question(
+                return ChatMessageResponse.result(
                         session.sessionId(),
                         "조건에 맞는 제품을 추천해드릴게요!",
-                        List.of("추천 결과 보기")
+                        List.of("추천 결과 보기"),
+                        chatRecommendService.processChatProductScenario(
+                                ChatProductScenarioRequest.create(session)
+                        )
                 );
             }
 
@@ -157,10 +164,13 @@ public class ChatSessionService {
                     return askNextReferenceQuestion(session);
                 }
 
-                return ChatMessageResponse.question(
+                return ChatMessageResponse.result(
                         session.sessionId(),
                         "인테리어 추천을 준비했어요 🙂",
-                        List.of("추천 결과 보기")
+                        List.of("추천 결과 보기"),
+                        chatRecommendService.processChatReferenceScenario(
+                                ChatReferenceScenarioRequest.create(session)
+                        )
                 );
             }
         }

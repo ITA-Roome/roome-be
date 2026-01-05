@@ -6,6 +6,7 @@ import java.util.List;
 
 public record ProductSlot(
         List<ProductType> productTypes,
+        List<String> productColors,
         Integer minBudget,
         Integer maxBudget
 ) {
