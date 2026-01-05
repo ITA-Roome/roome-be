@@ -2,6 +2,7 @@ package com.roome.roome.be.domain.user.repository;
 
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.roome.be.domain.reference.dto.response.CommonReferenceInfo;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,9 @@ public class UserScrapReferenceCustomRepositoryImpl implements UserScrapReferenc
                                         reference.user.nickname,
                                         reference.user.id,
                                         GroupBy.list(referenceImage.objectKey),
-                                        reference.scrapCount
+                                        reference.scrapCount,
+                                        Expressions.asBoolean(true),
+                                        Expressions.asBoolean(false)
                                 )
                         )
                 );

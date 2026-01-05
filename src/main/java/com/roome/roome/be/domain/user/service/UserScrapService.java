@@ -14,16 +14,15 @@ import com.roome.roome.be.domain.user.dto.response.UserScrappedReferenceListResp
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserScrapProduct;
 import com.roome.roome.be.domain.user.entity.UserScrapReference;
-import com.roome.roome.be.domain.user.repository.UserScrapProductCustomRepository;
-import com.roome.roome.be.domain.user.repository.UserScrapProductRepository;
-import com.roome.roome.be.domain.user.repository.UserScrapReferenceCustomRepository;
-import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository;
+import com.roome.roome.be.domain.user.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +33,8 @@ public class UserScrapService {
 
     private final UserScrapReferenceCustomRepository scrapReferenceCustomRepository;
     private final UserScrapProductCustomRepository userScrapProductCustomRepository;
+
+    private final UserLikeReferenceRepository userLikeReferenceRepository;
 
     private final UserService userService;
     private final ProductService productService;
@@ -101,6 +102,17 @@ public class UserScrapService {
         List<CommonReferenceInfo> rawList = scrapReferenceCustomRepository
                 .findUserScrappedReferenceListByUserId(userId);
 
+        List<Long> referenceIds = rawList.stream()
+                .map(CommonReferenceInfo::referenceId)
+                .toList();
+
+        Set<Long> likedIds = new HashSet<>();
+        if (!referenceIds.isEmpty()) {
+            likedIds = userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds);
+        }
+
+        final Set<Long> finalLikedIds = likedIds;
+
         List<CommonReferenceInfo> finalList = rawList.stream()
                 .map(raw -> new CommonReferenceInfo(
                         raw.referenceId(),
@@ -109,11 +121,12 @@ public class UserScrapService {
                         raw.imageUrlList().stream()
                                 .map(imageUrlBuilder::build)
                                 .toList(),
-                        raw.scrapCount()
+                        raw.scrapCount(),
+                        true,
+                        finalLikedIds.contains(raw.referenceId())
                 ))
                 .toList();
 
         return new UserScrappedReferenceListResponse(finalList);
     }
-
 }
