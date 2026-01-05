@@ -11,6 +11,8 @@ import com.roome.roome.be.domain.reference.repository.ReferenceCustomRepository;
 import com.roome.roome.be.domain.user.repository.UserLikeReferenceRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,40 +72,52 @@ public class ReferenceService {
         referenceImageRepository.saveAll(referenceImageList);
     }
 
-    // 상품 목록 조회
+    // 레퍼런스 목록 조회
     @Transactional
-    public ReferenceListResponse getReferenceList(Long userId, String keyWord) { // Pageable 제거
+    public Page<CommonReferenceInfo> getReferenceList(Long userId, String keyWord, Pageable pageable) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
-
-        List<Reference> referenceList;
-
+        Page<Reference> referencePage;
         if (keyWord != null && !keyWord.isBlank()) {
-            referenceList = referenceRepository.findByNameContaining(keyWord);
+            referencePage = referenceRepository.findByNameContaining(keyWord, pageable);
         } else {
-            referenceList = referenceRepository.findAll();
+            referencePage = referenceRepository.findAll(pageable);
         }
 
-        List<CommonReferenceInfo> commonReferenceInfoList = referenceList.stream()
-                .sorted(Comparator.comparing(Reference::getScrapCount).reversed())
-                .map(reference -> {
-                    List<String> imageUrlList = reference.getReferenceImageList().stream()
-                            .sorted(Comparator.comparing(ReferenceImage::getSortOrder))
-                            .map(refImg -> imageUrlBuilder.build(refImg.getObjectKey()))
-                            .toList();
+        if (referencePage.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
-                    return new CommonReferenceInfo(
-                            reference.getId(),
-                            reference.getUser().getNickname(),
-                            reference.getUser().getId(),
-                            imageUrlList,
-                            reference.getScrapCount()
-                    );
-                })
+        List<Long> referenceIds = referencePage.getContent().stream()
+                .map(Reference::getId)
                 .toList();
 
-        return new ReferenceListResponse(commonReferenceInfoList);
+        Set<Long> scrappedIds = new HashSet<>();
+        Set<Long> likedIds = new HashSet<>();
+
+        if (userId != null && !referenceIds.isEmpty()) {
+            scrappedIds = userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds);
+            likedIds = userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds); // Repository 생성 필요
+        }
+
+        final Set<Long> finalScrappedIds = scrappedIds;
+        final Set<Long> finalLikedIds = likedIds;
+
+        return referencePage.map(reference -> {
+            List<String> imageUrlList = reference.getReferenceImageList().stream()
+                    .sorted(Comparator.comparing(ReferenceImage::getSortOrder))
+                    .map(refImg -> imageUrlBuilder.build(refImg.getObjectKey()))
+                    .toList();
+
+            return new CommonReferenceInfo(
+                    reference.getId(),
+                    reference.getUser().getNickname(),
+                    reference.getUser().getId(),
+                    imageUrlList,
+                    reference.getScrapCount(),
+                    finalScrappedIds.contains(reference.getId()), // isScrapped
+                    finalLikedIds.contains(reference.getId())     // isLiked
+            );
+        });
     }
 
     public Reference findReferenceById(Long referenceId) {
