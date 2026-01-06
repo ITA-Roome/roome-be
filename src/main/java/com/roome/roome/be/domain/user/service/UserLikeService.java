@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.roome.roome.be.domain.user.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +23,6 @@ import com.roome.roome.be.domain.user.dto.response.UserLikeReferenceListResponse
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserLikeProduct;
 import com.roome.roome.be.domain.user.entity.UserLikeReference;
-import com.roome.roome.be.domain.user.repository.UserLikeProductCustomRepository;
-import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
-import com.roome.roome.be.domain.user.repository.UserLikeReferenceCustomRepository;
-import com.roome.roome.be.domain.user.repository.UserLikeReferenceRepository;
-import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository; // [추가]
 
 import lombok.RequiredArgsConstructor;
 
@@ -46,6 +42,7 @@ public class UserLikeService {
     private final ReferenceService referenceService;
 
     private final ImageUrlBuilder imageUrlBuilder;
+    private final UserScrapProductRepository userScrapProductRepository;
 
     @Transactional
     public ProductToggleLikeResponse toggleProductLike(Long productId, Long userId) {
@@ -75,8 +72,38 @@ public class UserLikeService {
 
     // 유저가 좋아요를 누른 상품 리스트 조회
     public UserLikeProductListResponse getUserLikedProductList(Long userId) {
-        List<CommonProductInfo> userLikeProductList = userLikeProductCustomRepository.findUserLikeProductListByUserId(userId);
-        return new UserLikeProductListResponse(userLikeProductList);
+        List<CommonProductInfo> rawList = userLikeProductCustomRepository.findUserLikeProductListByUserId(userId);
+
+        List<Long> productIds = rawList.stream()
+                .map(CommonProductInfo::id)
+                .toList();
+
+        Set<Long> scrappedIds = new HashSet<>();
+        if(!productIds.isEmpty()) {
+            scrappedIds = userScrapProductRepository.findScrappedProductIds(userId, productIds);
+        }
+        final Set<Long> finalScrappedIds = scrappedIds;
+
+        List<CommonProductInfo> finalList = rawList.stream()
+                .map(raw -> new CommonProductInfo(
+                        raw.id(),
+                        raw.name(),
+                        raw.category(),
+                        raw.price(),
+                        raw.description(),
+                        raw.productUrl(),
+                        raw.thumbnailKey(),
+                        raw.imageList(),
+                        raw.tagList(),
+                        raw.likeCount(),
+                        raw.scrapCount(),
+                        raw.isLiked(),
+                        finalScrappedIds.contains(raw.id()),
+                        raw.createdAt(),
+                        raw.updatedAt()
+                ))
+                .toList();
+        return new UserLikeProductListResponse(finalList);
     }
 
     // 레퍼런스 좋아요 or 좋아요 취소 기능 구현

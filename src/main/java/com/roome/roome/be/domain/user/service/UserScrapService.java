@@ -41,6 +41,7 @@ public class UserScrapService {
     private final ReferenceService referenceService;
 
     private final ImageUrlBuilder imageUrlBuilder;
+    private final UserLikeProductRepository userLikeProductRepository;
 
     // 상품 스크랩 or 스크랩 취소 기능 구현
     @Transactional
@@ -92,8 +93,38 @@ public class UserScrapService {
 
     // 유저가 스크랩한 상품 리스트 조회
     public UserScrappedProductListResponse getUserScrappedProductList(Long userId) {
-        List<CommonProductInfo> userScrappedProductList = userScrapProductCustomRepository.findUserScrappedProductListByUserId(userId);
-        return new UserScrappedProductListResponse(userScrappedProductList);
+        List<CommonProductInfo> rawList = userScrapProductCustomRepository.findUserScrappedProductListByUserId(userId);
+
+        List<Long> productIds = rawList.stream()
+                .map(CommonProductInfo::id)
+                .toList();
+
+        Set<Long> likeIds = new HashSet<>();
+        if(!productIds.isEmpty()) {
+            likeIds = userLikeProductRepository.findLikedProductIds(userId, productIds);
+        }
+
+        final Set<Long> finalLikeIds = likeIds;
+        List<CommonProductInfo> finalList = rawList.stream()
+                .map(raw -> new CommonProductInfo(
+                        raw.id(),
+                        raw.name(),
+                        raw.category(),
+                        raw.price(),
+                        raw.description(),
+                        raw.productUrl(),
+                        raw.thumbnailKey(),
+                        raw.imageList(),
+                        raw.tagList(),
+                        raw.likeCount(),
+                        raw.scrapCount(),
+                        finalLikeIds.contains(raw.id()),
+                        raw.isScrapped(),
+                        raw.createdAt(),
+                        raw.updatedAt()
+                ))
+                .toList();
+        return new UserScrappedProductListResponse(finalList);
     }
 
     // 유저가 스크랩한 레퍼런스 리스트 조회

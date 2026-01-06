@@ -15,6 +15,10 @@ public record CommonProductInfo(
         String thumbnailKey,
         Set<String> imageList,
         Set<Tag> tagList,
+		Integer likeCount,
+		Integer scrapCount,
+		Boolean isLiked,
+		Boolean isScrapped,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
