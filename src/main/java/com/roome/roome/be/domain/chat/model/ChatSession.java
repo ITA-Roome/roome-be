@@ -1,5 +1,6 @@
 package com.roome.roome.be.domain.chat.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.roome.roome.be.domain.chat.enums.ChatMode;
 import com.roome.roome.be.domain.chat.enums.ChatTask;
 import com.roome.roome.be.domain.chat.enums.MissingField;
@@ -151,6 +152,29 @@ public record ChatSession(
         );
     }
 
+    public ChatSession withTask(ChatTask task) {
+        return new ChatSession(
+                userId,
+                mode,
+                task,
+                Instant.now(),
+
+                productTypes,
+                productColors,
+                productMinBudget,
+                productMaxBudget,
+
+                referenceType,
+                referenceSize,
+                referenceMoods,
+                referenceStyles,
+                referenceColor,
+                referenceMinBudget,
+                referenceMaxBudget
+        );
+    }
+
+
     /* =========================
      * 추천 가능 여부
      * ========================= */
@@ -214,10 +238,12 @@ public record ChatSession(
         return missing;
     }
 
+    @JsonIgnore
     public boolean isProductReady() {
         return missingProductFields().isEmpty();
     }
 
+    @JsonIgnore
     public boolean isReferenceReady() {
         return missingReferenceFields().isEmpty();
     }

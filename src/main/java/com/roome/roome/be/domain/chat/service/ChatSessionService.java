@@ -3,7 +3,9 @@ package com.roome.roome.be.domain.chat.service;
 import com.roome.roome.be.domain.ai.dto.response.AiIntentResult;
 import com.roome.roome.be.domain.ai.service.AiIntentService;
 import com.roome.roome.be.domain.chat.enums.ChatInputType;
+import com.roome.roome.be.domain.chat.enums.ChatIntentType;
 import com.roome.roome.be.domain.chat.enums.ChatMode;
+import com.roome.roome.be.domain.chat.enums.ChatTask;
 import com.roome.roome.be.domain.chat.model.ChatDecision;
 import com.roome.roome.be.domain.chat.model.ChatSession;
 import com.roome.roome.be.domain.chat.repository.ChatSessionRepository;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,74 +29,166 @@ public class ChatSessionService {
 
         String key = sessionId != null ? sessionId : UUID.randomUUID().toString();
 
-        // 세션 불러오기
-        ChatSession session = chatSessionRepository.
-                find(key).
-                orElseGet(()-> chatSessionRepository.create(key, userId));
-        log.info("현재 세션 값 {}", session);
+        ChatSession session = chatSessionRepository
+                .find(key)
+                .orElseGet(() -> chatSessionRepository.create(key, userId));
 
-        // 현재 Session 상태와 사용자의 메시지를 분석해서 의도 분석(추천 받을려는 제품의 정보를 입력하는지, 추천 결과를 받을려는 것인지 기타 등등)
+        log.info("현재 세션: {}", session);
+
         AiIntentResult intent = aiIntentService.analyze(session, message);
-        log.error("의도 분석 {}", intent);
+        log.info("의도 분석 결과: {}", intent);
 
-        // 사용자의 의도 분석 후 ChatSession 업데이트
-        ChatSession updatedSession = applyIntent(session, intent);
-        chatSessionRepository.save(key, updatedSession);
+        ChatSession updated = applyIntent(session, intent,message);
 
-        // 그 다음 로직 수행
-        return new ChatDecision(key,updatedSession, intent);
+        chatSessionRepository.save(key, updated);
+
+        return new ChatDecision(key, updated, intent);
     }
 
+    /* =========================
+       핵심: 의도 적용
+    ========================= */
+    private ChatSession applyIntent(ChatSession session, AiIntentResult intent,String message) {
 
+        // 키워드 기반 도메인 선택 (가장 먼저!)
+        if (session.mode() == ChatMode.UNDECIDED) {
+            ChatMode keywordMode = resolveModeByKeyword(message);
 
-    private ChatSession applyIntent(ChatSession session, AiIntentResult intent) {
+            if (keywordMode == ChatMode.PRODUCT) {
+                return session
+                        .withMode(ChatMode.PRODUCT)
+                        .withTask(ChatTask.PRODUCT_COLLECTING);
+            }
 
-        return switch (intent.intent()) {
-            case RESET -> ChatSession.create(session.userId());
+            if (keywordMode == ChatMode.REFERENCE) {
+                return session
+                        .withMode(ChatMode.REFERENCE)
+                        .withTask(ChatTask.REFERENCE_COLLECTING);
+            }
+        }
+        // RESET
+        if (intent.intent() == ChatIntentType.RESET) {
+            return ChatSession.create(session.userId());
+        }
 
-            case CHANGE_FLOW -> session.withMode(resolveMode(intent));
+        // 명시적 흐름 전환
+        if (intent.intent() == ChatIntentType.CHANGE_FLOW) {
+            return switchToResolvedMode(session, intent);
+        }
 
-            case SET_INFO -> mergeSlots(session, intent);
+        // SET_INFO / REQUEST_RECOMMEND / UNKNOWN
+        boolean hasProductSignal = hasMeaningfulProductSignal(intent);
+        boolean hasReferenceSignal = hasMeaningfulReferenceSignal(intent);
 
-            case REQUEST_RECOMMEND -> session;
+        // 3-1. 아직 도메인 미정
+        if (session.mode() == ChatMode.UNDECIDED) {
+            if (hasProductSignal) {
+                return mergeProduct(session, intent);
+            }
+            if (hasReferenceSignal) {
+                return mergeReference(session, intent);
+            }
+            return session;
+        }
 
-            default -> session;
-        };
+        // 3-2. 제품 수집 중
+        if (session.mode() == ChatMode.PRODUCT) {
+            if (hasReferenceSignal) {
+                // 🔥 암묵적 전환
+                return mergeReference(session.withMode(ChatMode.REFERENCE)
+                        .withTask(ChatTask.REFERENCE_COLLECTING), intent);
+            }
+            return mergeProduct(session, intent);
+        }
+
+        // 3-3. 인테리어 수집 중
+        if (session.mode() == ChatMode.REFERENCE) {
+            if (hasProductSignal) {
+                // 암묵적 전환
+                return mergeProduct(session.withMode(ChatMode.PRODUCT)
+                        .withTask(ChatTask.PRODUCT_COLLECTING), intent);
+            }
+            return mergeReference(session, intent);
+        }
+
+        return session;
+    }
+
+    /* =========================
+       명시적 전환
+    ========================= */
+    private ChatSession switchToResolvedMode(ChatSession session, AiIntentResult intent) {
+        if (hasProductSignal(intent)) {
+            return session.withMode(ChatMode.PRODUCT)
+                    .withTask(ChatTask.PRODUCT_COLLECTING);
+        }
+        if (hasReferenceSignal(intent)) {
+            return session.withMode(ChatMode.REFERENCE)
+                    .withTask(ChatTask.REFERENCE_COLLECTING);
+        }
+        return session;
     }
 
     /* =========================
        Slot Merge
     ========================= */
-    private ChatSession mergeSlots(ChatSession session, AiIntentResult intent) {
+    private ChatSession mergeProduct(ChatSession session, AiIntentResult intent) {
+        if (intent.product() == null) return session;
 
-        ChatSession result = session;
+        var p = intent.product();
 
-        if (intent.product() != null) {
-            var p = intent.product();
+        return session.withProductInfo(
+                mergeList(session.productTypes(), p.productTypes()),
+                mergeList(session.productColors(), p.productColors()),
+                firstNonNull(p.minBudget(), session.productMinBudget()),
+                firstNonNull(p.maxBudget(), session.productMaxBudget())
+        );
+    }
 
-            result = result.withProductInfo(
-                    mergeList(session.productTypes(), p.productTypes()),
-                    mergeList(session.productColors(), p.productColors()),
-                    firstNonNull(p.minBudget(), session.productMinBudget()),
-                    firstNonNull(p.maxBudget(), session.productMaxBudget())
-            );
-        }
+    private ChatSession mergeReference(ChatSession session, AiIntentResult intent) {
+        if (intent.reference() == null) return session;
 
-        if (intent.reference() != null) {
-            var r = intent.reference();
+        var r = intent.reference();
 
-            result = result.withReferenceInfo(
-                    firstNonNull(r.spaceType(), session.referenceType()),
-                    firstNonNull(r.spaceSize(), session.referenceSize()),
-                    mergeList(session.referenceMoods(), r.moods()),
-                    mergeList(session.referenceStyles(), r.styles()),
-                    firstNonNull(r.colorTone(), session.referenceColor()),
-                    firstNonNull(r.minBudget(), session.referenceMinBudget()),
-                    firstNonNull(r.maxBudget(), session.referenceMaxBudget())
-            );
-        }
+        return session.withReferenceInfo(
+                firstNonNull(r.spaceType(), session.referenceType()),
+                firstNonNull(r.spaceSize(), session.referenceSize()),
+                mergeList(session.referenceMoods(), r.moods()),
+                mergeList(session.referenceStyles(), r.styles()),
+                firstNonNull(r.colorTone(), session.referenceColor()),
+                firstNonNull(r.minBudget(), session.referenceMinBudget()),
+                firstNonNull(r.maxBudget(), session.referenceMaxBudget())
+        );
+    }
 
-        return result;
+    /* =========================
+       Signal 판단
+    ========================= */
+    private boolean hasMeaningfulProductSignal(AiIntentResult intent) {
+        if (intent.product() == null) return false;
+        var p = intent.product();
+        return (p.productTypes() != null && !p.productTypes().isEmpty())
+                || (p.productColors() != null && !p.productColors().isEmpty())
+                || p.minBudget() != null
+                || p.maxBudget() != null;
+    }
+
+    private boolean hasMeaningfulReferenceSignal(AiIntentResult intent) {
+        if (intent.reference() == null) return false;
+        var r = intent.reference();
+        return r.spaceType() != null
+                || (r.moods() != null && !r.moods().isEmpty())
+                || (r.styles() != null && !r.styles().isEmpty())
+                || r.minBudget() != null
+                || r.maxBudget() != null;
+    }
+
+    private boolean hasProductSignal(AiIntentResult intent) {
+        return intent.product() != null;
+    }
+
+    private boolean hasReferenceSignal(AiIntentResult intent) {
+        return intent.reference() != null;
     }
 
     private <T> T firstNonNull(T newValue, T oldValue) {
@@ -104,13 +199,24 @@ public class ChatSessionService {
         return (newList == null || newList.isEmpty()) ? oldList : newList;
     }
 
-    /* =========================
-       Response Decision
-    ========================= */
-    private ChatMode resolveMode(AiIntentResult intent) {
-        return intent.product() != null
-                ? ChatMode.PRODUCT
-                : ChatMode.REFERENCE;
+    private ChatMode resolveModeByKeyword(String message) {
+        if (message == null) return null;
+
+        if (message.contains("제품")
+                || message.contains("상품")
+                || message.contains("조명")
+                || message.contains("가구")) {
+            return ChatMode.PRODUCT;
+        }
+
+        if (message.contains("인테리어")
+                || message.contains("방")
+                || message.contains("공간")
+                || message.contains("꾸미")) {
+            return ChatMode.REFERENCE;
+        }
+
+        return null;
     }
 
 }

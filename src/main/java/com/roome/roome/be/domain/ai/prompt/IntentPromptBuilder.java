@@ -205,10 +205,48 @@ public class IntentPromptBuilder {
             - 추천 금지
             """;
 
+    private static final String FLOW_TRIGGER_PROMPT = """
+            --------------------------------------------------
+            [도메인 진입 트리거 규칙]
+            --------------------------------------------------
+            다음과 같은 발화는
+            슬롯 정보가 없더라도 도메인 진입 의도로 판단한다.
+
+            [PRODUCT 도메인 진입]
+            - "제품 추천"
+            - "상품 추천"
+            - "가구 추천"
+            - "조명 추천"
+            - "제품 골라줘"
+            - "뭐 사면 좋을까"
+
+            → intent는 SET_INFO
+            → product 슬롯은 비워둔다
+            → 추천은 절대 하지 않는다
+
+            [REFERENCE 도메인 진입]
+            - "인테리어 추천"
+            - "방 꾸미기"
+            - "집 꾸미기"
+            - "분위기 추천"
+            - "인테리어 도와줘"
+
+            → intent는 SET_INFO
+            → reference 슬롯은 비워둔다
+
+            주의:
+            - 이 규칙은 도메인 진입용이다
+            - 추천 요청(REQUEST_RECOMMEND)으로 판단하지 마라
+            - 정보가 없으면 반드시 질문 단계로 이어져야 한다
+            --------------------------------------------------
+            """;
+
+
     public static String build(ChatSession session, String userMessage) {
         try {
             return SYSTEM_PROMPT
                     + TASK_AWARE_PROMPT
+                    + FLOW_TRIGGER_PROMPT
                     + "\n\n[현재 ChatSession]\n"
                     + om.writerWithDefaultPrettyPrinter().writeValueAsString(session)
                     + "\n\n[사용자 발화]\n"
