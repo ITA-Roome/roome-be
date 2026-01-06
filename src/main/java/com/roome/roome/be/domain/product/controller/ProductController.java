@@ -49,7 +49,7 @@ public class ProductController {
 			@PathVariable Long productId,
 			@AuthenticationPrincipal Long userId
 	) {
-		var dto = productService.getDetail(productId, userId);
+		var dto = productService.getProductDetail(productId, userId);
 		return ApiResponse.success(SuccessStatus.GET_PRODUCT_DETAIL, dto);
 	}
 

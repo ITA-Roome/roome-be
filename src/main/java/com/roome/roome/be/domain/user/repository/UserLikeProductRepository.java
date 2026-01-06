@@ -17,4 +17,6 @@ public interface UserLikeProductRepository extends JpaRepository<UserLikeProduct
 
     @Query("SELECT ulp.product.id FROM UserLikeProduct ulp WHERE ulp.user.id = :userId AND ulp.product.id IN :productIds")
     Set<Long> findLikedProductIds(@Param("userId") Long userId, @Param("productIds") List<Long> productIds);
+
+    Boolean existsByUserIdAndProductId(Long userId, Long productId);
 }

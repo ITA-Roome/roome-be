@@ -15,6 +15,10 @@ public record ProductDetailResponse(
 	String description,
 	ShopSummaryResponse shop,
 	String thumbnailUrl,
+	Integer likeCount,
+	Integer scrapCount,
+	Boolean isLiked,
+	Boolean isScrapped,
 	List<ProductImageResponse> images,
 	List<ProductTagResponse> tags,
 	List<RelatedProductResponse> relatedProductList
@@ -26,7 +30,9 @@ public record ProductDetailResponse(
 			List<ProductImageResponse> images,
 			List<ProductTagResponse> tags,
 			ShopSummaryResponse shop,
-			List<RelatedProductResponse> relatedProductList
+			List<RelatedProductResponse> relatedProductList,
+			Boolean isLiked,
+			Boolean isScrapped
 	) {
 		return new ProductDetailResponse(
 				product.getId(),
@@ -37,6 +43,10 @@ public record ProductDetailResponse(
 				product.getDescription(),
 				shop,
 				thumbnailUrl,
+				product.getLikeCount(),
+				product.getScrapCount(),
+				isLiked,
+				isScrapped,
 				images,
 				tags,
 				relatedProductList

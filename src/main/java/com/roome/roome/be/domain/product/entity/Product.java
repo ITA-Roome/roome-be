@@ -52,6 +52,9 @@ public class Product extends BaseEntity {
 	@Column(name = "like_count",nullable = false)
 	private Integer likeCount;
 
+	@Column(name = "scrap_count", nullable = false)
+	private Integer scrapCount;
+
 	public void updateName(String name) { this.name = name; }
 	public void updatePrice(Integer price) { this.price = price; }
 	public void updateDescription(String description) { this.description = description; }

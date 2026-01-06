@@ -6,6 +6,8 @@ public record RelatedProductResponse(
         String category,
         String description,
         Integer price,
-        String imageUrl
+        String imageUrl,
+        Integer likeCount,
+        Integer scrapCount
 ) {
 }

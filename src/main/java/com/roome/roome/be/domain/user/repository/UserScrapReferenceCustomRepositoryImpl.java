@@ -37,6 +37,7 @@ public class UserScrapReferenceCustomRepositoryImpl implements UserScrapReferenc
                                         reference.user.id,
                                         GroupBy.list(referenceImage.objectKey),
                                         reference.scrapCount,
+                                        reference.likeCount,
                                         Expressions.asBoolean(true),
                                         Expressions.asBoolean(false)
                                 )
