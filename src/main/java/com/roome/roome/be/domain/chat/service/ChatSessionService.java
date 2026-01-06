@@ -9,6 +9,7 @@ import com.roome.roome.be.domain.chat.enums.ChatTask;
 import com.roome.roome.be.domain.chat.model.ChatDecision;
 import com.roome.roome.be.domain.chat.model.ChatSession;
 import com.roome.roome.be.domain.chat.repository.ChatSessionRepository;
+import com.roome.roome.be.domain.product.enums.ProductType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,8 +33,9 @@ public class ChatSessionService {
         ChatSession session = chatSessionRepository
                 .find(key)
                 .orElseGet(() -> chatSessionRepository.create(key, userId));
-
         log.info("현재 세션: {}", session);
+
+
 
         AiIntentResult intent = aiIntentService.analyze(session, message);
         log.info("의도 분석 결과: {}", intent);
@@ -94,7 +96,7 @@ public class ChatSessionService {
         // 3-2. 제품 수집 중
         if (session.mode() == ChatMode.PRODUCT) {
             if (hasReferenceSignal) {
-                // 🔥 암묵적 전환
+
                 return mergeReference(session.withMode(ChatMode.REFERENCE)
                         .withTask(ChatTask.REFERENCE_COLLECTING), intent);
             }
@@ -104,7 +106,7 @@ public class ChatSessionService {
         // 3-3. 인테리어 수집 중
         if (session.mode() == ChatMode.REFERENCE) {
             if (hasProductSignal) {
-                // 암묵적 전환
+
                 return mergeProduct(session.withMode(ChatMode.PRODUCT)
                         .withTask(ChatTask.PRODUCT_COLLECTING), intent);
             }
