@@ -130,6 +130,7 @@ public class UserLikeService {
                                 .map(imageUrlBuilder::build) // URL 변환
                                 .toList(),
                         raw.scrapCount(),
+                        raw.likeCount(),
                         finalScrappedIds.contains(raw.referenceId()), // isScrapped: DB 조회 결과 반영
                         true
                 ))

@@ -114,6 +114,7 @@ public class ReferenceService {
                     reference.getUser().getId(),
                     imageUrlList,
                     reference.getScrapCount(),
+                    reference.getLikeCount(),
                     finalScrappedIds.contains(reference.getId()), // isScrapped
                     finalLikedIds.contains(reference.getId())     // isLiked
             );

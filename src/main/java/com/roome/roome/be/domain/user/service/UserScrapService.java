@@ -122,6 +122,7 @@ public class UserScrapService {
                                 .map(imageUrlBuilder::build)
                                 .toList(),
                         raw.scrapCount(),
+                        raw.likeCount(),
                         true,
                         finalLikedIds.contains(raw.referenceId())
                 ))
