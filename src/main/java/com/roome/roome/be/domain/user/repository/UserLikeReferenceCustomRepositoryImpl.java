@@ -43,6 +43,7 @@ public class UserLikeReferenceCustomRepositoryImpl implements UserLikeReferenceC
                         user.id,
                         list(referenceImage.imageUrl),
                         reference.scrapCount,
+                        reference.likeCount,
                             Expressions.asBoolean(false),            // 6. isScrapped (스크랩 목록 조희니까 True)
                             Expressions.asBoolean(true)
                     )

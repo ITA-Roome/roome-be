@@ -16,9 +16,12 @@ public record ProductListItemResponse(
 	String thumbnailUrl,
 	Long shopId,
 	String shopName,
-	boolean isLiked
+	Integer scrapCount,
+	Integer likeCount,
+	boolean isLiked,
+	boolean isScrapped
 ) {
-	public static ProductListItemResponse from(Product product, ProductCategory category, ImageUrlBuilder imageUrlBuilder, boolean isLiked) {
+	public static ProductListItemResponse from(Product product, ProductCategory category, ImageUrlBuilder imageUrlBuilder, boolean isLiked, boolean isScrapped) {
 		String productUrl = product.getProductUrl() != null ? product.getProductUrl() : null;
 
 		String thumbnailUrl = product.getThumbnailKey() != null
@@ -37,7 +40,10 @@ public record ProductListItemResponse(
 				thumbnailUrl,
 				shopId,
 				shopName,
-				isLiked
+				product.getScrapCount(),
+				product.getLikeCount(),
+				isLiked,
+				isScrapped
 		);
 	}
 }

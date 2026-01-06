@@ -104,7 +104,9 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                         tag.name,
                         product.description,
                         product.price,
-                        productImage.imageUrl
+                        productImage.imageUrl,
+                        product.likeCount,
+                        product.scrapCount
                 ))
                 .from(product)
                 .leftJoin(productImage).on(product.id.eq(productImage.product.id).and(productImage.sortOrder.eq(1)))

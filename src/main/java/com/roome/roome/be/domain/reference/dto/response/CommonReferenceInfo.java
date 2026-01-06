@@ -8,6 +8,7 @@ public record CommonReferenceInfo(
         Long userId,
         List<String> imageUrlList,
         Integer scrapCount,
+        Integer likeCount,
         boolean isScrapped,
         boolean isLiked
 ) {

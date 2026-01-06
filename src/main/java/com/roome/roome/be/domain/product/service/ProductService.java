@@ -7,6 +7,7 @@ import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
+import com.roome.roome.be.domain.user.repository.UserScrapProductRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -48,6 +49,7 @@ public class ProductService {
     private final S3Service s3Service;
     private final ImageUrlBuilder imageUrlBuilder;
     private final UserViewService userViewService;
+    private final UserScrapProductRepository userScrapProductRepository;
 
     @Value("${storage.defaults.shop-logo}")
     private String defaultShopLogoUrl;
@@ -74,7 +76,7 @@ public class ProductService {
 
     // 상품 상세 조회
     @Transactional
-    public ProductDetailResponse getDetail(Long productId, Long userId) {
+    public ProductDetailResponse getProductDetail(Long productId, Long userId) {
         Product product = getProductById(productId);
 
         // ------------------------------
@@ -116,6 +118,16 @@ public class ProductService {
         var shop = ShopSummaryResponse.from(product.getShop(), logoUrl);
         userViewService.registerUserView(product, userId);
 
+        // ------------------------------
+        // 5) 스크랩, 좋아요 여부
+        // ------------------------------
+        boolean isLiked = false;
+        boolean isScrapped = false;
+        if (userId != null) {
+            isLiked = userLikeProductRepository.existsByUserIdAndProductId(userId, productId);
+            isScrapped = userScrapProductRepository.existsByUserIdAndProductId(userId, productId);
+        }
+
         List<Long> tagIdList = tags.stream().map(ProductTagResponse::id).toList();
 
         List<RelatedProductResponse> relatedProductList =
@@ -124,7 +136,7 @@ public class ProductService {
                         category,
                         tagIdList
                 );
-        return ProductDetailResponse.from(product, thumbnailUrl,category,  images, tags, shop, relatedProductList);
+        return ProductDetailResponse.from(product, thumbnailUrl,category,  images, tags, shop, relatedProductList,isLiked, isScrapped);
     }
 
     // 상품 목록 조회
@@ -184,10 +196,13 @@ public class ProductService {
             ));
 
         Set<Long> likedProductIds = new HashSet<>();
+        Set<Long> scrappedProductIds = new HashSet<>();
         if (userId != null && !productIds.isEmpty()) {
             likedProductIds = userLikeProductRepository.findLikedProductIds(userId, productIds);
+            scrappedProductIds = userScrapProductRepository.findScrappedProductIds(userId, productIds);
         }
         final Set<Long> finalLikedProductIds = likedProductIds;
+        final Set<Long> finalScrappedProductIds = scrappedProductIds;
 
 
         return page.map(p -> {
@@ -196,7 +211,8 @@ public class ProductService {
                 p,
                 cat,
                 imageUrlBuilder,
-                finalLikedProductIds.contains(p.getId())
+                finalLikedProductIds.contains(p.getId()),
+                finalScrappedProductIds.contains(p.getId())
             );
         });
     }

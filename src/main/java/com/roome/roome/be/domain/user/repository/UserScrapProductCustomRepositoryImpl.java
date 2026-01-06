@@ -3,6 +3,7 @@ package com.roome.roome.be.domain.user.repository;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.roome.be.domain.product.dto.response.CommonProductInfo;
@@ -62,6 +63,10 @@ public class UserScrapProductCustomRepositoryImpl implements UserScrapProductCus
                                                         tag.type
                                                 )
                                         ),
+                                        product.likeCount,
+                                        product.scrapCount,
+                                        Expressions.FALSE,
+                                        Expressions.TRUE,
                                         product.createdAt,
                                         product.updatedAt
                                 )
