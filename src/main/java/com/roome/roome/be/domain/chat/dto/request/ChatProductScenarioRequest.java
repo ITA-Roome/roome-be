@@ -1,19 +1,15 @@
 package com.roome.roome.be.domain.chat.dto.request;
 
-import com.roome.roome.be.domain.chat.enums.ChatMode;
+import com.roome.roome.be.domain.chat.model.ChatSession;
 import com.roome.roome.be.domain.product.enums.ProductType;
-import com.roome.roome.be.domain.reference.enums.ReferenceMood;
-import com.roome.roome.be.domain.reference.enums.ReferenceSize;
-import com.roome.roome.be.domain.reference.enums.ReferenceStyle;
-import com.roome.roome.be.domain.reference.enums.ReferenceType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
 public record ChatProductScenarioRequest(
-
-
+        @NotNull
+        Long userId,
 
         @Size(max = 3)
         List<String> preferredColors,
@@ -26,4 +22,13 @@ public record ChatProductScenarioRequest(
         @Size(max = 3)
         List<ProductType> productTypes
 ) {
+        public static ChatProductScenarioRequest create(ChatSession chatSession){
+                return new ChatProductScenarioRequest(
+                        chatSession.userId(),
+                        chatSession.productColors(),
+                        chatSession.productMaxBudget(),
+                        chatSession.productMinBudget(),
+                        chatSession.productTypes()
+                );
+        }
 }

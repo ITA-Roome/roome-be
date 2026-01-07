@@ -1,142 +1,238 @@
 package com.roome.roome.be.domain.chat.service;
 
-import com.roome.roome.be.common.redis.RedisService;
-import com.roome.roome.be.domain.ai.dto.request.AiProductRequest;
-import com.roome.roome.be.domain.ai.dto.request.AiReferenceRequest;
-import com.roome.roome.be.domain.ai.dto.response.AiProductResponse;
-import com.roome.roome.be.domain.ai.dto.response.AiReferenceResponse;
-import com.roome.roome.be.domain.ai.service.AiService;
+import com.roome.roome.be.domain.ai.dto.response.AiIntentResult;
+import com.roome.roome.be.domain.chat.dto.request.ChatMessageRequest;
 import com.roome.roome.be.domain.chat.dto.request.ChatProductScenarioRequest;
 import com.roome.roome.be.domain.chat.dto.request.ChatReferenceScenarioRequest;
-import com.roome.roome.be.domain.chat.dto.response.ChatProductScenarioResponse;
-import com.roome.roome.be.domain.chat.dto.response.ProductSummaryResponse;
-import com.roome.roome.be.domain.chat.dto.response.ChatReferenceScenarioResponse;
+import com.roome.roome.be.domain.chat.dto.response.*;
+import com.roome.roome.be.domain.chat.enums.ChatIntentType;
 import com.roome.roome.be.domain.chat.enums.ChatMode;
+import com.roome.roome.be.domain.chat.enums.MissingField;
+import com.roome.roome.be.domain.chat.model.ChatDecision;
 import com.roome.roome.be.domain.chat.model.ChatSession;
-import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
-import com.roome.roome.be.domain.product.enums.ProductCategory;
-import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
-import com.roome.roome.be.domain.product.service.ProductService;
-import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
-import com.roome.roome.be.domain.reference.enums.*;
-import com.roome.roome.be.domain.reference.service.ReferenceService;
-import com.roome.roome.be.domain.user.entity.User;
-import com.roome.roome.be.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.List;
+
+import static com.roome.roome.be.domain.chat.enums.MissingField.PRODUCT_TYPE;
+
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ChatService {
 
-    private final ProductService productService;
-    private final ReferenceService referenceService;
-    private final UserService userService;
-    private final AiService aiService;
-    private final RedisService redisService;
+    private final ChatSessionService chatSessionService;
+    private final ChatRecommendService chatRecommendService;
 
-    public ChatReferenceScenarioResponse processChatReferenceScenario(Long userId, ChatReferenceScenarioRequest request) {
-        User user = userService.getUserById(userId);
+    public ChatMessageResponse handle(Long userId, ChatMessageRequest request) {
+        ChatDecision decision = chatSessionService.handle(
+                userId,
+                request.sessionId(),
+                request.inputType(),
+                request.message()
+        );
 
-        // 무드와 공간 크기 매칭
-        List<ReferenceCategoryMapping> matchedCategories = Arrays.stream(ReferenceCategoryMapping.values())
-                .filter(category -> category.isMatch(request.referenceType(), request.referenceSize()))
-                .toList();
+        return decideNextAction(decision.sessionId(),decision.session(),decision.intent());
+    }
 
-        if(matchedCategories.isEmpty()) {
-            matchedCategories = List.of(
-                    ReferenceCategoryMapping.LIGHTING_LED_BULB,
-                    ReferenceCategoryMapping.HOME_DECOR_FRAME_POSTER
+    // 의도에 맞춰서 행동 수행
+    private ChatMessageResponse decideNextAction(
+            String sessionId,
+            ChatSession session,
+            AiIntentResult intent
+    ) {
+
+        if (intent.intent() == ChatIntentType.RESET) {
+            return ChatMessageResponse.question(
+                    sessionId,
+                    "처음부터 다시 시작할게요 🙂\n무엇을 도와드릴까요?",
+                    List.of("방 인테리어 추천", "제품 추천")
             );
         }
 
-        // 선호하는 분위기와 스타일 매칭
-        Set<ReferenceMood> referenceMoodList= ReferenceMoodMapping.findMoodsByDescription(request.referenceMood().name());
-        Set<ReferenceStyle> referenceStyleList= ReferenceStyleMapping.findStylesByDescription(request.referenceStyle().name());
+        if (session.mode() == ChatMode.PRODUCT) {
 
-        // 2. DB 필터링
-        List<CandidateReferenceInfo> candidateReferenceList =
-                referenceService.getCandidateReferenceList(
-                        matchedCategories,
-                        referenceMoodList,
-                        referenceStyleList,
-                        request.minBudget(),
-                        request.maxBudget()
-                );
+            if (!session.isProductReady()) {
+                return askProductByMissingField(sessionId, session);
+            }
 
-        if (candidateReferenceList.isEmpty()) {
-            // 정책에 따라 빈 카드 or 예외 처리 선택
-            return ChatReferenceScenarioResponse.empty();
+            return ChatMessageResponse.result(
+                    sessionId,
+                    "조건에 맞는 제품을 추천해드릴게요!",
+                    List.of("추천 결과 보기"),
+                    chatRecommendService.processChatProductScenario(
+                            ChatProductScenarioRequest.create(session)
+                    )
+            );
         }
 
-        // AI 요청
-        AiReferenceResponse aiResult =
-                aiService.recommendReferenceList(
-                        AiReferenceRequest.from(user.getNickname(),request, candidateReferenceList)
-                );
+        if (session.mode() == ChatMode.REFERENCE) {
 
+            if (!session.isReferenceReady()) {
+                return askReferenceByMissingField(sessionId, session);
+            }
 
-        // 응답 변환
-        ChatReferenceScenarioResponse response = ChatReferenceScenarioResponse.from(aiResult);
-        redisService.save(ChatSession.from(userId, ChatMode.REFERENCE, request, response));
-        return response;
-
-    }
-
-    public ChatProductScenarioResponse processChatProductScenario(Long userId, ChatProductScenarioRequest request) {
-
-        // 1. 카테고리 변환
-        List<ProductCategory> categories =
-                ProductTypeMapper.getProductCategoryList(request.productTypes());
-
-        // 2. 상품 조회 (여기서 필터 끝)
-        List<CandidateProductInfo> candidateProductList =
-                productService.getCandidateProductList(
-                        request.maxBudget(),
-                        request.minBudget(),
-                        request.preferredColors()
-                );
-
-        if (candidateProductList.isEmpty()) {
-            log.warn("후보 상품 없음");
-            return ChatProductScenarioResponse.from(List.of());
+            return ChatMessageResponse.result(
+                    sessionId,
+                    "인테리어 추천을 준비했어요 🙂",
+                    List.of("추천 결과 보기"),
+                    chatRecommendService.processChatReferenceScenario(
+                            ChatReferenceScenarioRequest.create(session)
+                    )
+            );
         }
 
-        // 3. AI 추천
-        List<AiProductResponse> aiResult =
-                aiService.recommendProductList(
-                        AiProductRequest.from(request, candidateProductList, categories )
-                );
-
-        // 4. productId → entity 매핑
-        Map<Long, CandidateProductInfo> map =
-                candidateProductList.stream()
-                        .collect(Collectors.toMap(
-                                CandidateProductInfo::productId,
-                                Function.identity()
-                        ));
-
-        // 5. 응답 조립
-        List<ProductSummaryResponse> result =
-                aiResult.stream()
-                        .map(ai -> {
-                            CandidateProductInfo p = map.get(ai.productId());
-                            if (p == null) return null;
-
-                            return ProductSummaryResponse.from(p, ai);
-                        })
-                        .filter(Objects::nonNull)
-                        .toList();
-
-        ChatProductScenarioResponse response = ChatProductScenarioResponse.from(result);
-        redisService.save(ChatSession.from(userId,ChatMode.PRODUCT, request,response));
-        return response;
+        return ChatMessageResponse.question(
+                sessionId,
+                "어떤 도움을 드릴까요?",
+                List.of("제품 추천", "인테리어 추천")
+        );
     }
+
+    private ChatMessageResponse askProductByMissingField(
+            String sessionId,
+            ChatSession session
+    ) {
+        MissingField field = session.missingProductFields().get(0);
+
+        return switch (field) {
+            case PRODUCT_TYPE -> ChatMessageResponse.question(
+                    sessionId,
+                    "어떤 종류의 제품을 찾고 계신가요?",
+                    List.of("가구", "조명", "패브릭 & 데코")
+            );
+
+            case PRODUCT_COLOR -> ChatMessageResponse.question(
+                    sessionId,
+                    "선호하는 색상이 있을까요?",
+                    List.of("화이트", "우드", "상관없어요")
+            );
+
+            case PRODUCT_MIN_BUDGET, PRODUCT_MAX_BUDGET -> ChatMessageResponse.question(
+                    sessionId,
+                    "예산은 어느 정도로 생각하고 계신가요?",
+                    List.of("10만원 이하", "30만원 이하", "상관없어요")
+            );
+
+            default -> ChatMessageResponse.question(
+                    sessionId,
+                    "조금 더 알려주세요 🙂",
+                    List.of()
+            );
+        };
+    }
+
+    private ChatMessageResponse askReferenceByMissingField(
+            String sessionId,
+            ChatSession session
+    ) {
+        MissingField field = session.missingReferenceFields().get(0);
+
+        return switch (field) {
+            case REFERENCE_TYPE -> ChatMessageResponse.question(
+                    sessionId,
+                    "어떤 공간을 꾸미고 싶으신가요?",
+                    List.of("거실", "침실", "서재")
+            );
+
+            case REFERENCE_SIZE -> ChatMessageResponse.question(
+                    sessionId,
+                    "공간 크기는 어느 정도인가요?",
+                    List.of("10평 이하", "10~20평", "잘 모르겠어요")
+            );
+
+            case REFERENCE_MOOD -> ChatMessageResponse.question(
+                    sessionId,
+                    "어떤 분위기를 원하시나요?",
+                    List.of("차분한", "아늑한", "모던한")
+            );
+
+            case REFERENCE_STYLE -> ChatMessageResponse.question(
+                    sessionId,
+                    "선호하는 스타일이 있을까요?",
+                    List.of("모던", "내추럴", "상관없어요")
+            );
+
+            case REFERENCE_MIN_BUDGET, REFERENCE_MAX_BUDGET -> ChatMessageResponse.question(
+                    sessionId,
+                    "예산은 어느 정도 생각하고 계세요?",
+                    List.of("50만원 이하", "100만원 이하", "상관없어요")
+            );
+
+            default -> ChatMessageResponse.question(
+                    sessionId,
+                    "조금 더 알려주세요 🙂",
+                    List.of()
+            );
+        };
+    }
+
+
+
+
+//    /* =========================
+//       Question Builders
+//    ========================= */
+//    private ChatMessageResponse askNextProductQuestion(String sessionId, ChatSession session) {
+//
+//        if (session.productTypes() == null || session.productTypes().isEmpty()) {
+//            return ChatMessageResponse.question(
+//                    sessionId,
+//                    "어떤 종류의 제품을 찾고 계신가요?",
+//                    List.of("가구", "조명", "패브릭")
+//            );
+//        }
+//
+//        if (session.productMinBudget() == null && session.productMaxBudget() == null) {
+//            return ChatMessageResponse.question(
+//                    sessionId,
+//                    "예산은 어느 정도로 생각하고 계신가요?",
+//                    List.of("10만원 이하", "30만원 이하", "상관없어요")
+//            );
+//        }
+//
+//        return ChatMessageResponse.question(
+//                sessionId,
+//                "이제 추천해드릴 수 있어요!",
+//                List.of("추천해줘")
+//        );
+//    }
+//
+//    private ChatMessageResponse askNextReferenceQuestion(String sessionId, ChatSession session) {
+//
+//        if (session.referenceType() == null) {
+//            return ChatMessageResponse.question(
+//                    sessionId,
+//                    "어떤 공간을 꾸미고 싶으신가요?",
+//                    List.of("거실", "침실", "서재")
+//            );
+//        }
+//
+//        if (session.referenceMoods() == null || session.referenceMoods().isEmpty()) {
+//            return ChatMessageResponse.question(
+//                    sessionId,
+//                    "어떤 분위기를 원하시나요?",
+//                    List.of("차분한", "아늑한", "모던한")
+//            );
+//        }
+//
+//        if (session.referenceMinBudget() == null && session.referenceMaxBudget() == null) {
+//            return ChatMessageResponse.question(
+//                    sessionId,
+//                    "예산은 어느 정도 생각하고 계세요?",
+//                    List.of("50만원 이하", "100만원 이하", "상관없어요")
+//            );
+//        }
+//
+//        return ChatMessageResponse.question(
+//                sessionId,
+//                "이제 인테리어 추천을 해드릴게요 🙂",
+//                List.of("추천해줘")
+//        );
+//    }
+
 }
 

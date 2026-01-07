@@ -34,7 +34,7 @@ spring:
         options:
           model: gpt-4o-mini
           temperature: 0.3
-          max-tokens: 800
+          max-tokens: 1200
   data:
     redis:
       host: ${REDIS_HOST}
