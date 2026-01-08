@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum MoodType {
     COZY("아늑한"),
-    SIMPLE("단순한"),
+    SIMPLE("심플한"),
     SNUG("포근한"),
     NEAT("깔끔한"),
-    CHIC("세련된"),
+    CHIC("시크한"),
     CUTE("귀여운");
 
     private final String description;

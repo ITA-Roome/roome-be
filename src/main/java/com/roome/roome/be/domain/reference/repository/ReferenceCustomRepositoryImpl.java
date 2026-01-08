@@ -3,18 +3,29 @@ package com.roome.roome.be.domain.reference.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceTagInfo;
+import com.roome.roome.be.domain.reference.entity.Reference;
 import com.roome.roome.be.domain.reference.enums.ReferenceCategoryMapping;
 import com.roome.roome.be.domain.reference.enums.ReferenceMood;
 import com.roome.roome.be.domain.reference.enums.ReferenceStyle;
+import com.roome.roome.be.domain.user.enums.MoodType;
+import com.roome.roome.be.domain.user.enums.SpaceType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -23,12 +34,85 @@ import static com.roome.roome.be.domain.product.entity.QTag.tag;
 import static com.roome.roome.be.domain.reference.entity.QReference.reference;
 import static com.roome.roome.be.domain.reference.entity.QReferenceImage.referenceImage;
 import static com.roome.roome.be.domain.reference.entity.QReferenceTag.referenceTag;
+import static com.roome.roome.be.domain.user.entity.QUser.user;
 
 @RequiredArgsConstructor
 @Repository
 public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory; // QueryDSL 사용을 위해 주입
+
+    @Override
+    public Page<Reference> findRecommendedList(List<MoodType> moodTypes, List<SpaceType> spaceTypes, Pageable pageable) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (moodTypes != null && !moodTypes.isEmpty()) {
+            builder.or(matchesMoodType(moodTypes));
+        }
+        if (spaceTypes != null && !spaceTypes.isEmpty()) {
+            builder.or(matchesSpaceType(spaceTypes));
+        }
+
+        List<Reference> content = jpaQueryFactory
+                .selectFrom(reference)
+                .distinct() // 태그 조인 시 중복 제거
+                .leftJoin(reference.user, user).fetchJoin() // 작성자 정보 N+1 방지
+                .leftJoin(reference.referenceTagList, referenceTag) // 태그 필터링을 위한 조인
+                .leftJoin(referenceTag.tag, tag)
+                .where(builder)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(getReferenceSort(pageable)) // 정렬 적용
+                .fetch();
+
+        JPAQuery<Long> countQuery = jpaQueryFactory
+                .select(reference.countDistinct())
+                .from(reference)
+                .leftJoin(reference.referenceTagList, referenceTag)
+                .leftJoin(referenceTag.tag, tag)
+                .where(builder);
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    private BooleanExpression matchesMoodType(List<MoodType> moodTypes) {
+        return tag.type.eq(TagType.REFERENCE_MOOD)
+                .and(tag.name.in(moodTypes.stream().map(Enum::name).toList()));
+    }
+
+    private BooleanExpression matchesSpaceType(List<SpaceType> spaceTypes) {
+        return tag.type.eq(TagType.REFERENCE_TYPE)
+                .and(tag.name.in(spaceTypes.stream().map(Enum::name).toList()));
+    }
+
+    private OrderSpecifier<?>[] getReferenceSort(Pageable pageable) {
+        List<OrderSpecifier<?>> orders = new ArrayList<>();
+
+        if (!pageable.getSort().isEmpty()) {
+            for (Sort.Order order : pageable.getSort()) {
+                Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
+                switch (order.getProperty()) {
+                    case "scrapCount":
+                        orders.add(new OrderSpecifier<>(direction, reference.scrapCount));
+                        break;
+                    case "createdAt":
+                        orders.add(new OrderSpecifier<>(direction, reference.createdAt));
+                        break;
+                    case "id":
+                        orders.add(new OrderSpecifier<>(direction, reference.id));
+                        break;
+                    default:
+                        orders.add(new OrderSpecifier<>(Order.DESC, reference.id));
+                        break;
+                }
+            }
+        } else {
+            orders.add(new OrderSpecifier<>(Order.DESC, reference.scrapCount));
+        }
+
+        return orders.toArray(new OrderSpecifier[0]);
+    }
 
     @Override
     public List<CandidateReferenceInfo> findCandidateReferenceList(

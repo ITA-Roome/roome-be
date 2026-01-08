@@ -7,8 +7,13 @@ import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
 import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.entity.ProductImage;
 import com.roome.roome.be.domain.reference.dto.response.*;
+import com.roome.roome.be.domain.reference.mapper.ReferenceMapper;
 import com.roome.roome.be.domain.reference.repository.ReferenceCustomRepository;
+import com.roome.roome.be.domain.user.entity.UserOnboarding;
+import com.roome.roome.be.domain.user.enums.MoodType;
+import com.roome.roome.be.domain.user.enums.SpaceType;
 import com.roome.roome.be.domain.user.repository.UserLikeReferenceRepository;
+import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -43,9 +48,11 @@ public class ReferenceService {
     private final ReferenceCustomRepository referenceCustomRepository;
     private final UserLikeReferenceRepository userLikeReferenceRepository;
     private final UserScrapReferenceRepository userScrapReferenceRepository;
+    private final UserOnboardingRepository userOnboardingRepository;
+
+    private final ReferenceMapper referenceMapper;
 
     private final S3Service s3Service;
-    private final ImageUrlBuilder imageUrlBuilder;
 
     // 레퍼런스 등록
     public void registerReference(Long userId, List<MultipartFile> images) {
@@ -76,49 +83,42 @@ public class ReferenceService {
     @Transactional
     public Page<CommonReferenceInfo> getReferenceList(Long userId, String keyWord, Pageable pageable) {
 
+        // 1. 조회 대상 결정 (검색 vs 추천)
         Page<Reference> referencePage;
         if (keyWord != null && !keyWord.isBlank()) {
             referencePage = referenceRepository.findByNameContaining(keyWord, pageable);
         } else {
-            referencePage = referenceRepository.findAll(pageable);
+            referencePage = getRecommendedReferences(userId, pageable);
         }
 
         if (referencePage.isEmpty()) {
             return Page.empty(pageable);
         }
 
-        List<Long> referenceIds = referencePage.getContent().stream()
-                .map(Reference::getId)
-                .toList();
+        // 2. 좋아요/스크랩 정보 조회
+        List<Long> referenceIds = referencePage.getContent().stream().map(Reference::getId).toList();
+        Set<Long> scrappedIds = (userId != null) ? userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds) : new HashSet<>();
+        Set<Long> likedIds = (userId != null) ? userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds) : new HashSet<>();
 
-        Set<Long> scrappedIds = new HashSet<>();
-        Set<Long> likedIds = new HashSet<>();
+        // 3. 변환
+        return referencePage.map(ref ->
+                referenceMapper.toCommonInfo(ref, scrappedIds.contains(ref.getId()), likedIds.contains(ref.getId()))
+        );
+    }
 
-        if (userId != null && !referenceIds.isEmpty()) {
-            scrappedIds = userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds);
-            likedIds = userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds); // Repository 생성 필요
-        }
+    private Page<Reference> getRecommendedReferences(Long userId, Pageable pageable) {
+        if (userId == null) return referenceRepository.findAll(pageable); // 비로그인 대비(혹은 예외)
 
-        final Set<Long> finalScrappedIds = scrappedIds;
-        final Set<Long> finalLikedIds = likedIds;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+        UserOnboarding onboarding = userOnboardingRepository.findByUser(user).orElse(null);
 
-        return referencePage.map(reference -> {
-            List<String> imageUrlList = reference.getReferenceImageList().stream()
-                    .sorted(Comparator.comparing(ReferenceImage::getSortOrder))
-                    .map(refImg -> imageUrlBuilder.build(refImg.getObjectKey()))
-                    .toList();
+        List<MoodType> moodTypes = (onboarding != null && onboarding.getMoodType() != null)
+                ? List.of(onboarding.getMoodType()) : Collections.emptyList();
+        List<SpaceType> spaceTypes = (onboarding != null && onboarding.getSpaceType() != null)
+                ? List.of(onboarding.getSpaceType()) : Collections.emptyList();
 
-            return new CommonReferenceInfo(
-                    reference.getId(),
-                    reference.getUser().getNickname(),
-                    reference.getUser().getId(),
-                    imageUrlList,
-                    reference.getScrapCount(),
-                    reference.getLikeCount(),
-                    finalScrappedIds.contains(reference.getId()), // isScrapped
-                    finalLikedIds.contains(reference.getId())     // isLiked
-            );
-        });
+        return referenceCustomRepository.findRecommendedList(moodTypes, spaceTypes, pageable);
     }
 
     public Reference findReferenceById(Long referenceId) {
@@ -141,81 +141,10 @@ public class ReferenceService {
         Reference ref = referenceRepository.findById(referenceId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REFERENCE_NOT_FOUND));
 
-        List<String> images = ref.getReferenceImageList().stream()
-                .sorted(Comparator.comparing(ReferenceImage::getSortOrder))
-                .map(ReferenceImage::getObjectKey)
-                .filter(Objects::nonNull)
-                .map(imageUrlBuilder::build)
-                .toList();
+        boolean isLiked = (userId != null) && userLikeReferenceRepository.existsByUserIdAndReferenceId(userId, referenceId);
+        boolean isScrapped = (userId != null) && userScrapReferenceRepository.existsByUserIdAndReferenceId(userId, referenceId);
 
-        List<ReferenceItemProductInfo> items = ref.getReferenceItemList().stream()
-                .map(com.roome.roome.be.domain.reference.entity.ReferenceItem::getProduct)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(
-                        Product::getId,
-                        product -> product,
-                        (existing, replacement) -> existing,
-                        LinkedHashMap::new
-                ))
-                .values().stream()
-                .map(p -> {
-                    String thumb = null;
-                    if (p.getThumbnailKey() != null && !p.getThumbnailKey().isBlank()) {
-                        thumb = imageUrlBuilder.build(p.getThumbnailKey());
-                    } else if (!p.getProductImageList().isEmpty()) {
-                        thumb = p.getProductImageList().stream()
-                                .sorted(Comparator.comparingInt(ProductImage::getSortOrder))
-                                .findFirst()
-                                .map(ProductImage::getImageUrl)
-                                .orElse(null);
-                    }
-
-                    Set<ProductTagInfo> tags = p.getProductTagList().stream()
-                            .map(pt -> new ProductTagInfo(
-                                    pt.getTag().getId(),
-                                    pt.getTag().getName(),
-                                    pt.getTag().getType()
-                            ))
-                            .collect(Collectors.toSet());
-
-                    return new ReferenceItemProductInfo(
-                            p.getId(),
-                            p.getName(),
-                            p.getPrice(),
-                            p.getProductUrl(),
-                            thumb,
-                            tags
-                    );
-                })
-                .toList();
-
-        boolean isLiked = false;
-        boolean isScrapped = false;
-
-        if (userId != null) {
-            isLiked = userLikeReferenceRepository.existsByUserIdAndReferenceId(userId, referenceId);
-            isScrapped = userScrapReferenceRepository.existsByUserIdAndReferenceId(userId, referenceId);
-        }
-
-        String userProfileUrl = (ref.getUser().getProfileImage() != null)
-                ? imageUrlBuilder.build(ref.getUser().getProfileImage())
-                : null;
-
-        return new ReferenceDetailResponse(
-                ref.getId(),
-                ref.getName(),
-                ref.getDescription(),
-                images,
-                items,
-                ref.getScrapCount(),
-                ref.getLikeCount(),
-                isScrapped,
-                isLiked,
-                ref.getUser().getNickname(),
-                ref.getUser().getId(),
-                userProfileUrl,
-                ref.getReferenceUrl()
-        );
+        return referenceMapper.toDetailResponse(ref, isScrapped, isLiked);
     }
 
     // 상품 관련 레퍼런스 조회
@@ -236,20 +165,7 @@ public class ReferenceService {
         return referenceIds.stream()
                 .map(id -> references.stream().filter(ref -> ref.getId().equals(id)).findFirst().orElse(null))
                 .filter(Objects::nonNull)
-                .map(ref -> {
-                    String thumbnail = ref.getReferenceImageList().isEmpty()
-                            ? null
-                            : imageUrlBuilder.build(ref.getReferenceImageList().get(0).getObjectKey());
-
-                    return new RelatedReferenceResponse(
-                            ref.getId(),
-                            thumbnail,
-                            ref.getScrapCount(),
-                            ref.getUser().getNickname(),
-                            ref.getUser().getId(),
-                            matchCountMap.get(ref.getId())
-                    );
-                })
+                .map(ref -> referenceMapper.toRelatedResponse(ref, matchCountMap.get(ref.getId())))
                 .toList();
     }
 }
