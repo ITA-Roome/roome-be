@@ -42,11 +42,13 @@ public class ChatRecommendService {
         Long userId = request.userId();
         User user = userService.getUserById(userId);
 
-        // 무드와 공간 크기 매칭
+        // 1. 공간 & 평수에 맞는 카테고리(가구 종류) 필터링
+        // (예: 거실 -> 소파, TV장 / 주방 -> 식탁)
         List<ReferenceCategoryMapping> matchedCategories = Arrays.stream(ReferenceCategoryMapping.values())
                 .filter(category -> category.isMatch(request.referenceType(), request.referenceSize()))
                 .toList();
 
+        // 매칭된 게 없으면 기본값 세팅 (잘 하셨습니다!)
         if(matchedCategories.isEmpty()) {
             matchedCategories = List.of(
                     ReferenceCategoryMapping.LIGHTING_LED_BULB,
@@ -54,26 +56,10 @@ public class ChatRecommendService {
             );
         }
 
-        // 선호하는 분위기와 스타일 매칭
-        Set<ReferenceMood> referenceMoodList =
-                request.referenceMood().stream()
-                        .flatMap(mood ->
-                                ReferenceMoodMapping
-                                        .findMoodsByDescription(mood.name())
-                                        .stream()
-                        )
-                        .collect(Collectors.toSet());
+        // 2. 무드 & 스타일: AI가 준 Enum 그대로 사용
+        Set<ReferenceMood> referenceMoodList = new HashSet<>(request.referenceMood());
+        Set<ReferenceStyle> referenceStyleList = new HashSet<>(request.referenceStyle());
 
-        Set<ReferenceStyle> referenceStyleList =
-                request.referenceStyle().stream()
-                        .flatMap(style ->
-                                ReferenceStyleMapping
-                                        .findStylesByDescription(style.name())
-                                        .stream()
-                        )
-                        .collect(Collectors.toSet());
-
-        // 2. DB 필터링
         List<CandidateReferenceInfo> candidateReferenceList =
                 referenceService.getCandidateReferenceList(
                         matchedCategories,
@@ -84,22 +70,16 @@ public class ChatRecommendService {
                 );
 
         if (candidateReferenceList.isEmpty()) {
-            // 정책에 따라 빈 카드 or 예외 처리 선택
             return ChatReferenceScenarioResponse.empty();
         }
 
-        // AI 요청
+        // 4. AI에게 추천 멘트 생성 요청 (Reranking or Captioning)
         AiReferenceResponse aiResult =
                 aiService.recommendReferenceList(
-                        AiReferenceRequest.from(user.getNickname(),request, candidateReferenceList)
+                        AiReferenceRequest.from(user.getNickname(), request, candidateReferenceList)
                 );
 
-
-        // 응답 변환
-        ChatReferenceScenarioResponse response = ChatReferenceScenarioResponse.from(aiResult);
-//        redisService.save(ChatSession.from(userId, ChatMode.REFERENCE, request, response));
-        return response;
-
+        return ChatReferenceScenarioResponse.from(aiResult);
     }
 
     public ChatProductScenarioResponse processChatProductScenario(ChatProductScenarioRequest request) {
