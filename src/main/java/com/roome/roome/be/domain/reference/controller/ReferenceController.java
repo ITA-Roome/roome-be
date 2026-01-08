@@ -69,7 +69,6 @@ public class ReferenceController {
             @PageableDefault(size = 10, sort = "scrapCount", direction = Sort.Direction.DESC) Pageable pageable
     ){
         searchService.recordSearch(keyWord, userId);
-
         Page<CommonReferenceInfo> response = referenceService.getReferenceList(userId, keyWord, pageable);
 
         return ApiResponse.success(SuccessStatus.GET_REFERENCE_LIST_SUCCESS, response);

@@ -8,7 +8,11 @@ import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.entity.ProductImage;
 import com.roome.roome.be.domain.reference.dto.response.*;
 import com.roome.roome.be.domain.reference.repository.ReferenceCustomRepository;
+import com.roome.roome.be.domain.user.entity.UserOnboarding;
+import com.roome.roome.be.domain.user.enums.MoodType;
+import com.roome.roome.be.domain.user.enums.SpaceType;
 import com.roome.roome.be.domain.user.repository.UserLikeReferenceRepository;
+import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -43,6 +47,7 @@ public class ReferenceService {
     private final ReferenceCustomRepository referenceCustomRepository;
     private final UserLikeReferenceRepository userLikeReferenceRepository;
     private final UserScrapReferenceRepository userScrapReferenceRepository;
+    private final UserOnboardingRepository userOnboardingRepository;
 
     private final S3Service s3Service;
     private final ImageUrlBuilder imageUrlBuilder;
@@ -75,12 +80,31 @@ public class ReferenceService {
     // 레퍼런스 목록 조회
     @Transactional
     public Page<CommonReferenceInfo> getReferenceList(Long userId, String keyWord, Pageable pageable) {
-
         Page<Reference> referencePage;
+
         if (keyWord != null && !keyWord.isBlank()) {
             referencePage = referenceRepository.findByNameContaining(keyWord, pageable);
-        } else {
-            referencePage = referenceRepository.findAll(pageable);
+        }
+        else {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+            UserOnboarding onboarding = userOnboardingRepository.findByUser(user).orElse(null);
+
+            List<MoodType> moodTypes = new ArrayList<>();
+            List<SpaceType> spaceTypes = new ArrayList<>();
+
+            if (onboarding != null) {
+                if (onboarding.getMoodType() != null) {
+                    moodTypes = List.of(onboarding.getMoodType());
+                }
+
+                if (onboarding.getSpaceType() != null) {
+                    spaceTypes = List.of(onboarding.getSpaceType());
+                }
+            }
+
+            referencePage = referenceCustomRepository.findRecommendedList(moodTypes, spaceTypes, pageable);
         }
 
         if (referencePage.isEmpty()) {
@@ -91,16 +115,8 @@ public class ReferenceService {
                 .map(Reference::getId)
                 .toList();
 
-        Set<Long> scrappedIds = new HashSet<>();
-        Set<Long> likedIds = new HashSet<>();
-
-        if (userId != null && !referenceIds.isEmpty()) {
-            scrappedIds = userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds);
-            likedIds = userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds); // Repository 생성 필요
-        }
-
-        final Set<Long> finalScrappedIds = scrappedIds;
-        final Set<Long> finalLikedIds = likedIds;
+        Set<Long> scrappedIds = userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds);
+        Set<Long> likedIds = userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds);
 
         return referencePage.map(reference -> {
             List<String> imageUrlList = reference.getReferenceImageList().stream()
@@ -115,8 +131,8 @@ public class ReferenceService {
                     imageUrlList,
                     reference.getScrapCount(),
                     reference.getLikeCount(),
-                    finalScrappedIds.contains(reference.getId()), // isScrapped
-                    finalLikedIds.contains(reference.getId())     // isLiked
+                    scrappedIds.contains(reference.getId()), // isScrapped
+                    likedIds.contains(reference.getId())     // isLiked
             );
         });
     }

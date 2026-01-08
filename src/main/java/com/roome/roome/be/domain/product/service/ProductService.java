@@ -6,7 +6,11 @@ import java.util.stream.Collectors;
 import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
+import com.roome.roome.be.domain.user.entity.User;
+import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
+import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
+import com.roome.roome.be.domain.user.repository.UserRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapProductRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +47,9 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final ProductTagRepository productTagRepository;
     private final UserLikeProductRepository userLikeProductRepository;
+
+    private final UserOnboardingRepository userOnboardingRepository;
+    private final UserRepository userRepository;
 
     private final ProductTagService productTagService;
     private final ProductImageService productImageService;
@@ -169,6 +176,27 @@ public class ProductService {
         if (moodTags != null && !moodTags.isEmpty()) tagFilters.put(TagType.MOOD, moodTags);
         if (usageTags != null && !usageTags.isEmpty()) tagFilters.put(TagType.USAGE, usageTags);
 
+        boolean hasExplicitFilters = (keyWord != null && !keyWord.isBlank())
+                || (category != null)
+                || (shopId != null)
+                || (!tagFilters.isEmpty());
+
+        if (!hasExplicitFilters && userId != null) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+
+            UserOnboarding onboarding = userOnboardingRepository.findByUser(user).orElse(null);
+
+            if (onboarding != null) {
+                if (onboarding.getMoodType() != null) {
+                    tagFilters.put(TagType.MOOD, List.of(onboarding.getMoodType().name()));
+                }
+
+                if (onboarding.getSpaceType() != null) {
+                    tagFilters.put(TagType.USAGE, List.of(onboarding.getSpaceType().name()));
+                }
+            }
+        }
         Page<Product> page = productRepository.findByDynamicFilters(
                 shopId,
                 category,
