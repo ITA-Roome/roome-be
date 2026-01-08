@@ -6,8 +6,12 @@ public enum MissingField{
          * ========================= */
         PRODUCT_TYPE,
         PRODUCT_COLOR,
-        PRODUCT_MIN_BUDGET,
-        PRODUCT_MAX_BUDGET,
+        PRODUCT_BUDGET,
+        PRODUCT_CATEGORY,
+        PRODUCT_MOOD,
+        PRODUCT_DETAIL_CATEGORY,
+        PRODUCT_COLOR_MOOD,
+
 
         /* =========================
          * REFERENCE
@@ -16,6 +20,8 @@ public enum MissingField{
         REFERENCE_SIZE,
         REFERENCE_MOOD,
         REFERENCE_STYLE,
+        REFERENCE_COLOR,
         REFERENCE_MIN_BUDGET,
-        REFERENCE_MAX_BUDGET
+        REFERENCE_MAX_BUDGET,
+        REFERENCE_BUDGET
 }
