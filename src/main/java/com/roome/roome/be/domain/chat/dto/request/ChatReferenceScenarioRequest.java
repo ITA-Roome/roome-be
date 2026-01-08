@@ -24,7 +24,6 @@ public record ChatReferenceScenarioRequest(
 
         @NotNull
         Integer maxBudget,
-        @NotNull
         Integer minBudget
 ) {
         public static ChatReferenceScenarioRequest create(ChatSession chatSession){
