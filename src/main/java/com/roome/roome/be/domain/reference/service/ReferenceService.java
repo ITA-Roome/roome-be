@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
 import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.entity.ProductImage;
+import com.roome.roome.be.domain.reference.dto.request.RegisterReferenceRequest;
 import com.roome.roome.be.domain.reference.dto.response.*;
 import com.roome.roome.be.domain.reference.mapper.ReferenceMapper;
 import com.roome.roome.be.domain.reference.repository.ReferenceCustomRepository;
@@ -43,40 +44,33 @@ import lombok.RequiredArgsConstructor;
 public class ReferenceService {
 
     private final ReferenceRepository referenceRepository;
-    private final ReferenceImageRepository referenceImageRepository;
     private final UserRepository userRepository;
     private final ReferenceCustomRepository referenceCustomRepository;
     private final UserLikeReferenceRepository userLikeReferenceRepository;
     private final UserScrapReferenceRepository userScrapReferenceRepository;
     private final UserOnboardingRepository userOnboardingRepository;
 
+    private final ReferenceTagService referenceTagService;
+    private final ReferenceImageService referenceImageService;
     private final ReferenceMapper referenceMapper;
 
-    private final S3Service s3Service;
-
     // 레퍼런스 등록
-    public void registerReference(Long userId, List<MultipartFile> images) {
-        if (images == null || images.isEmpty()) return;
-
+    @Transactional
+    public void registerReference(Long userId, MultipartFile image, String name, String description, String mood) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
-        Reference reference = referenceRepository.save(Reference.builder()
-                .user(user)
-                .scrapCount(0)
-                .build());
-        Long referenceId = reference.getId();
+        Reference reference = referenceRepository.save(
+                Reference.builder()
+                        .user(user)
+                        .name(name)
+                        .description(description)
+                        .scrapCount(0)
+                        .likeCount(0)
+                        .build());
 
-        List<ReferenceImage> referenceImageList = images.stream()
-                .map(file -> {
-                    String objectKey = s3Service.uploadObject(StorageScope.REFERENCE, referenceId, file);
-                    return ReferenceImage.builder()
-                            .reference(reference)
-                            .objectKey(objectKey)
-                            .build();
-                })
-                .toList();
-        referenceImageRepository.saveAll(referenceImageList);
+        referenceImageService.registerReferenceImage(reference, image);
+        referenceTagService.registerReferenceTag(reference, mood);
     }
 
     // 레퍼런스 목록 조회

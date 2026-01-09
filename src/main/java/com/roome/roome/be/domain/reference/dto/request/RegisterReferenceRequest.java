@@ -1,10 +1,15 @@
 package com.roome.roome.be.domain.reference.dto.request;
 
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
 
 public record RegisterReferenceRequest(
-        List<MultipartFile> files
+        @NotBlank
+        String name,
+
+        @NotBlank
+        String description,
+
+        @NotBlank
+        String mood
 ) {
 }
