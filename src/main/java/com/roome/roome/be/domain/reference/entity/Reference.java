@@ -37,7 +37,7 @@ public class Reference extends BaseEntity {
     @Column(name = "like_count",nullable = false)
     private Integer likeCount;
 
-    @Column(name = "reference_url", length = 1024, nullable = false)
+    @Column(name = "reference_url", length = 1024)
     private String referenceUrl;
 
     @OneToMany(mappedBy = "reference", fetch = FetchType.LAZY)
