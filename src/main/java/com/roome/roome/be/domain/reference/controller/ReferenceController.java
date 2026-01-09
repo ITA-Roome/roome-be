@@ -2,7 +2,6 @@ package com.roome.roome.be.domain.reference.controller;
 
 import com.roome.roome.be.common.response.ApiResponse;
 import com.roome.roome.be.common.status.SuccessStatus;
-import com.roome.roome.be.domain.reference.dto.request.RegisterReferenceRequest;
 import com.roome.roome.be.domain.reference.dto.response.CommonReferenceInfo;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceDetailResponse;
 import com.roome.roome.be.domain.reference.service.ReferenceService;
@@ -14,7 +13,6 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;

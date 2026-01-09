@@ -3,10 +3,6 @@ package com.roome.roome.be.domain.reference.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
-import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.product.entity.ProductImage;
-import com.roome.roome.be.domain.reference.dto.request.RegisterReferenceRequest;
 import com.roome.roome.be.domain.reference.dto.response.*;
 import com.roome.roome.be.domain.reference.mapper.ReferenceMapper;
 import com.roome.roome.be.domain.reference.repository.ReferenceCustomRepository;
@@ -23,16 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.roome.roome.be.common.exception.GeneralException;
-import com.roome.roome.be.common.s3.enums.StorageScope;
-import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
-import com.roome.roome.be.common.s3.service.S3Service;
 import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.reference.entity.Reference;
-import com.roome.roome.be.domain.reference.entity.ReferenceImage;
 import com.roome.roome.be.domain.reference.enums.ReferenceCategoryMapping;
 import com.roome.roome.be.domain.reference.enums.ReferenceMood;
 import com.roome.roome.be.domain.reference.enums.ReferenceStyle;
-import com.roome.roome.be.domain.reference.repository.ReferenceImageRepository;
 import com.roome.roome.be.domain.reference.repository.ReferenceRepository;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.repository.UserRepository;
