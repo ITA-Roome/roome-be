@@ -1,6 +1,7 @@
 package com.roome.roome.be.domain.reference.repository;
 
 import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
+import com.roome.roome.be.domain.reference.dto.response.CommonReferenceInfo;
 import com.roome.roome.be.domain.reference.entity.Reference;
 import com.roome.roome.be.domain.reference.enums.ReferenceCategoryMapping;
 import com.roome.roome.be.domain.reference.enums.ReferenceMood;
@@ -35,4 +36,6 @@ public interface ReferenceCustomRepository {
             Integer matchedTagCount
     ) {
     }
+
+    List<CommonReferenceInfo> findUserUploadedReferenceListByUserId(Long userId);
 }
