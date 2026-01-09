@@ -1,5 +1,6 @@
 package com.roome.roome.be.domain.product.entity;
 
+import com.roome.roome.be.common.base.BaseEntity;
 import com.roome.roome.be.domain.product.enums.TagType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,7 +27,7 @@ import lombok.NoArgsConstructor;
 	name = "tag",
 	uniqueConstraints = @UniqueConstraint(columnNames = {"name", "type"})
 )
-public class Tag {
+public class Tag extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
