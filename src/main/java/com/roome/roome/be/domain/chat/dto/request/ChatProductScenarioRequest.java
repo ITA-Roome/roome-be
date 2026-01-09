@@ -28,7 +28,10 @@ public record ChatProductScenarioRequest(
                         chatSession.productColors(),
                         chatSession.productMaxBudget(),
                         chatSession.productMinBudget(),
-                        chatSession.productTypes()
+
+                        chatSession.productType() != null
+                                ? List.of(chatSession.productType())
+                                : null
                 );
         }
 }

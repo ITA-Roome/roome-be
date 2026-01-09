@@ -7,6 +7,8 @@ import com.roome.roome.be.domain.product.dto.response.*;
 import com.roome.roome.be.domain.product.entity.ProductImage;
 import com.roome.roome.be.domain.product.entity.ProductTag;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.ProductType;
+import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.product.mapper.ProductMapper;
 import com.roome.roome.be.domain.user.entity.User;
@@ -39,6 +41,8 @@ import com.roome.roome.be.domain.shop.repository.ShopRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Service
@@ -255,4 +259,39 @@ public class ProductService {
         return productRepository.findCandidateProductList(maxBudget,minBudget,preferredColors);
     }
 
+    @Transactional(readOnly = true)
+    public List<CandidateProductInfo> getCandidateProductList(
+            ProductType productType,            // 대분류 (가구)
+            List<ProductCategory> detailedCategories, // 소분류 (책상, 의자...)
+            Integer minBudget,
+            Integer maxBudget,
+            List<String> preferredColors
+    ) {
+        List<String> searchTagNames;
+
+        if (detailedCategories != null && !detailedCategories.isEmpty()) {
+            searchTagNames = detailedCategories.stream()
+                    .map(Enum::name)
+                    .toList();
+        } else {
+            searchTagNames = ProductTypeMapper.getProductCategoryList(List.of(productType))
+                    .stream()
+                    .map(Enum::name)
+                    .toList();
+        }
+
+        int effectiveMin = (minBudget == null) ? 0 : minBudget;
+        int effectiveMax = (maxBudget == null) ? Integer.MAX_VALUE : maxBudget;
+
+        List<Product> products = productRepository.findByCategoryTagsAndBudget(
+                TagType.PRODUCT_TYPE,
+                searchTagNames,
+                effectiveMin,
+                effectiveMax
+        );
+
+        return products.stream()
+                .map(CandidateProductInfo::from)
+                .toList();
+    }
 }

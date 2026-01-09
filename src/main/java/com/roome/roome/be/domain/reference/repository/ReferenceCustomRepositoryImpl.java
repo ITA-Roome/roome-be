@@ -123,6 +123,17 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
             Integer maxBudget
     ) {
 
+        BooleanExpression moodCondition = moodIn(moodList);
+        BooleanExpression styleCondition = styleIn(styleList);
+        BooleanExpression priceCondition = priceBetween(minBudget, maxBudget);
+
+        BooleanExpression tagCondition = null;
+
+        if (moodCondition != null && styleCondition != null) {
+            tagCondition = moodCondition.or(styleCondition);
+        } else {
+            tagCondition = (moodCondition != null) ? moodCondition : styleCondition;
+        }
 
         return jpaQueryFactory
                 .from(reference)
@@ -130,10 +141,11 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                 .leftJoin(reference.referenceTagList, referenceTag)
                 .leftJoin(referenceTag.tag, tag)
                 .where(
-//                        categoryIn(matchedCategories),
-                        moodIn(moodList),
-                        styleIn(styleList),
-                        priceBetween(minBudget, maxBudget)
+                        // 주석 처리 하셨던 카테고리(공간타입) 필터가 있다면 여기에 AND로 추가 필요
+                        // categoryIn(matchedCategories),
+
+                        priceCondition, // 예산은 필수 조건 (AND)
+                        tagCondition    // (무드 OR 스타일) 조건 (AND)
                 )
                 .limit(30)
                 .transform(
@@ -157,33 +169,17 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
     }
 
     private BooleanExpression moodIn(Set<ReferenceMood> moodList) {
-        if (moodList == null || moodList.isEmpty()) {
-            return null;
-        }
+        if (moodList == null || moodList.isEmpty()) return null;
 
-        return tag.type.eq(TagType.MOOD)
-                .and(
-                        tag.name.in(
-                                moodList.stream()
-                                        .map(Enum::name)
-                                        .toList()
-                        )
-                );
+        return tag.type.eq(TagType.REFERENCE_MOOD)
+                .and(tag.name.in(moodList.stream().map(Enum::name).toList()));
     }
 
     private BooleanExpression styleIn(Set<ReferenceStyle> styleList) {
-        if (styleList == null || styleList.isEmpty()) {
-            return null;
-        }
+        if (styleList == null || styleList.isEmpty()) return null;
 
-        return tag.type.eq(TagType.STYLE)
-                .and(
-                        tag.name.in(
-                                styleList.stream()
-                                        .map(Enum::name)
-                                        .toList()
-                        )
-                );
+        return tag.type.eq(TagType.REFERENCE_STYLE)
+                .and(tag.name.in(styleList.stream().map(Enum::name).toList()));
     }
 
 

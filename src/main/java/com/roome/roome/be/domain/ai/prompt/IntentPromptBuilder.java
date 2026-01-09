@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.roome.roome.be.domain.chat.model.ChatSession;
+import com.roome.roome.be.domain.reference.enums.ReferenceMoodMapping;
+import com.roome.roome.be.domain.reference.enums.ReferenceStyleMapping;
 
 public class IntentPromptBuilder {
 
@@ -77,11 +79,12 @@ public class IntentPromptBuilder {
               },
 
               "product": {
-                "productTypes": [],
-                "productColors" : [],
-                "minBudget": null,
-                "maxBudget": null
-              },
+                 "productType": null,       // 예: "FURNITURE", "LIGHTING" (대분류)
+                 "productCategory": null,   // 예: "DESK", "CHAIR" (소분류)
+                 "productColors" : [],
+                 "minBudget": null,
+                 "maxBudget": null
+               },,
 
               "recommendRequest": false,
               "resetRequest": false
@@ -240,13 +243,139 @@ public class IntentPromptBuilder {
             - 정보가 없으면 반드시 질문 단계로 이어져야 한다
             --------------------------------------------------
             """;
+    private static final String PRODUCT_CATEGORY_GUIDE = """
+        --------------------------------------------------
+        [상품 카테고리 매핑 가이드]
+        --------------------------------------------------
+        사용자의 발화가 아래 상세 품목 중 하나에 해당하면
+        반드시 해당 Enum 이름(대문자)으로 매핑하라.
+        
+        [FURNITURE]
+        - DESK (책상)
+        - HEIGHT_ADJUSTABLE_DESK (높이 조절 책상, 모션데스크)
+        - CHAIR (의자)
+        - STOOL (스툴)
+        ... (나머지 Enum들)
+        
+        [LIGHTING]
+        - CEILING_LAMP (천장등)
+        - READING_LAMP (독서등)
+        ...
+        
+        [FABRIC_DECOR]
+        - RUG (러그)
+        - CUSHION (쿠션)
+        ...
+        --------------------------------------------------
+        """;
 
+
+    private static final String COMMON_COLOR_GUIDE = """
+        --------------------------------------------------
+        [색상/톤(Color & Tone) 공통 매핑 가이드]
+        --------------------------------------------------
+        사용자의 발화에 따라 'reference.colorTone'과 'product.productColors'를 채워라.
+        
+        [중요] 'reference.colorTone'은 반드시 아래 명시된 **태그 이름(Tag Name)** 중 하나여야 한다.
+        (허용 값: BRIGHT_TONE, DARK_TONE, WARM_TONE, GRAY_TONE, COLORFUL, CALM_TONE, NEUTRAL)
+
+        1. 밝은 톤 (Bright / White)
+           - reference.colorTone: "BRIGHT_TONE"
+           - product.productColors: ["WHITE", "IVORY", "CREAM", "BEIGE", "SILVER", "TRANSPARENT"]
+           (예: "밝은 거", "화사한", "깨끗한", "화이트톤")
+
+        2. 어두운 톤 (Dark / Chic)
+           - reference.colorTone: "DARK_TONE"
+           - product.productColors: ["BLACK", "GRAY", "BROWN", "NAVY", "OLIVE", "PURPLE"]
+           (예: "어두운 거", "시크한", "무게감 있는", "블랙 계열")
+
+        3. 따뜻한/내추럴 톤 (Warm / Wood / Natural)
+           - reference.colorTone: "WARM_TONE"
+           - product.productColors: ["WOOD", "BROWN", "BEIGE", "ORANGE"]
+           (예: "따뜻한 느낌", "우드톤", "나무색", "포근한")
+
+        4. 차분한/그레이 톤 (Gray / Modern)
+           - reference.colorTone: "GRAY_TONE"
+           - product.productColors: ["GRAY", "SILVER", "CHARCOAL", "BLACK"]
+           (예: "모던한", "그레이톤", "회색", "차가운")
+           
+        5. 포인트/비비드 (Vivid / Colorful)
+           - reference.colorTone: "COLORFUL"
+           - product.productColors: ["RED", "BLUE", "YELLOW", "PINK", "GREEN", "MULTICOLOR"]
+           (예: "튀는 색", "알록달록", "포인트 컬러", "생동감 있는")
+           
+        6. 차분/뉴트럴 (Calm / Neutral)
+           - reference.colorTone: "NEUTRAL"
+           - product.productColors: ["BEIGE", "IVORY", "GRAY", "BROWN"]
+           (예: "무난한", "뉴트럴한", "질리지 않는")
+        --------------------------------------------------
+        """;
+
+    private static final String PRODUCT_BUDGET_GUIDE = """
+        --------------------------------------------------
+        [가격/예산(Budget) 매핑 가이드]
+        --------------------------------------------------
+        사용자가 구체적인 금액이 아니라 '추상적인 표현'이나 '버튼 키워드'를 말하면,
+        반드시 아래 규칙에 따라 minBudget, maxBudget 값을 정수로 변환하여라.
+        (단위: 원, KRW)
+
+        1. "가성비", "저렴한", "싼", "가볍게"
+           → maxBudget: 100000 (10만원 이하)
+           (minBudget: null)
+
+        2. "중간 가격대", "적당한", "보통"
+           → maxBudget: 300000 (30만원 이하)
+           (minBudget: null)
+
+        3. "상관없어요", "가격 무관", "아무거나", "비싸도 됨"
+           → minBudget: null
+           → maxBudget: null
+
+        [주의]
+        - 사용자가 "50만원 이하", "10만원~20만원" 처럼 구체적인 숫자를 말하면 그 숫자를 최우선으로 적용하라.
+        --------------------------------------------------
+        """;
+
+    private static String generateReferenceTagGuide() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("--------------------------------------------------\n");
+        sb.append("[인테리어 레퍼런스 태그 매핑 가이드 (Dynamic)]\n");
+        sb.append("--------------------------------------------------\n");
+        sb.append("사용자의 발화 의미가 아래 '설명'과 일치하면,\n");
+        sb.append("반드시 매핑된 **태그 리스트(Tags)**를 그대로 출력하라.\n\n");
+
+        sb.append("1. 무드/분위기 (reference.moods)\n");
+        for (ReferenceMoodMapping mapping : ReferenceMoodMapping.values()) {
+            sb.append(String.format("   - \"%s\" 관련 표현 → %s\n",
+                    mapping.getDescription(),
+                    mapping.getMoods().toString())); // Enum Set을 문자열로 변환
+        }
+        sb.append("\n");
+
+        sb.append("2. 스타일 (reference.styles)\n");
+        for (ReferenceStyleMapping mapping : ReferenceStyleMapping.values()) {
+            sb.append(String.format("   - \"%s\" 관련 표현 → %s\n",
+                    mapping.getDescription(),
+                    mapping.getStyles().toString()));
+        }
+
+        sb.append("\n[주의]\n");
+        sb.append("- 위 목록에 없는 태그는 절대 창조하지 마라.\n");
+        sb.append("- 사용자가 애매하게 말하면 UNKNOWN 그룹의 태그를 사용하라.\n");
+        sb.append("--------------------------------------------------\n");
+
+        return sb.toString();
+    }
 
     public static String build(ChatSession session, String userMessage) {
         try {
             return SYSTEM_PROMPT
                     + TASK_AWARE_PROMPT
                     + FLOW_TRIGGER_PROMPT
+                    + PRODUCT_CATEGORY_GUIDE
+                    + COMMON_COLOR_GUIDE
+                    + PRODUCT_BUDGET_GUIDE
+                    + generateReferenceTagGuide()
                     + "\n\n[현재 ChatSession]\n"
                     + om.writerWithDefaultPrettyPrinter().writeValueAsString(session)
                     + "\n\n[사용자 발화]\n"
