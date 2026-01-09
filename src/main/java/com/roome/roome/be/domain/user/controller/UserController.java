@@ -1,5 +1,7 @@
 package com.roome.roome.be.domain.user.controller;
 
+import com.roome.roome.be.domain.reference.service.ReferenceService;
+import com.roome.roome.be.domain.user.dto.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -28,14 +30,6 @@ import com.roome.roome.be.domain.reference.dto.response.ReferenceToggleScrapResp
 import com.roome.roome.be.domain.user.dto.request.UpdateUserProfileRequest;
 import com.roome.roome.be.domain.user.dto.request.UserInquirySearchCondition;
 import com.roome.roome.be.domain.user.dto.request.UserOnboardingRequest;
-import com.roome.roome.be.domain.user.dto.response.UserInquiryResponse;
-import com.roome.roome.be.domain.user.dto.response.UserLikeProductListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserLikeReferenceListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserOnboardingExistResponse;
-import com.roome.roome.be.domain.user.dto.response.UserProfileResponse;
-import com.roome.roome.be.domain.user.dto.response.UserRecentViewedProductListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserScrappedProductListResponse;
-import com.roome.roome.be.domain.user.dto.response.UserScrappedReferenceListResponse;
 import com.roome.roome.be.domain.user.service.UserLikeService;
 import com.roome.roome.be.domain.user.service.UserOnboardingService;
 import com.roome.roome.be.domain.user.service.UserScrapService;
@@ -63,6 +57,7 @@ public class UserController {
     private final UserService userService;
     private final UserScrapService userScrapService;
     private final UserViewService userViewService;
+    private final ReferenceService referenceService;
 
     @GetMapping("/profile")
     @Operation(summary = "유저 프로필 조회", description = "유저 계정 정보 조회")
@@ -250,4 +245,15 @@ public class UserController {
         Page<UserInquiryResponse> response = inquiryService.getUserInquiryList(new UserInquirySearchCondition(keyword,status,type), PageRequest.of(page, size));
         return ApiResponse.success(SuccessStatus.GET_INQUIRY_LIST_SUCCESS, PageResponse.from(response));
     }
+
+    @GetMapping("/references")
+    @Operation(summary = "내가 업로드한 레퍼런스 리스트 조회", description = "유저가 업로드한 레퍼런스 리스트 내역 조회")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "유저 업로드 리스트 내역  조회 성공", content = @Content(schema = @Schema(implementation = UserUploadedReferenceListResponse.class)))
+    public ResponseEntity<ApiResponse<UserUploadedReferenceListResponse>> getUserUploadReferenceList(
+            @AuthenticationPrincipal Long userId
+    ){
+        UserUploadedReferenceListResponse response = referenceService.getUserUploadedReferenceList(userId);
+        return ApiResponse.success(SuccessStatus.GET_USER_REFERENCE_SUCCESS, response);
+    }
+
 }

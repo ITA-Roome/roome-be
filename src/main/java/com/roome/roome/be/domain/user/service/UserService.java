@@ -57,6 +57,10 @@ public class UserService {
         }
     }
 
+    public void getUserUploadReferenceList(Long userId) {
+        User user = getUserById(userId);
+    }
+
     // 이메일 중복 검사
     public void checkEmailNotExists(String email) {
         if (userRepository.existsByEmail(email)) {

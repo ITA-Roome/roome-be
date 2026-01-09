@@ -7,10 +7,12 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
+import com.roome.roome.be.domain.reference.dto.response.CommonReferenceInfo;
 import com.roome.roome.be.domain.reference.dto.response.ReferenceTagInfo;
 import com.roome.roome.be.domain.reference.entity.Reference;
 import com.roome.roome.be.domain.reference.enums.ReferenceCategoryMapping;
@@ -29,12 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.roome.roome.be.domain.product.entity.QProductTag.productTag;
 import static com.roome.roome.be.domain.product.entity.QTag.tag;
 import static com.roome.roome.be.domain.reference.entity.QReference.reference;
 import static com.roome.roome.be.domain.reference.entity.QReferenceImage.referenceImage;
 import static com.roome.roome.be.domain.reference.entity.QReferenceTag.referenceTag;
 import static com.roome.roome.be.domain.user.entity.QUser.user;
+import static com.roome.roome.be.domain.user.entity.QUserScrapReference.userScrapReference;
 
 @RequiredArgsConstructor
 @Repository
@@ -254,5 +258,28 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
             case SIZE -> TagType.REFERENCE_SIZE;
             default -> null;
         };
+    }
+
+    @Override
+    public List<CommonReferenceInfo> findUserUploadedReferenceListByUserId(Long userId) {
+        return jpaQueryFactory
+                .from(reference)
+                .leftJoin(reference.referenceImageList, referenceImage)
+                .where(reference.user.id.eq(userId))
+                .orderBy(reference.createdAt.desc())
+                .transform(
+                        groupBy(reference.id).list(
+                                Projections.constructor(CommonReferenceInfo.class,
+                                        reference.id,
+                                        reference.user.nickname,
+                                        reference.user.id,
+                                        GroupBy.list(referenceImage.objectKey),
+                                        reference.scrapCount,
+                                        reference.likeCount,
+                                        Expressions.asBoolean(true),
+                                        Expressions.asBoolean(false)
+                                )
+                        )
+                );
     }
 }

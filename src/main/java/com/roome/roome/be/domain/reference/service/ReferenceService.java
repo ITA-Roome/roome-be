@@ -3,9 +3,11 @@ package com.roome.roome.be.domain.reference.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
 import com.roome.roome.be.domain.reference.dto.response.*;
 import com.roome.roome.be.domain.reference.mapper.ReferenceMapper;
 import com.roome.roome.be.domain.reference.repository.ReferenceCustomRepository;
+import com.roome.roome.be.domain.user.dto.response.UserUploadedReferenceListResponse;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
 import com.roome.roome.be.domain.user.enums.MoodType;
 import com.roome.roome.be.domain.user.enums.SpaceType;
@@ -44,6 +46,7 @@ public class ReferenceService {
     private final ReferenceTagService referenceTagService;
     private final ReferenceImageService referenceImageService;
     private final ReferenceMapper referenceMapper;
+    private final ImageUrlBuilder imageUrlBuilder;
 
     // 레퍼런스 등록
     @Transactional
@@ -152,5 +155,42 @@ public class ReferenceService {
                 .filter(Objects::nonNull)
                 .map(ref -> referenceMapper.toRelatedResponse(ref, matchCountMap.get(ref.getId())))
                 .toList();
+    }
+
+    public UserUploadedReferenceListResponse getUserUploadedReferenceList(Long userId) {
+        List<CommonReferenceInfo> rawList = referenceCustomRepository
+                .findUserUploadedReferenceListByUserId(userId);
+
+        List<Long> referenceIds = rawList.stream()
+                .map(CommonReferenceInfo::referenceId)
+                .toList();
+
+        Set<Long> likedIds = new HashSet<>();
+        Set<Long> scrappedIds = new HashSet<>();
+
+        if (!referenceIds.isEmpty()) {
+            likedIds = userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds);
+            scrappedIds = userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds);
+        }
+
+        final Set<Long> finalLikedIds = likedIds;
+        final Set<Long> finalScrappedIds = scrappedIds;
+
+        List<CommonReferenceInfo> finalList = rawList.stream()
+                .map(raw -> new CommonReferenceInfo(
+                        raw.referenceId(),
+                        raw.nickname(),
+                        raw.userId(),
+                        raw.imageUrlList().stream()
+                                .map(imageUrlBuilder::build)
+                                .toList(),
+                        raw.scrapCount(),
+                        raw.likeCount(),
+                        finalScrappedIds.contains(raw.referenceId()),
+                        finalLikedIds.contains(raw.referenceId())
+                ))
+                .toList();
+
+        return new UserUploadedReferenceListResponse(finalList);
     }
 }

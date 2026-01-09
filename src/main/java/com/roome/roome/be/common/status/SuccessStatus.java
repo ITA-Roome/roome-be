@@ -51,6 +51,7 @@ public enum SuccessStatus implements BaseStatus {
     GET_USER_SCRAP_REFERENCE_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 스크랩 레퍼런스 리스트 조회 성공"),
     GET_USER_PROFILE_SUCCESS("USER_200",HttpStatus.OK,"유저 프로필 조회 성공"),
     UPDATE_USER_PROFILE_SUCCESS("USER_200",HttpStatus.OK,"유저 프로필 수정 성공"),
+    GET_USER_REFERENCE_SUCCESS("USER_200",HttpStatus.OK,"유저 업로드 레퍼런스 리스트 조회 성공"),
 
     /**
      * Shop
