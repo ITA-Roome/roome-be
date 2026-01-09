@@ -85,33 +85,17 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
     }
 
     private BooleanExpression moodIn(Set<ReferenceMood> moodList) {
-        if (moodList == null || moodList.isEmpty()) {
-            return null;
-        }
+        if (moodList == null || moodList.isEmpty()) return null;
 
-        return tag.type.eq(TagType.MOOD)
-                .and(
-                        tag.name.in(
-                                moodList.stream()
-                                        .map(Enum::name)
-                                        .toList()
-                        )
-                );
+        return tag.type.eq(TagType.REFERENCE_MOOD)
+                .and(tag.name.in(moodList.stream().map(Enum::name).toList()));
     }
 
     private BooleanExpression styleIn(Set<ReferenceStyle> styleList) {
-        if (styleList == null || styleList.isEmpty()) {
-            return null;
-        }
+        if (styleList == null || styleList.isEmpty()) return null;
 
-        return tag.type.eq(TagType.STYLE)
-                .and(
-                        tag.name.in(
-                                styleList.stream()
-                                        .map(Enum::name)
-                                        .toList()
-                        )
-                );
+        return tag.type.eq(TagType.REFERENCE_STYLE)
+                .and(tag.name.in(styleList.stream().map(Enum::name).toList()));
     }
 
 
