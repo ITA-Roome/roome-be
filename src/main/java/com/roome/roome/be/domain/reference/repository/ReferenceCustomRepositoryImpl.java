@@ -8,6 +8,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.roome.be.domain.product.enums.TagType;
@@ -38,7 +39,6 @@ import static com.roome.roome.be.domain.reference.entity.QReference.reference;
 import static com.roome.roome.be.domain.reference.entity.QReferenceImage.referenceImage;
 import static com.roome.roome.be.domain.reference.entity.QReferenceTag.referenceTag;
 import static com.roome.roome.be.domain.user.entity.QUser.user;
-import static com.roome.roome.be.domain.user.entity.QUserScrapReference.userScrapReference;
 
 @RequiredArgsConstructor
 @Repository
@@ -97,8 +97,8 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
             for (Sort.Order order : pageable.getSort()) {
                 Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
                 switch (order.getProperty()) {
-                    case "scrapCount":
-                        orders.add(new OrderSpecifier<>(direction, reference.scrapCount));
+                    case "likeCount":
+                        orders.add(new OrderSpecifier<>(direction, reference.likeCount));
                         break;
                     case "createdAt":
                         orders.add(new OrderSpecifier<>(direction, reference.createdAt));
@@ -112,10 +112,200 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                 }
             }
         } else {
-            orders.add(new OrderSpecifier<>(Order.DESC, reference.scrapCount));
+            orders.add(new OrderSpecifier<>(Order.DESC, reference.likeCount));
         }
 
         return orders.toArray(new OrderSpecifier[0]);
+    }
+
+
+    @Override
+    public Page<Reference> findBaseList(String keyWord, Pageable pageable) {
+        BooleanExpression keywordCond = nameContains(keyWord);
+
+        JPAQuery<Reference> query = jpaQueryFactory
+            .selectFrom(reference)
+            .leftJoin(reference.user, user).fetchJoin()
+            .where(keywordCond);
+
+        applySort(query, pageable.getSort());
+
+        query.offset(pageable.getOffset()).limit(pageable.getPageSize());
+
+        List<Reference> content = query.fetch();
+
+        JPAQuery<Long> countQuery = jpaQueryFactory
+            .select(reference.count())
+            .from(reference)
+            .where(keywordCond);
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public long countBase(String keyWord) {
+        Long cnt = jpaQueryFactory
+            .select(reference.count())
+            .from(reference)
+            .where(nameContains(keyWord))
+            .fetchOne();
+        return (cnt == null) ? 0L : cnt;
+    }
+
+    @Override
+    public long countRecommendedWithKeyword(String keyWord, List<MoodType> moodTypes, List<SpaceType> spaceTypes) {
+        BooleanExpression keywordCond = nameContains(keyWord);
+        BooleanExpression recCond = recommendedCondition(moodTypes, spaceTypes);
+
+        Long cnt = jpaQueryFactory
+            .select(reference.count())
+            .from(reference)
+            .where(keywordCond, recCond)
+            .fetchOne();
+
+        return (cnt == null) ? 0L : cnt;
+    }
+
+    @Override
+    public List<Reference> findRecommendedSliceWithKeyword(
+        String keyWord,
+        List<MoodType> moodTypes,
+        List<SpaceType> spaceTypes,
+        long offset,
+        int limit,
+        Sort sort
+    ) {
+        if (limit <= 0) return List.of();
+
+        BooleanExpression keywordCond = nameContains(keyWord);
+        BooleanExpression recCond = recommendedCondition(moodTypes, spaceTypes);
+
+        JPAQuery<Reference> query = jpaQueryFactory
+            .selectFrom(reference)
+            .leftJoin(reference.user, user).fetchJoin()
+            .where(keywordCond, recCond);
+
+        applySort(query, sort);
+
+        query.offset(offset).limit(limit);
+
+        return query.fetch();
+    }
+
+    @Override
+    public List<Reference> findNonRecommendedSliceWithKeyword(
+        String keyWord,
+        List<MoodType> moodTypes,
+        List<SpaceType> spaceTypes,
+        long offset,
+        int limit,
+        Sort sort
+    ) {
+        if (limit <= 0) return List.of();
+
+        BooleanExpression keywordCond = nameContains(keyWord);
+        BooleanExpression recCond = recommendedCondition(moodTypes, spaceTypes);
+
+        // 추천 제외: NOT(recommendedCondition)
+        BooleanExpression nonRecCond = (recCond == null) ? null : recCond.not();
+
+        JPAQuery<Reference> query = jpaQueryFactory
+            .selectFrom(reference)
+            .leftJoin(reference.user, user).fetchJoin()
+            .where(keywordCond, nonRecCond);
+
+        applySort(query, sort);
+
+        query.offset(offset).limit(limit);
+
+        return query.fetch();
+    }
+
+
+    // 추천 조건을 EXISTS로 구성
+    private BooleanExpression recommendedCondition(List<MoodType> moodTypes, List<SpaceType> spaceTypes) {
+        BooleanExpression moodCond = existsMoodType(moodTypes);
+        BooleanExpression spaceCond = existsSpaceType(spaceTypes);
+
+        if (moodCond != null && spaceCond != null) return moodCond.or(spaceCond);
+        return (moodCond != null) ? moodCond : spaceCond;
+    }
+
+    private BooleanExpression existsMoodType(List<MoodType> moodTypes) {
+        if (moodTypes == null || moodTypes.isEmpty()) return null;
+
+        List<String> names = moodTypes.stream().map(Enum::name).toList();
+
+        return JPAExpressions
+            .selectOne()
+            .from(referenceTag)
+            .join(referenceTag.tag, tag)
+            .where(
+                referenceTag.reference.eq(reference),
+                tag.type.eq(TagType.REFERENCE_MOOD),
+                tag.name.in(names)
+            )
+            .exists();
+    }
+
+    private BooleanExpression existsSpaceType(List<SpaceType> spaceTypes) {
+        if (spaceTypes == null || spaceTypes.isEmpty()) return null;
+
+        List<String> names = spaceTypes.stream().map(Enum::name).toList();
+
+        return JPAExpressions
+            .selectOne()
+            .from(referenceTag)
+            .join(referenceTag.tag, tag)
+            .where(
+                referenceTag.reference.eq(reference),
+                tag.type.eq(TagType.REFERENCE_TYPE),
+                tag.name.in(names)
+            )
+            .exists();
+    }
+
+    private BooleanExpression nameContains(String keyWord) {
+        return (keyWord != null && !keyWord.isBlank())
+            ? reference.name.containsIgnoreCase(keyWord)
+            : null;
+    }
+
+    //정렬
+    private void applySort(JPAQuery<Reference> query, Sort sort) {
+        if (sort == null || sort.isUnsorted()) {
+            query.orderBy(reference.likeCount.desc(), reference.id.desc());
+            return;
+        }
+
+        List<OrderSpecifier<?>> orders = new ArrayList<>();
+
+        for (Sort.Order o : sort) {
+            String prop = o.getProperty();
+            Order dir = o.isAscending() ? Order.ASC : Order.DESC;
+
+            OrderSpecifier<?> spec = switch (prop) {
+                case "likeCount" -> new OrderSpecifier<>(dir, reference.likeCount);
+                case "createdAt" -> new OrderSpecifier<>(dir, reference.createdAt);
+                case "id" -> new OrderSpecifier<>(dir, reference.id);
+                default -> null;
+            };
+
+            if (spec != null) orders.add(spec);
+        }
+
+        if (orders.isEmpty()) {
+            query.orderBy(reference.likeCount.desc(), reference.id.desc());
+            return;
+        }
+
+        // 동점 tie-breaker가 없으면 id desc 붙여주기
+        boolean hasId = sort.stream().anyMatch(o -> "id".equals(o.getProperty()));
+        if (!hasId) {
+            orders.add(reference.id.desc());
+        }
+
+        query.orderBy(orders.toArray(new OrderSpecifier[0]));
     }
 
     @Override

@@ -137,11 +137,11 @@ public class ProductController {
 			@RequestParam(required = false) String keyWord,
 			@RequestParam(required = false) Integer minPrice,
 			@RequestParam(required = false) Integer maxPrice,
-
+			@RequestParam(required = false) List<String> sort,
 			@AuthenticationPrincipal Long userId,
 
 			@ParameterObject
-			@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+			@PageableDefault(size = 20) Pageable pageable
 	) {
 		searchService.recordSearch(keyWord, userId);
 		var page = productService.getList(shopId, category, colorTags, materialTags, styleTags, featureTags, moodTags,usageTags, match, keyWord, minPrice, maxPrice, pageable, userId);

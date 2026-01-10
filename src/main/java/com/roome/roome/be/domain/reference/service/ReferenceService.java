@@ -17,6 +17,7 @@ import com.roome.roome.be.domain.user.repository.UserScrapReferenceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -71,28 +72,107 @@ public class ReferenceService {
     @Transactional
     public Page<CommonReferenceInfo> getReferenceList(Long userId, String keyWord, Pageable pageable) {
 
-        // 1. 조회 대상 결정 (검색 vs 추천)
-        Page<Reference> referencePage;
-        if (keyWord != null && !keyWord.isBlank()) {
-            referencePage = referenceRepository.findByNameContaining(keyWord, pageable);
-        } else {
-            referencePage = getRecommendedReferences(userId, pageable);
-        }
+        // keyWord 있으면 검색만
+        Sort bucketSort = Sort.by(Sort.Direction.DESC, "likeCount")
+            .and(Sort.by(Sort.Direction.DESC, "id"));
 
-        if (referencePage.isEmpty()) {
-            return Page.empty(pageable);
-        }
-
-        // 2. 좋아요/스크랩 정보 조회
-        List<Long> referenceIds = referencePage.getContent().stream().map(Reference::getId).toList();
-        Set<Long> scrappedIds = (userId != null) ? userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds) : new HashSet<>();
-        Set<Long> likedIds = (userId != null) ? userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds) : new HashSet<>();
-
-        // 3. 변환
-        return referencePage.map(ref ->
-                referenceMapper.toCommonInfo(ref, scrappedIds.contains(ref.getId()), likedIds.contains(ref.getId()))
+        Pageable bucketPageable = org.springframework.data.domain.PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            bucketSort
         );
+
+        if (keyWord != null && !keyWord.isBlank()) {
+            Page<Reference> page = referenceCustomRepository.findBaseList(keyWord, bucketPageable);
+            if (page.isEmpty()) return Page.empty(bucketPageable);
+            return mapToCommonInfo(page, userId);
+        }
+
+        // keyWord 없을 때만: 추천 + 비추천 섞기
+        int pageSize = bucketPageable.getPageSize();
+        long offset = bucketPageable.getOffset();
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+        UserOnboarding onboarding = userOnboardingRepository.findByUser(user).orElse(null);
+
+        List<MoodType> moodTypes = (onboarding != null && onboarding.getMoodType() != null)
+            ? List.of(onboarding.getMoodType()) : List.of();
+
+        List<SpaceType> spaceTypes = (onboarding != null && onboarding.getSpaceType() != null)
+            ? List.of(onboarding.getSpaceType()) : List.of();
+
+        // 온보딩 없으면 전체
+        if (moodTypes.isEmpty() && spaceTypes.isEmpty()) {
+            Page<Reference> page = referenceCustomRepository.findBaseList(null, bucketPageable);
+            if (page.isEmpty()) return Page.empty(bucketPageable);
+            return mapToCommonInfo(page, userId);
+        }
+
+        // 전체 갯수
+        long totalAll = referenceCustomRepository.countBase(null);
+
+        // 추천 갯수
+        long recTotal = referenceCustomRepository.countRecommendedWithKeyword(null, moodTypes, spaceTypes);
+
+
+        long recStart = offset;
+        int recLimit = (recStart < recTotal)
+            ? (int) Math.min(pageSize, recTotal - recStart)
+            : 0;
+
+        List<Reference> recommended = (recLimit > 0)
+            ? referenceCustomRepository.findRecommendedSliceWithKeyword(
+            null, moodTypes, spaceTypes, recStart, recLimit, bucketSort
+        )
+            : List.of();
+
+        int remain = pageSize - recommended.size();
+        if (remain <= 0) {
+            return mapToCommonInfo(new org.springframework.data.domain.PageImpl<>(recommended, bucketPageable, totalAll), userId);
+        }
+
+        long nonRecOffset = Math.max(0, offset - recTotal);
+
+        List<Reference> nonRecommended =
+            referenceCustomRepository.findNonRecommendedSliceWithKeyword(
+                null, moodTypes, spaceTypes, nonRecOffset, remain, bucketSort
+            );
+
+        List<Reference> mixed = new ArrayList<>(pageSize);
+        mixed.addAll(recommended);
+        mixed.addAll(nonRecommended);
+
+        if (mixed.isEmpty()) return Page.empty(bucketPageable);
+        return mapToCommonInfo(mixed, bucketPageable, totalAll, userId);
     }
+
+    private Page<CommonReferenceInfo> mapToCommonInfo(Page<Reference> page, Long userId) {
+        return mapToCommonInfo(page.getContent(), page.getPageable(), page.getTotalElements(), userId);
+    }
+
+    private Page<CommonReferenceInfo> mapToCommonInfo(List<Reference> references, Pageable pageable, long total, Long userId) {
+        List<Long> referenceIds = references.stream().map(Reference::getId).toList();
+
+        Set<Long> scrappedIds = (userId != null && !referenceIds.isEmpty())
+            ? userScrapReferenceRepository.findScrappedReferenceIds(userId, referenceIds)
+            : new HashSet<>();
+
+        Set<Long> likedIds = (userId != null && !referenceIds.isEmpty())
+            ? userLikeReferenceRepository.findLikedReferenceIds(userId, referenceIds)
+            : new HashSet<>();
+
+        List<CommonReferenceInfo> content = references.stream()
+            .map(ref -> referenceMapper.toCommonInfo(
+                ref,
+                scrappedIds.contains(ref.getId()),
+                likedIds.contains(ref.getId())
+            ))
+            .toList();
+
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, total);
+    }
+
 
     private Page<Reference> getRecommendedReferences(Long userId, Pageable pageable) {
         if (userId == null) return referenceRepository.findAll(pageable); // 비로그인 대비(혹은 예외)
@@ -179,6 +259,7 @@ public class ReferenceService {
         List<CommonReferenceInfo> finalList = rawList.stream()
                 .map(raw -> new CommonReferenceInfo(
                         raw.referenceId(),
+                        raw.name(),
                         raw.nickname(),
                         raw.userId(),
                         raw.imageUrlList().stream()

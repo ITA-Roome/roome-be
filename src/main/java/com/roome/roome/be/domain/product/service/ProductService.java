@@ -1,9 +1,33 @@
 package com.roome.roome.be.domain.product.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.roome.roome.be.domain.product.dto.response.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.s3.service.S3Service;
+import com.roome.roome.be.common.status.ErrorStatus;
+import com.roome.roome.be.domain.product.dto.request.RegisterProductRequest;
+import com.roome.roome.be.domain.product.dto.request.UpdateProductRequest;
+import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
+import com.roome.roome.be.domain.product.dto.response.ProductDetailResponse;
+import com.roome.roome.be.domain.product.dto.response.ProductListItemResponse;
+import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
+import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.entity.ProductImage;
 import com.roome.roome.be.domain.product.entity.ProductTag;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
@@ -11,38 +35,21 @@ import com.roome.roome.be.domain.product.enums.ProductType;
 import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
 import com.roome.roome.be.domain.product.enums.TagType;
 import com.roome.roome.be.domain.product.mapper.ProductMapper;
+import com.roome.roome.be.domain.product.repository.ProductImageRepository;
+import com.roome.roome.be.domain.product.repository.ProductRepository;
+import com.roome.roome.be.domain.product.repository.ProductTagRepository;
+import com.roome.roome.be.domain.shop.repository.ShopRepository;
 import com.roome.roome.be.domain.user.entity.User;
 import com.roome.roome.be.domain.user.entity.UserOnboarding;
+import com.roome.roome.be.domain.user.repository.UserLikeProductCustomRepositoryImpl;
 import com.roome.roome.be.domain.user.repository.UserLikeProductRepository;
 import com.roome.roome.be.domain.user.repository.UserOnboardingRepository;
 import com.roome.roome.be.domain.user.repository.UserRepository;
 import com.roome.roome.be.domain.user.repository.UserScrapProductRepository;
 import com.roome.roome.be.domain.user.service.UserViewService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import com.roome.roome.be.common.exception.GeneralException;
-import com.roome.roome.be.common.s3.service.ImageUrlBuilder;
-import com.roome.roome.be.common.s3.service.S3Service;
-import com.roome.roome.be.common.status.ErrorStatus;
-import com.roome.roome.be.domain.product.dto.request.RegisterProductRequest;
-import com.roome.roome.be.domain.product.dto.request.UpdateProductRequest;
-import com.roome.roome.be.domain.product.entity.Product;
-import com.roome.roome.be.domain.product.repository.ProductImageRepository;
-import com.roome.roome.be.domain.product.repository.ProductRepository;
-import com.roome.roome.be.domain.product.repository.ProductTagRepository;
-import com.roome.roome.be.domain.shop.dto.response.ShopSummaryResponse;
-import com.roome.roome.be.domain.shop.repository.ShopRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Service
@@ -65,6 +72,7 @@ public class ProductService {
     private final UserScrapProductRepository userScrapProductRepository;
 
     private final ProductMapper productMapper;
+    private final UserLikeProductCustomRepositoryImpl userLikeProductCustomRepositoryImpl;
 
     @Value("${storage.defaults.shop-logo}")
     private String defaultShopLogoUrl;
@@ -138,50 +146,128 @@ public class ProductService {
             Long userId
     ) {
         final String normalizedMatch = (match == null) ? "any" : match.trim().toLowerCase();
+        final int pageSize = pageable.getPageSize();
+        final long offset = pageable.getOffset();
 
-        // 1. 태그 필터 구성
-        Map<TagType, List<String>> tagFilters = new HashMap<>();
-        if (colorTags != null && !colorTags.isEmpty()) tagFilters.put(TagType.COLOR, colorTags);
-        if (materialTags != null && !materialTags.isEmpty()) tagFilters.put(TagType.MATERIAL, materialTags);
-        if (styleTags != null && !styleTags.isEmpty()) tagFilters.put(TagType.STYLE, styleTags);
-        if (featureTags != null && !featureTags.isEmpty()) tagFilters.put(TagType.FEATURE, featureTags);
-        if (moodTags != null && !moodTags.isEmpty()) tagFilters.put(TagType.MOOD, moodTags);
-        if (usageTags != null && !usageTags.isEmpty()) tagFilters.put(TagType.USAGE, usageTags);
+        if (pageSize <= 0) throw new GeneralException(ErrorStatus.BAD_REQUEST);
 
-        // 2. 온보딩 필터 적용 로직
+        // sort 파라미터를 명시했는지 여부
+        boolean hasSortParam = !pageable.getSort().isUnsorted();
+
+        Map<TagType, List<String>> explicitTagFilters = new HashMap<>();
+        if (colorTags != null && !colorTags.isEmpty()) explicitTagFilters.put(TagType.COLOR, colorTags);
+        if (materialTags != null && !materialTags.isEmpty()) explicitTagFilters.put(TagType.MATERIAL, materialTags);
+        if (styleTags != null && !styleTags.isEmpty()) explicitTagFilters.put(TagType.STYLE, styleTags);
+        if (featureTags != null && !featureTags.isEmpty()) explicitTagFilters.put(TagType.FEATURE, featureTags);
+        if (moodTags != null && !moodTags.isEmpty()) explicitTagFilters.put(TagType.MOOD, moodTags);
+        if (usageTags != null && !usageTags.isEmpty()) explicitTagFilters.put(TagType.USAGE, usageTags);
+
         boolean hasExplicitFilters = (keyWord != null && !keyWord.isBlank())
-                || (category != null)
-                || (shopId != null)
-                || (!tagFilters.isEmpty());
+            || (category != null)
+            || (shopId != null)
+            || (!explicitTagFilters.isEmpty());
 
-        if (!hasExplicitFilters && userId != null) {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
-            UserOnboarding onboarding = userOnboardingRepository.findByUser(user).orElse(null);
-
-            if (onboarding != null) {
-                if (onboarding.getMoodType() != null) tagFilters.put(TagType.MOOD, List.of(onboarding.getMoodType().name()));
-                if (onboarding.getSpaceType() != null) tagFilters.put(TagType.USAGE, List.of(onboarding.getSpaceType().name()));
-            }
+        // 필터 있거나 sort 있으면  추천 스킵
+        if (hasExplicitFilters || hasSortParam ) {
+            Page<Product> page = productRepository.findByDynamicFilters(
+                shopId, category, keyWord, minPrice, maxPrice,
+                explicitTagFilters, normalizedMatch, pageable
+            );
+            if (page.isEmpty()) return Page.empty(pageable);
+            return mapToListItemPage(page, userId);
         }
 
-        // 3. 동적 쿼리 실행
-        Page<Product> page = productRepository.findByDynamicFilters(
-                shopId, category, keyWord, minPrice, maxPrice, tagFilters, normalizedMatch, pageable
+        //온보딩 추천 상품 보여주는 로직
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
+        UserOnboarding onboarding = userOnboardingRepository.findByUser(user).orElse(null);
+
+        Map<TagType, List<String>> onboardingFilters = new HashMap<>();
+        if (onboarding != null) {
+            if (onboarding.getMoodType() != null) onboardingFilters.put(TagType.MOOD, List.of(onboarding.getMoodType().name()));
+            if (onboarding.getSpaceType() != null) onboardingFilters.put(TagType.USAGE, List.of(onboarding.getSpaceType().name()));
+        }
+
+        if (onboardingFilters.isEmpty()) {
+            Page<Product> page = productRepository.findByDynamicFilters(
+                shopId, category, keyWord, minPrice, maxPrice,
+                Map.of(), normalizedMatch, pageable
+            );
+            if (page.isEmpty()) return Page.empty(pageable);
+            return mapToListItemPage(page, userId);
+        }
+
+        // 온보딩 추천 +. 추천 이어서 나머지 모두 id desc로 정렬(기본 정렬)
+        Sort bucketSort = Sort.by(Sort.Direction.DESC, "id");
+
+        long recTotal = productRepository.countByDynamicFilters(
+            shopId, category, keyWord, minPrice, maxPrice,
+            onboardingFilters, "any"
         );
 
-        if (page.isEmpty()) return Page.empty(pageable);
+        long totalAll = productRepository.countByDynamicFilters(
+            shopId, category, keyWord, minPrice, maxPrice,
+            Map.of(), normalizedMatch
+        );
 
-        // 4. 부가 데이터 조회 (카테고리, 좋아요/스크랩)
-        List<Long> productIds = page.getContent().stream().map(Product::getId).toList();
+        long recStart = offset;
+        int recLimit = (recStart < recTotal)
+            ? (int) Math.min(pageSize, recTotal - recStart)
+            : 0;
+
+        List<Product> recommended = (recLimit > 0)
+            ? productRepository.findSliceByDynamicFilters(
+            shopId, category, keyWord, minPrice, maxPrice,
+            onboardingFilters, "any",
+            Collections.emptyList(),
+            recStart,
+            recLimit,
+            bucketSort
+        )
+            : List.of();
+
+        int remain = pageSize - recommended.size();
+        if (remain <= 0) {
+            return mapToListItemPage(recommended, pageable, totalAll, userId);
+        }
+
+        long nonRecOffset = Math.max(0, offset - recTotal);
+
+        List<Product> nonRecommended = productRepository.findNonRecommendedSliceByFilters(
+            shopId, category, keyWord, minPrice, maxPrice,
+            Map.of(), normalizedMatch,
+            onboardingFilters, "any",
+            nonRecOffset,
+            remain,
+            bucketSort
+        );
+
+        List<Product> mixed = new ArrayList<>(pageSize);
+        mixed.addAll(recommended);
+        mixed.addAll(nonRecommended);
+
+        if (mixed.isEmpty()) return Page.empty(pageable);
+        return mapToListItemPage(mixed, pageable, totalAll, userId);
+    }
+
+
+
+    private Page<ProductListItemResponse> mapToListItemPage(Page<Product> page, Long userId) {
+        List<Product> products = page.getContent();
+        return mapToListItemPage(products, page.getPageable(), page.getTotalElements(), userId);
+    }
+
+
+    private Page<ProductListItemResponse> mapToListItemPage(List<Product> products, Pageable pageable, long total, Long userId) {
+        List<Long> productIds = products.stream().map(Product::getId).toList();
 
         Map<Long, ProductCategory> categoryByProductId = productTagRepository
-                .findProductTypeByProductIds(productIds, TagType.PRODUCT_TYPE)
-                .stream()
-                .collect(Collectors.toMap(
-                        ProductTagRepository.ProductTypeRow::getProductId,
-                        row -> ProductCategory.valueOf(row.getCategoryName())
-                ));
+            .findProductTypeByProductIds(productIds, TagType.PRODUCT_TYPE)
+            .stream()
+            .collect(Collectors.toMap(
+                ProductTagRepository.ProductTypeRow::getProductId,
+                row -> ProductCategory.valueOf(row.getCategoryName())
+            ));
 
         Set<Long> likedProductIds = (userId != null && !productIds.isEmpty())
                 ? userLikeProductRepository.findLikedProductIds(userId, productIds)
@@ -190,13 +276,16 @@ public class ProductService {
                 ? userScrapProductRepository.findScrappedProductIds(userId, productIds)
                 : new HashSet<>();
 
-        // 5. 변환 (Mapper 위임)
-        return page.map(p -> productMapper.toListItemResponse(
+        List<ProductListItemResponse> content = products.stream()
+            .map(p -> productMapper.toListItemResponse(
                 p,
                 categoryByProductId.get(p.getId()),
                 likedProductIds.contains(p.getId()),
                 scrappedProductIds.contains(p.getId())
-        ));
+            ))
+            .toList();
+
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, total);
     }
 
     // 상품 수정

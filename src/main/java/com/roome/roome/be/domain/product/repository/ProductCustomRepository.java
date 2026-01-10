@@ -7,6 +7,7 @@ import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.TagType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Map;
@@ -43,4 +44,45 @@ public interface ProductCustomRepository {
             Integer minBudget,
             List<String> preferredColors
     );
+
+    List<Product> findSliceByDynamicFilters(
+        Long shopId,
+        ProductCategory category,
+        String keyWord,
+        Integer minPrice,
+        Integer maxPrice,
+        Map<TagType, List<String>> tagFilters,
+        String match,
+        List<Long> excludeIds,
+        long offset,
+        int limit,
+        Sort sort
+    );
+
+    // 비추천 가져오기
+    List<Product> findNonRecommendedSliceByFilters(
+        Long shopId,
+        ProductCategory category,
+        String keyWord,
+        Integer minPrice,
+        Integer maxPrice,
+        Map<TagType, List<String>> baseFilters,
+        String baseMatch,
+        Map<TagType, List<String>> recommendedFilters,
+        String recommendedMatch,
+        long offset,
+        int limit,
+        Sort sort
+    );
+
+    long countByDynamicFilters(
+        Long shopId,
+        ProductCategory category,
+        String keyWord,
+        Integer minPrice,
+        Integer maxPrice,
+        Map<TagType, List<String>> tagFilters,
+        String match
+    );
+
 }

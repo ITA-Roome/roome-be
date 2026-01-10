@@ -30,6 +30,7 @@ public class ReferenceMapper {
 
         return new CommonReferenceInfo(
                 reference.getId(),
+                reference.getName(),
                 reference.getUser().getNickname(),
                 reference.getUser().getId(),
                 imageUrlList,
