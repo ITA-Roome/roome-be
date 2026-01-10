@@ -39,6 +39,7 @@ public class UserLikeReferenceCustomRepositoryImpl implements UserLikeReferenceC
                     Projections.constructor(
                         CommonReferenceInfo.class,
                         reference.id,
+                        reference.name,
                         user.nickname,
                         user.id,
                         list(referenceImage.imageUrl),

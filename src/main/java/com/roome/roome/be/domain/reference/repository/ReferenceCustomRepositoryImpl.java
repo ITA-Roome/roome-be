@@ -347,6 +347,7 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                                 Projections.constructor(
                                         CandidateReferenceInfo.class,
                                         reference.id,
+                                        user.nickname,
                                         referenceImage.imageUrl.min(),
                                         reference.description,
                                         GroupBy.set(
@@ -461,6 +462,7 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                         groupBy(reference.id).list(
                                 Projections.constructor(CommonReferenceInfo.class,
                                         reference.id,
+                                        reference.name,
                                         reference.user.nickname,
                                         reference.user.id,
                                         GroupBy.list(referenceImage.objectKey),
