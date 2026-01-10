@@ -33,6 +33,7 @@ public class UserScrapReferenceCustomRepositoryImpl implements UserScrapReferenc
                         groupBy(reference.id).list(
                                 Projections.constructor(CommonReferenceInfo.class,
                                         reference.id,
+                                        reference.name,
                                         reference.user.nickname,
                                         reference.user.id,
                                         GroupBy.list(referenceImage.objectKey),
