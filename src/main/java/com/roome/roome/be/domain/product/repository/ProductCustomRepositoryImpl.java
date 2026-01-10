@@ -119,6 +119,76 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 .fetch();
     }
 
+    @Override
+    public long countByDynamicFilters(
+        Long shopId,
+        ProductCategory category,
+        String keyWord,
+        Integer minPrice,
+        Integer maxPrice,
+        Map<TagType, List<String>> tagFilters,
+        String match
+    ) {
+        Long cnt = jpaQueryFactory
+            .select(product.countDistinct())
+            .from(product)
+            .where(
+                shopIdEq(shopId),
+                categoryEq(category),
+                nameContains(keyWord),
+                priceGoe(minPrice),
+                priceLoe(maxPrice),
+                tagFilter(tagFilters, match)
+            )
+            .fetchOne();
+
+        return (cnt == null) ? 0L : cnt;
+    }
+
+    @Override
+    public List<Product> findSliceByDynamicFilters(
+        Long shopId,
+        ProductCategory category,
+        String keyWord,
+        Integer minPrice,
+        Integer maxPrice,
+        Map<TagType, List<String>> tagFilters,
+        String match,
+        List<Long> excludeIds,
+        long offset,
+        int limit,
+        Sort sort
+    ) {
+        JPAQuery<Product> query = jpaQueryFactory
+            .selectFrom(product)
+            .leftJoin(product.shop, shop).fetchJoin()
+            .distinct();
+
+        BooleanExpression excludeCond = disclosureSafeNotEmpty(excludeIds)
+            ? product.id.notIn(excludeIds)
+            : null;
+
+        query.where(
+            shopIdEq(shopId),
+            categoryEq(category),
+            nameContains(keyWord),
+            priceGoe(minPrice),
+            priceLoe(maxPrice),
+            tagFilter(tagFilters, match),
+            excludeCond
+        );
+
+        applySort(query, sort);
+
+        query.offset(offset).limit(limit);
+
+        return query.fetch();
+    }
+
+    private boolean disclosureSafeNotEmpty(List<?> list) {
+        return list != null && !list.isEmpty();
+    }
+
     private BooleanExpression shopIdEq(Long shopId) {
         return shopId != null ? product.shop.id.eq(shopId) : null;
     }
@@ -136,6 +206,57 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 tag.name.eq(category.name())
             )
             .exists();
+    }
+    @Override
+    public List<Product> findNonRecommendedSliceByFilters(
+        Long shopId,
+        ProductCategory category,
+        String keyWord,
+        Integer minPrice,
+        Integer maxPrice,
+        Map<TagType, List<String>> baseFilters,
+        String baseMatch,
+        Map<TagType, List<String>> recommendedFilters,
+        String recommendedMatch,
+        long offset,
+        int limit,
+        Sort sort
+    ) {
+        if (limit <= 0) return List.of();
+
+        JPAQuery<Product> query = jpaQueryFactory
+            .selectFrom(product)
+            .leftJoin(product.shop, shop).fetchJoin()
+            .distinct();
+
+        query.where(
+            shopIdEq(shopId),
+            categoryEq(category),
+            nameContains(keyWord),
+            priceGoe(minPrice),
+            priceLoe(maxPrice),
+            tagFilter(baseFilters, baseMatch),
+            excludeRecommendedByFilters(recommendedFilters, recommendedMatch) // ✅ 핵심
+        );
+
+        applySort(query, sort);
+
+        query.offset(offset).limit(limit);
+
+        return query.fetch();
+    }
+
+
+    // 추천 조건을 만족하는 상품은 제외
+    private BooleanExpression excludeRecommendedByFilters(
+        Map<TagType, List<String>> recommendedFilters,
+        String recommendedMatch
+    ) {
+        if (recommendedFilters == null || recommendedFilters.isEmpty()) return null;
+
+        BooleanExpression isRecommended = tagFilter(recommendedFilters, recommendedMatch);
+
+        return (isRecommended == null) ? null : isRecommended.not();
     }
 
     private BooleanExpression nameContains(String keyWord) {
@@ -231,23 +352,13 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
 
     private void applySort(JPAQuery<Product> query, Pageable pageable) {
 
-        // 기본 정렬
-        if (pageable.getSort().isUnsorted()) {
-            query.orderBy(product.id.desc());
-            return;
-        }
-
-        boolean hasIdSort = false;
 
         for (Sort.Order o : pageable.getSort()) {
             String prop = o.getProperty();
             Order dir = o.isAscending() ? Order.ASC : Order.DESC;
 
             OrderSpecifier<?> spec = switch (prop) {
-                case "id" -> {
-                    hasIdSort = true;
-                    yield new OrderSpecifier<>(dir, product.id);
-                }
+                case "id" -> new OrderSpecifier<>(dir, product.id);
                 case "price" -> new OrderSpecifier<>(dir, product.price);
                 case "createdAt" -> new OrderSpecifier<>(dir, product.createdAt);
                 case "popularity" -> new OrderSpecifier<>(dir, product.likeCount); //좋아요 순
@@ -257,8 +368,22 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
             if (spec != null) query.orderBy(spec);
         }
 
-        if (!hasIdSort) {
-            query.orderBy(product.id.desc());
+    }
+
+    private void applySort(JPAQuery<Product> query, Sort sort) {
+
+        for (Sort.Order o : sort) {
+            String prop = o.getProperty();
+            Order dir = o.isAscending() ? Order.ASC : Order.DESC;
+
+            OrderSpecifier<?> spec = switch (prop) {
+                case "id" ->new OrderSpecifier<>(dir, product.id);
+                case "price" -> new OrderSpecifier<>(dir, product.price);
+                case "createdAt" -> new OrderSpecifier<>(dir, product.createdAt);
+                case "popularity" -> new OrderSpecifier<>(dir, product.likeCount);
+                default -> null;
+            };
+            if (spec != null) query.orderBy(spec);
         }
     }
 
