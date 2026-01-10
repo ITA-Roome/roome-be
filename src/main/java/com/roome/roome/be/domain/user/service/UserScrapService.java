@@ -147,6 +147,7 @@ public class UserScrapService {
         List<CommonReferenceInfo> finalList = rawList.stream()
                 .map(raw -> new CommonReferenceInfo(
                         raw.referenceId(),
+                        raw.name(),
                         raw.nickname(),
                         raw.userId(),
                         raw.imageUrlList().stream()

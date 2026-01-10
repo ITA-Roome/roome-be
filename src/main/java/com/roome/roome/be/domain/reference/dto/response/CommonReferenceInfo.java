@@ -4,6 +4,7 @@ import java.util.List;
 
 public record CommonReferenceInfo(
         Long referenceId,
+		String name,
         String nickname,
         Long userId,
         List<String> imageUrlList,
