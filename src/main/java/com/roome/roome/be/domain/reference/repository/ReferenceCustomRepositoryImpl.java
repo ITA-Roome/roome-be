@@ -347,7 +347,6 @@ public class ReferenceCustomRepositoryImpl implements ReferenceCustomRepository 
                                 Projections.constructor(
                                         CandidateReferenceInfo.class,
                                         reference.id,
-                                        user.nickname,
                                         referenceImage.imageUrl.min(),
                                         reference.description,
                                         GroupBy.set(
