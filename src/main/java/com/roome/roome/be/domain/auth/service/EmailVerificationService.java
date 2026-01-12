@@ -1,11 +1,13 @@
 package com.roome.roome.be.domain.auth.service;
 
 import com.roome.roome.be.common.exception.GeneralException;
+import com.roome.roome.be.common.sqs.dto.request.EmailVerificationMessageRequest;
+import com.roome.roome.be.common.sqs.service.SqsMessageSender;
 import com.roome.roome.be.common.status.ErrorStatus;
 import com.roome.roome.be.domain.auth.entity.EmailVerification;
 import com.roome.roome.be.domain.auth.repository.EmailVerificationRepository;
-import com.roome.roome.be.domain.auth.util.EmailSender;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,27 +19,30 @@ import java.time.LocalDateTime;
 public class EmailVerificationService {
 
     private final EmailVerificationRepository emailVerificationRepository;
-    private final EmailSender emailSender;
+    private final SqsMessageSender sqsMessageSender;
     private static final SecureRandom random = new SecureRandom();
+
+    @Value("${app.sqs.email-verification-queue-url}")
+    private String emailVerificationQueueUrl;
 
     // 이메일 인증 코드 요청
     @Transactional
     public void requestEmailVerificationCode(String email) {
         String verificationCode = createEmailVerificationCode();
-        try {
-            emailSender.send(email, verificationCode);
-        } catch (Exception e) {
-            throw new GeneralException(ErrorStatus.SEND_VERIFICATION_CODE_EMAIL_INTERNAL_SERVER_ERROR);
-        }
-
         emailVerificationRepository.findByEmail(email)
                 .ifPresentOrElse(
                         existing ->
-                            updateEmailVerification(existing, verificationCode),
+                                updateEmailVerification(existing, verificationCode),
                         () ->
-                            registerEmailVerification(email, verificationCode)
+                                registerEmailVerification(email, verificationCode)
                 );
+
+        sqsMessageSender.publish(
+                emailVerificationQueueUrl,
+                new EmailVerificationMessageRequest(email,verificationCode)
+        );
     }
+
 
     // 이메일 인증 코드 확인
     public void confirmEmailVerificationCode(String email, String code) {

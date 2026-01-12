@@ -100,3 +100,10 @@ storage:
   cdn-base-url: ${CDN_BASE_URL}
   defaults:
     shop-logo: ${SHOP_LOGO}
+
+app:
+  sqs:
+    email-verification-queue-url: ${SQS_EMAIL_VERIFICATION_QUEUE_URL}
+    poll:
+      max-messages: 10
+      wait-time-seconds: 10

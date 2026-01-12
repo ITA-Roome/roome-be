@@ -74,6 +74,9 @@ dependencies {
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // sqs v1
+    implementation 'com.amazonaws:aws-java-sdk-sqs:1.12.725'
+
     // spring-ai
     implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
 //    implementation platform("org.springframework.ai:spring-ai-bom:1.0.0-SNAPSHOT")
