@@ -42,13 +42,10 @@ public class ChatRecommendService {
         Long userId = request.userId();
         User user = userService.getUserById(userId);
 
-        // 1. 공간 & 평수에 맞는 카테고리(가구 종류) 필터링
-        // (예: 거실 -> 소파, TV장 / 주방 -> 식탁)
         List<ReferenceCategoryMapping> matchedCategories = Arrays.stream(ReferenceCategoryMapping.values())
                 .filter(category -> category.isMatch(request.referenceType(), request.referenceSize()))
                 .toList();
 
-        // 매칭된 게 없으면 기본값 세팅 (잘 하셨습니다!)
         if(matchedCategories.isEmpty()) {
             matchedCategories = List.of(
                     ReferenceCategoryMapping.LIGHTING_LED_BULB,
@@ -56,7 +53,6 @@ public class ChatRecommendService {
             );
         }
 
-        // 2. 무드 & 스타일: AI가 준 Enum 그대로 사용
         Set<ReferenceMood> referenceMoodList = new HashSet<>(request.referenceMood());
         Set<ReferenceStyle> referenceStyleList = new HashSet<>(request.referenceStyle());
 
@@ -84,11 +80,9 @@ public class ChatRecommendService {
 
     public ChatProductScenarioResponse processChatProductScenario(ChatProductScenarioRequest request) {
         Long userId = request.userId();
-        // 1. 카테고리 변환
         List<ProductCategory> categories =
                 ProductTypeMapper.getProductCategoryList(request.productTypes());
 
-        // 2. 상품 조회 (여기서 필터 끝)
         List<CandidateProductInfo> candidateProductList =
                 productService.getCandidateProductList(
                         request.maxBudget(),
@@ -101,13 +95,11 @@ public class ChatRecommendService {
             return ChatProductScenarioResponse.from(List.of());
         }
 
-        // 3. AI 추천
         List<AiProductResponse> aiResult =
                 aiService.recommendProductList(
                         AiProductRequest.from(request, candidateProductList, categories )
                 );
 
-        // 4. productId → entity 매핑
         Map<Long, CandidateProductInfo> map =
                 candidateProductList.stream()
                         .collect(Collectors.toMap(
@@ -115,7 +107,6 @@ public class ChatRecommendService {
                                 Function.identity()
                         ));
 
-        // 5. 응답 조립
         List<ProductSummaryResponse> result =
                 aiResult.stream()
                         .map(ai -> {
