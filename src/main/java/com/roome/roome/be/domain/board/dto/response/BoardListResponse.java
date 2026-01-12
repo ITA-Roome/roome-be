@@ -37,7 +37,7 @@ public record BoardListResponse(
                     .collect(Collectors.toList());
 
             names = board.getBoardProducts().stream()
-                    .map(BoardProduct::getName) // Entity에 추가한 name 필드 사용
+                    .map(BoardProduct::getName)
                     .collect(Collectors.toList());
 
         } else {
