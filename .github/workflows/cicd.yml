@@ -99,6 +99,7 @@ jobs:
             REDIS_PORT=${{ secrets.REDIS_PORT }}
             
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            SQS_EMAIL_VERIFICATION_QUEUE_URL= ${{secrets.SQS_EMAIL_VERIFICATION_QUEUE_URL}}
             
             EOF
          
