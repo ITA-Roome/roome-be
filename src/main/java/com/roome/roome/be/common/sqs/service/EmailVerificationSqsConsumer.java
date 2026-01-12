@@ -23,6 +23,7 @@ public class EmailVerificationSqsConsumer {
     private final AmazonSQSAsync amazonSQSAsync;
     private final ObjectMapper objectMapper;
     private final EmailSender emailSender;
+    private final SqsMessageDeduplicator deduplicator;
 
     @Value("${app.sqs.email-verification-queue-url}")
     private String queueUrl;
@@ -46,6 +47,12 @@ public class EmailVerificationSqsConsumer {
     }
 
     private void handleMessage(Message message) {
+        String messageId = message.getMessageId();
+        if (deduplicator.alreadyProcessed(messageId)) {
+            amazonSQSAsync.deleteMessage(queueUrl, message.getReceiptHandle());
+            return;
+        }
+
         try{
             EmailVerificationMessageRequest payload =
                     objectMapper.readValue(
@@ -54,10 +61,11 @@ public class EmailVerificationSqsConsumer {
                     );
 
             emailSender.send(payload.getEmail(), payload.getVerificationCode());
+            deduplicator.markProcessed(messageId);
             amazonSQSAsync.deleteMessage(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()));
         }
         catch(Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("SQS message processing failed", e);
         }
     }
 }
