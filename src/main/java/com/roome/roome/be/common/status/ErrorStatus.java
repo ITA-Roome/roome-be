@@ -120,7 +120,7 @@ public enum ErrorStatus implements BaseStatus {
      * Board
      */
     SESSION_NOT_FOUND("SESSION_404", HttpStatus.NOT_FOUND, "유효하지 않은 세션입니다."),
-    SESSION_USER_MISMATCH("SESSION_403", HttpStatus.FORBIDDEN, "본인의 세션 결과만 저장할 수 있습니다."),
+    SESSION_USER_MISMATCH("SESSION_404", HttpStatus.FORBIDDEN, "본인의 세션 결과만 저장할 수 있습니다."),
     RESULT_NOT_FOUND("SESSION_404", HttpStatus.NOT_FOUND, "저장할 추천 결과가 없습니다.");
 
     private final String code;
