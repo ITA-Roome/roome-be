@@ -34,7 +34,7 @@ public enum SuccessStatus implements BaseStatus {
     /**
      * Inquiry
      */
-    GET_INQUIRY_LIST_SUCCESS("INQUIRY_200",HttpStatus.OK,"문의하기 전체 내역 조회 성공"),
+    GET_INQUIRY_LIST_SUCCESS("INQUIRY_200", HttpStatus.OK, "문의하기 전체 내역 조회 성공"),
     UPDATE_INQUIRY_ANSWER_SUCCESS("INQUIRY_200", HttpStatus.CREATED, "문의 답변 수정 성공"),
     REGISTER_INQUIRY_SUCCESS("INQUIRY_201", HttpStatus.CREATED, "문의 등록 성공"),
     REGISTER_INQUIRY_ANSWER_SUCCESS("INQUIRY_201", HttpStatus.CREATED, "문의 답변 등록 성공"),
@@ -45,13 +45,13 @@ public enum SuccessStatus implements BaseStatus {
      */
     SAVE_USER_ONBOARDING_SUCCESS("AUTH_201", HttpStatus.CREATED, "유저 온보딩 저장 성공"),
     CHECK_USER_ONBOARDING_EXISTENCE_SUCCESS("AUTH_200", HttpStatus.OK, "유저 온보딩 존재 여부 조회 성공"),
-    GET_USER_LIKE_PRODUCT_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 좋아요 상품 리스트 조회 성공"),
-    GET_USER_LIKE_REFERENCE_LIST_SUCCESS("PRODUCT_200",HttpStatus.OK,"유저 좋아요 레퍼런스 리스트 조회 성공" ),
-    GET_USER_SCRAP_PRODUCT_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 스크랩 상품 리스트 조회 성공"),
-    GET_USER_SCRAP_REFERENCE_LIST_SUCCESS("USER_200",HttpStatus.OK, "유저 스크랩 레퍼런스 리스트 조회 성공"),
-    GET_USER_PROFILE_SUCCESS("USER_200",HttpStatus.OK,"유저 프로필 조회 성공"),
-    UPDATE_USER_PROFILE_SUCCESS("USER_200",HttpStatus.OK,"유저 프로필 수정 성공"),
-    GET_USER_REFERENCE_SUCCESS("USER_200",HttpStatus.OK,"유저 업로드 레퍼런스 리스트 조회 성공"),
+    GET_USER_LIKE_PRODUCT_LIST_SUCCESS("USER_200", HttpStatus.OK, "유저 좋아요 상품 리스트 조회 성공"),
+    GET_USER_LIKE_REFERENCE_LIST_SUCCESS("PRODUCT_200", HttpStatus.OK, "유저 좋아요 레퍼런스 리스트 조회 성공"),
+    GET_USER_SCRAP_PRODUCT_LIST_SUCCESS("USER_200", HttpStatus.OK, "유저 스크랩 상품 리스트 조회 성공"),
+    GET_USER_SCRAP_REFERENCE_LIST_SUCCESS("USER_200", HttpStatus.OK, "유저 스크랩 레퍼런스 리스트 조회 성공"),
+    GET_USER_PROFILE_SUCCESS("USER_200", HttpStatus.OK, "유저 프로필 조회 성공"),
+    UPDATE_USER_PROFILE_SUCCESS("USER_200", HttpStatus.OK, "유저 프로필 수정 성공"),
+    GET_USER_REFERENCE_SUCCESS("USER_200", HttpStatus.OK, "유저 업로드 레퍼런스 리스트 조회 성공"),
 
     /**
      * Shop
@@ -59,14 +59,14 @@ public enum SuccessStatus implements BaseStatus {
     REGISTER_SHOP_SUCCESS("SHOP_201", HttpStatus.CREATED, "가게 등록 성공"),
     UPDATE_SHOP_SUCCESS("SHOP_200", HttpStatus.OK, "가게 수정 성공"),
     DELETE_SHOP_SUCCESS("SHOP_200", HttpStatus.OK, "가게 삭제 성공"),
-    GET_SHOP_DETAIL_SUCCESS("SHOP_200",HttpStatus.OK ,"가게 상세 조회 성공" ),
-    GET_SHOP_LIST_SUCCESS("SHOP_200",HttpStatus.OK ,"가게 목록 조회 성공" ),
+    GET_SHOP_DETAIL_SUCCESS("SHOP_200", HttpStatus.OK, "가게 상세 조회 성공"),
+    GET_SHOP_LIST_SUCCESS("SHOP_200", HttpStatus.OK, "가게 목록 조회 성공"),
 
     /**
      * S3
      */
     S3_PRESIGNED_ISSUE_SUCCESS("S3_200", HttpStatus.OK, "Presigned URL 발급 성공"),
-    S3_COMMIT_SUCCESS("S3_200",HttpStatus.OK,"S3 이미지 업로드 성공"),
+    S3_COMMIT_SUCCESS("S3_200", HttpStatus.OK, "S3 이미지 업로드 성공"),
 
     /**
      * Product
@@ -76,18 +76,18 @@ public enum SuccessStatus implements BaseStatus {
     CREATE_PRODUCT_SCRAP("PRODUCT_200", HttpStatus.OK, "상품 스크랩 토글 성공"),
     GET_PRODUCT_DETAIL("PRODUCT_200", HttpStatus.OK, "상품 상세 조회 성공"),
     GET_PRODUCT_LIST("PRODUCT_200", HttpStatus.OK, "상품 목록 조회 성공"),
-    UPDATE_PRODUCT_SUCCESS("PRODUCT_200", HttpStatus.OK,"상품 수정 성공"),
-    UPDATE_PRODUCT_IMAGES_SUCCESS("PRODUCT_200", HttpStatus.OK,"상품 이미지 수정 성공"),
+    UPDATE_PRODUCT_SUCCESS("PRODUCT_200", HttpStatus.OK, "상품 수정 성공"),
+    UPDATE_PRODUCT_IMAGES_SUCCESS("PRODUCT_200", HttpStatus.OK, "상품 이미지 수정 성공"),
     DELETE_PRODUCT_SUCCESS("PRODUCT_200", HttpStatus.OK, "상품 삭제 성공"),
 
     /**
      * Reference
      */
-    REGISTER_REFERENCE_SUCCESS("REFERENCE_201", HttpStatus.CREATED,"레퍼런스 등록 성공"),
-    REGISTER_REFERENCE_IMAGE_SUCCESS("REFERENCE_201", HttpStatus.CREATED,"레퍼런스 이미지 등록 성공"),
+    REGISTER_REFERENCE_SUCCESS("REFERENCE_201", HttpStatus.CREATED, "레퍼런스 등록 성공"),
+    REGISTER_REFERENCE_IMAGE_SUCCESS("REFERENCE_201", HttpStatus.CREATED, "레퍼런스 이미지 등록 성공"),
     CREATE_REFERENCE_SCRAP("REFERENCE_200", HttpStatus.OK, "레퍼런스 스크랩 토글 성공"),
-    GET_REFERENCE_LIST_SUCCESS("REFERENCE_200",HttpStatus.OK,"레퍼런스 리스트 조회 성공"),
-    CREATE_REFERENCE_LIKE("REFERENCE_200",HttpStatus.OK,"레퍼런스 좋아요 토글 성공" ),
+    GET_REFERENCE_LIST_SUCCESS("REFERENCE_200", HttpStatus.OK, "레퍼런스 리스트 조회 성공"),
+    CREATE_REFERENCE_LIKE("REFERENCE_200", HttpStatus.OK, "레퍼런스 좋아요 토글 성공"),
     GET_RELATED_REFERENCES_SUCCESS("REFERENCE_200", HttpStatus.OK, "연관 레퍼런스 조회에 성공했습니다."),
     GET_REFERENCE_DETAIL_SUCCESS("REFERENCE_200", HttpStatus.OK, "레퍼런스 상세 조회에 성공했습니다."),
 
@@ -103,18 +103,23 @@ public enum SuccessStatus implements BaseStatus {
     /**
      * Search
      */
-    GET_POPULAR_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "인기 검색어 조회 성공"),
-    RECORD_SEARCH_KEYWORD_SUCCESS( "SEARCH_201", HttpStatus.OK,"검색어 기록 성공"),
-    GET_RECENT_KEYWORDS_LIST_SUCCESS("SEARCH_200",HttpStatus.OK, "최근 검색어 조회 성공"),
-    DELETE_RECENT_KEYWORD_SUCCESS("SEARCH_200", HttpStatus.OK,"최근 검색어 개별 삭제 성공" ),
-    DELETE_ALL_RECENT_KEYWORDS_SUCCESS("SEARCH_200", HttpStatus.OK,"최근 검색어 전체 삭제 성공" ),
+    GET_POPULAR_KEYWORDS_LIST_SUCCESS("SEARCH_200", HttpStatus.OK, "인기 검색어 조회 성공"),
+    RECORD_SEARCH_KEYWORD_SUCCESS("SEARCH_201", HttpStatus.OK, "검색어 기록 성공"),
+    GET_RECENT_KEYWORDS_LIST_SUCCESS("SEARCH_200", HttpStatus.OK, "최근 검색어 조회 성공"),
+    DELETE_RECENT_KEYWORD_SUCCESS("SEARCH_200", HttpStatus.OK, "최근 검색어 개별 삭제 성공"),
+    DELETE_ALL_RECENT_KEYWORDS_SUCCESS("SEARCH_200", HttpStatus.OK, "최근 검색어 전체 삭제 성공"),
 
 
     /**
      * Chat
      */
-    CHAT_SCENARIO_SUCCESS("CHAT_200", HttpStatus.OK, "채팅 시나리오 처리 성공");
+    CHAT_SCENARIO_SUCCESS("CHAT_200", HttpStatus.OK, "채팅 시나리오 처리 성공"),
 
+    /**
+     * Board
+     */
+    CREATE_BOARD_SUCCESS("BOARD_200", HttpStatus.OK, "보드 저장 처리 성공"),
+    GET_BOARD_LIST_SUCCESS("BOARD_200", HttpStatus.OK, "저장된 루미 대화 보드 리스트 조회 성공");
 
 
     private final String code;
