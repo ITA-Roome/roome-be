@@ -31,7 +31,7 @@ public class BoardController {
     @Operation(
             summary = "추천 결과 내 보드에 저장"
     )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "응답 성공", content = @Content(schema = @Schema(implementation = ChatMessageResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "응답 성공")
     public ResponseEntity<ApiResponse<Long>> saveBoard(
             @AuthenticationPrincipal Long userId,
             @RequestBody BoardSaveRequest request
@@ -45,7 +45,7 @@ public class BoardController {
     @Operation(
             summary = "루미와의 대화 추천 목록 조회"
     )
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "응답 성공", content = @Content(schema = @Schema(implementation = ChatMessageResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "응답 성공", content = @Content(schema = @Schema(implementation = BoardListResponse.class)))
     public ResponseEntity<ApiResponse<Page<BoardListResponse>>> getBoardList(
             @AuthenticationPrincipal Long userId,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable

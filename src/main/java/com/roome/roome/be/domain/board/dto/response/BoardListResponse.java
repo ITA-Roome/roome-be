@@ -38,6 +38,7 @@ public record BoardListResponse(
 
             names = board.getBoardProducts().stream()
                     .map(BoardProduct::getName)
+                    .limit(4)
                     .collect(Collectors.toList());
 
         } else {

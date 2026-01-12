@@ -105,7 +105,7 @@ public class BoardService {
             throw new GeneralException(ErrorStatus.RESULT_NOT_FOUND);
         }
 
-        String title = generateDefaultTitle(" 맞춤 제품 추천");
+        String title = generateDefaultTitle("맞춤 제품 추천");
 
         String summaryDescription = result.products().stream()
                 .findFirst()
