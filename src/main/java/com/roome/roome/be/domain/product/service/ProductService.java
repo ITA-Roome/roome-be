@@ -97,22 +97,18 @@ public class ProductService {
         return product.getId();
     }
 
-    // 상품 상세 조회 (리팩토링됨)
+    // 상품 상세 조회
     @Transactional
     public ProductDetailResponse getProductDetail(Long productId, Long userId) {
-        // 1. 데이터 조회
         Product product = getProductById(productId);
         List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrder(productId);
         List<ProductTag> productTags = productTagRepository.findByProductIdWithTag(productId);
 
-        // 2. 유저 조회 기록 저장
         userViewService.registerUserView(product, userId);
 
-        // 3. 좋아요/스크랩 여부 확인
         boolean isLiked = (userId != null) && userLikeProductRepository.existsByUserIdAndProductId(userId, productId);
         boolean isScrapped = (userId != null) && userScrapProductRepository.existsByUserIdAndProductId(userId, productId);
 
-        // 4. 연관 상품 조회
         ProductCategory category = productTags.stream()
                 .map(pt -> pt.getTag())
                 .filter(t -> t.getType() == TagType.PRODUCT_TYPE)
@@ -123,7 +119,6 @@ public class ProductService {
         List<Long> tagIdList = productTags.stream().map(pt -> pt.getTag().getId()).toList();
         List<RelatedProductResponse> relatedProductList = productRepository.findRelatedProductList(productId, category, tagIdList);
 
-        // 5. 변환
         return productMapper.toDetailResponse(product, images, productTags, relatedProductList, isLiked, isScrapped);
     }
 
@@ -151,7 +146,6 @@ public class ProductService {
 
         if (pageSize <= 0) throw new GeneralException(ErrorStatus.BAD_REQUEST);
 
-        // sort 파라미터를 명시했는지 여부
         boolean hasSortParam = !pageable.getSort().isUnsorted();
 
         Map<TagType, List<String>> explicitTagFilters = new HashMap<>();
@@ -167,7 +161,6 @@ public class ProductService {
             || (shopId != null)
             || (!explicitTagFilters.isEmpty());
 
-        // 필터 있거나 sort 있으면  추천 스킵
         if (hasExplicitFilters || hasSortParam ) {
             Page<Product> page = productRepository.findByDynamicFilters(
                 shopId, category, keyWord, minPrice, maxPrice,
@@ -197,7 +190,6 @@ public class ProductService {
             return mapToListItemPage(page, userId);
         }
 
-        // 온보딩 추천 +. 추천 이어서 나머지 모두 id desc로 정렬(기본 정렬)
         Sort bucketSort = Sort.by(Sort.Direction.DESC, "id");
 
         long recTotal = productRepository.countByDynamicFilters(

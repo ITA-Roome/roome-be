@@ -1,6 +1,8 @@
 package com.roome.roome.be.common.status;
 
 import com.roome.roome.be.common.base.BaseStatus;
+import com.roome.roome.be.domain.chat.enums.ChatMode;
+import com.roome.roome.be.domain.chat.model.ChatSession;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -112,7 +114,14 @@ public enum ErrorStatus implements BaseStatus {
     COMMENT_NOT_FOUND("COMMENT_404", HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."),
     COMMENTABLE_ENTITY_NOT_FOUND("COMMENT_404", HttpStatus.NOT_FOUND, "댓글을 달 대상(게시글/상품 등)이 존재하지 않습니다."),
     COMMENT_AUTHOR_MISMATCH("COMMENT_403", HttpStatus.FORBIDDEN, "댓글 수정/삭제 권한이 없습니다."),
-    COMMENT_CONTENT_TOO_LONG("COMMENT_400", HttpStatus.BAD_REQUEST, "댓글 내용은 최대 400자까지 입력 가능합니다.");
+    COMMENT_CONTENT_TOO_LONG("COMMENT_400", HttpStatus.BAD_REQUEST, "댓글 내용은 최대 400자까지 입력 가능합니다."),
+
+    /**
+     * Board
+     */
+    SESSION_NOT_FOUND("SESSION_404", HttpStatus.NOT_FOUND, "유효하지 않은 세션입니다."),
+    SESSION_USER_MISMATCH("SESSION_404", HttpStatus.FORBIDDEN, "본인의 세션 결과만 저장할 수 있습니다."),
+    RESULT_NOT_FOUND("SESSION_404", HttpStatus.NOT_FOUND, "저장할 추천 결과가 없습니다.");
 
     private final String code;
     private final HttpStatus httpStatus;

@@ -10,6 +10,7 @@ import com.roome.roome.be.domain.chat.enums.ChatMode;
 import com.roome.roome.be.domain.chat.enums.MissingField;
 import com.roome.roome.be.domain.chat.model.ChatDecision;
 import com.roome.roome.be.domain.chat.model.ChatSession;
+import com.roome.roome.be.domain.chat.repository.ChatSessionRepository;
 import com.roome.roome.be.domain.product.enums.ProductType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ import static com.roome.roome.be.domain.chat.enums.MissingField.PRODUCT_TYPE;
 @RequiredArgsConstructor
 @Slf4j
 public class ChatService {
+
+    private final ChatSessionRepository chatSessionRepository;
 
     private final ChatSessionService chatSessionService;
     private final ChatRecommendService chatRecommendService;
@@ -60,13 +63,20 @@ public class ChatService {
                 return askProductByMissingField(sessionId, session);
             }
 
+            ChatProductScenarioResponse resultData = chatRecommendService.processChatProductScenario(
+                    ChatProductScenarioRequest.create(session)
+            );
+            ChatSession updatedSession = session.toBuilder()
+                    .lastProductResult(resultData)
+                    .build();
+
+            chatSessionRepository.save(sessionId, updatedSession);
+
             return ChatMessageResponse.result(
                     sessionId,
                     "조건에 맞는 제품을 추천해드릴게요!",
                     List.of("추천 결과 보기"),
-                    chatRecommendService.processChatProductScenario(
-                            ChatProductScenarioRequest.create(session)
-                    )
+                    resultData
             );
         }
 
@@ -76,13 +86,21 @@ public class ChatService {
                 return askReferenceByMissingField(sessionId, session);
             }
 
+            ChatReferenceScenarioResponse resultData = chatRecommendService.processChatReferenceScenario(
+                    ChatReferenceScenarioRequest.create(session)
+            );
+
+            ChatSession updatedSession = session.toBuilder()
+                    .lastReferenceResult(resultData)
+                    .build();
+
+            chatSessionRepository.save(sessionId, updatedSession);
+
             return ChatMessageResponse.result(
                     sessionId,
                     "인테리어 추천을 준비했어요 🙂",
                     List.of("추천 결과 보기"),
-                    chatRecommendService.processChatReferenceScenario(
-                            ChatReferenceScenarioRequest.create(session)
-                    )
+                    resultData
             );
         }
 
@@ -101,18 +119,15 @@ public class ChatService {
 
         return switch (field) {
 
-            // [1단계] 대분류 선택 (ProductType)
             case PRODUCT_TYPE -> ChatMessageResponse.question(
                     sessionId,
                     "어떤 종류의 제품을 찾고 계신가요?",
-                    List.of("가구", "조명", "패브릭 & 데코", "커튼 & 블라인드") // 버튼 클릭 시 ProductType 매핑
+                    List.of("가구", "조명", "패브릭 & 데코", "커튼 & 블라인드")
             );
 
-            // 상세 품목 선택 (ProductCategory) - 앞 단계 선택값에 따라 분기
             case PRODUCT_DETAIL_CATEGORY -> {
-                ProductType type = session.productType(); // 이미 저장된 대분류 가져오기
+                ProductType type = session.productType();
 
-                // 대분류에 따라 보여줄 상세 버튼 목록 결정
                 List<String> buttons = switch (type) {
                     case FURNITURE -> List.of("책상", "테이블", "의자", "스툴");
                     case LIGHTING -> List.of("천장등", "독서등", "장식 조명");

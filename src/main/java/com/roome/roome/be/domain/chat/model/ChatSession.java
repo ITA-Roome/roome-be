@@ -1,17 +1,21 @@
 package com.roome.roome.be.domain.chat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.roome.roome.be.domain.chat.dto.response.ChatProductScenarioResponse;
+import com.roome.roome.be.domain.chat.dto.response.ChatReferenceScenarioResponse;
 import com.roome.roome.be.domain.chat.enums.ChatMode;
 import com.roome.roome.be.domain.chat.enums.ChatTask;
 import com.roome.roome.be.domain.chat.enums.MissingField;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.ProductType;
 import com.roome.roome.be.domain.reference.enums.*;
+import lombok.Builder; // [필수] 추가됨
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder(toBuilder = true)
 public record ChatSession(
 
         /* =========================
@@ -25,8 +29,8 @@ public record ChatSession(
         /* =========================
          * PRODUCT (제품 추천)
          * ========================= */
-        ProductType productType,                 // [수정] 대분류 (단일 값)
-        List<ProductCategory> productCategories, // [수정] 소분류 (리스트)
+        ProductType productType,
+        List<ProductCategory> productCategories,
         List<String> productColors,
         Integer productMinBudget,
         Integer productMaxBudget,
@@ -40,100 +44,70 @@ public record ChatSession(
         List<ReferenceStyle> referenceStyles,
         ReferenceColor referenceColor,
         Integer referenceMinBudget,
-        Integer referenceMaxBudget
+        Integer referenceMaxBudget,
+
+        /* =========================
+         * [추가됨] 결과 저장용 필드
+         * ========================= */
+        ChatProductScenarioResponse lastProductResult,
+        ChatReferenceScenarioResponse lastReferenceResult
+
 ) {
 
     /* =========================
      * 생성 (Factory Method)
      * ========================= */
     public static ChatSession create(Long userId) {
-        return new ChatSession(
-                userId,
-                ChatMode.UNDECIDED,
-                ChatTask.UNDECIDED,
-                Instant.now(),
-
-                // Product 초기값
-                null,           // productType
-                List.of(),      // productCategories
-                List.of(),      // productColors
-                null,           // minBudget
-                null,           // maxBudget
-
-                // Reference 초기값
-                null,
-                null,
-                List.of(),
-                List.of(),
-                null,
-                null,
-                null
-        );
+        return ChatSession.builder()
+                .userId(userId)
+                .mode(ChatMode.UNDECIDED)
+                .task(ChatTask.UNDECIDED)
+                .updatedAt(Instant.now())
+                // 리스트는 빈 리스트로 초기화
+                .productCategories(List.of())
+                .productColors(List.of())
+                .referenceMoods(List.of())
+                .referenceStyles(List.of())
+                .build();
     }
 
     /* =========================
-     * 상태 갱신 (불변 객체이므로 새 객체 반환)
+     * 상태 갱신 (toBuilder 이용)
      * ========================= */
 
     /**
-     * 모드 변경 (기존 데이터 유지)
+     * 모드 변경
      */
     public ChatSession withMode(ChatMode mode) {
-        return new ChatSession(
-                userId,
-                mode,
-                task,
-                Instant.now(),
-
-                // Product 필드 유지
-                productType,
-                productCategories,
-                productColors,
-                productMinBudget,
-                productMaxBudget,
-
-                // Reference 필드 유지
-                referenceType,
-                referenceSize,
-                referenceMoods,
-                referenceStyles,
-                referenceColor,
-                referenceMinBudget,
-                referenceMaxBudget
-        );
+        // 기존 값은 그대로 두고(복사), mode랑 time만 바꿉니다.
+        return this.toBuilder()
+                .mode(mode)
+                .updatedAt(Instant.now())
+                .build();
     }
 
     /**
-     * Product 정보 업데이트 (수정된 필드 반영)
+     * Product 정보 업데이트
      */
     public ChatSession withProductInfo(
-            ProductType productType,                // [변경]
-            List<ProductCategory> productCategories,// [변경]
+            ProductType productType,
+            List<ProductCategory> productCategories,
             List<String> productColors,
             Integer minBudget,
             Integer maxBudget
     ) {
-        return new ChatSession(
-                userId,
-                ChatMode.PRODUCT,
-                ChatTask.PRODUCT_COLLECTING,
-                Instant.now(),
-
-                productType,        // 업데이트
-                productCategories,  // 업데이트
-                productColors,
-                minBudget,
-                maxBudget,
-
-                // Reference 유지
-                referenceType,
-                referenceSize,
-                referenceMoods,
-                referenceStyles,
-                referenceColor,
-                referenceMinBudget,
-                referenceMaxBudget
-        );
+        return this.toBuilder()
+                .mode(ChatMode.PRODUCT)
+                .task(ChatTask.PRODUCT_COLLECTING)
+                .updatedAt(Instant.now())
+                .productType(productType)
+                .productCategories(productCategories)
+                .productColors(productColors)
+                .productMinBudget(minBudget)
+                .productMaxBudget(maxBudget)
+                // 만약 조건이 바뀌면 기존 추천 결과는 지우는 게 좋다면:
+                // .lastProductResult(null)
+                .build();
     }
 
     /**
@@ -148,60 +122,31 @@ public record ChatSession(
             Integer minBudget,
             Integer maxBudget
     ) {
-        return new ChatSession(
-                userId,
-                ChatMode.REFERENCE,
-                ChatTask.REFERENCE_COLLECTING,
-                Instant.now(),
-
-                // Product 유지
-                productType,
-                productCategories,
-                productColors,
-                productMinBudget,
-                productMaxBudget,
-
-                type,
-                size,
-                moods,
-                styles,
-                color,
-                minBudget,
-                maxBudget
-        );
+        return this.toBuilder()
+                .mode(ChatMode.REFERENCE)
+                .task(ChatTask.REFERENCE_COLLECTING)
+                .updatedAt(Instant.now())
+                .referenceType(type)
+                .referenceSize(size)
+                .referenceMoods(moods)
+                .referenceStyles(styles)
+                .referenceColor(color)
+                .referenceMinBudget(minBudget)
+                .referenceMaxBudget(maxBudget)
+                .build();
     }
 
     public ChatSession withTask(ChatTask task) {
-        return new ChatSession(
-                userId,
-                mode,
-                task,
-                Instant.now(),
-
-                productType,
-                productCategories,
-                productColors,
-                productMinBudget,
-                productMaxBudget,
-
-                referenceType,
-                referenceSize,
-                referenceMoods,
-                referenceStyles,
-                referenceColor,
-                referenceMinBudget,
-                referenceMaxBudget
-        );
+        return this.toBuilder()
+                .task(task)
+                .updatedAt(Instant.now())
+                .build();
     }
 
-
     /* =========================
-     * 추천 가능 여부 판단
+     * 추천 가능 여부 판단 (기존 로직 유지)
      * ========================= */
-
     public boolean canRecommendProduct() {
-        // 대분류(Type)가 있고, 예산 범위 중 하나라도 있으면 추천 가능
-        // (소분류 Category는 비어있으면 '전체'로 간주하므로 필수가 아님)
         return productType != null
                 && (productMinBudget != null || productMaxBudget != null);
     }
@@ -213,47 +158,33 @@ public record ChatSession(
     }
 
     /* =========================
-     * 누락 필드 확인 (질문 순서 제어)
+     * 누락 필드 확인 (기존 로직 유지)
      * ========================= */
-
     public List<MissingField> missingProductFields() {
         List<MissingField> missing = new ArrayList<>();
-
-        // 1. 대분류 먼저 확인
-        if (productType == null) {
-            missing.add(MissingField.PRODUCT_TYPE);
-        }
-        // 2. 대분류가 있다면 -> 소분류 확인 (선택 안했으면 물어봄)
+        if (productType == null) missing.add(MissingField.PRODUCT_TYPE);
         else if (productCategories == null || productCategories.isEmpty()) {
             missing.add(MissingField.PRODUCT_DETAIL_CATEGORY);
         }
-
-        // 3. 예산 확인
         if (productMinBudget == null && productMaxBudget == null) {
             missing.add(MissingField.PRODUCT_BUDGET);
         }
-
-        // 4. 컬러 확인
         if (productColors == null || productColors.isEmpty()) {
             missing.add(MissingField.PRODUCT_COLOR_MOOD);
         }
-
         return missing;
     }
 
     public List<MissingField> missingReferenceFields() {
         List<MissingField> missing = new ArrayList<>();
-
         if (referenceType == null) missing.add(MissingField.REFERENCE_TYPE);
         if (referenceSize == null) missing.add(MissingField.REFERENCE_SIZE);
         if (referenceMoods == null || referenceMoods.isEmpty()) missing.add(MissingField.REFERENCE_MOOD);
         if (referenceStyles == null || referenceStyles.isEmpty()) missing.add(MissingField.REFERENCE_STYLE);
         if (referenceColor == null) missing.add(MissingField.REFERENCE_COLOR);
-
         if (referenceMinBudget == null && referenceMaxBudget == null) {
             missing.add(MissingField.REFERENCE_BUDGET);
         }
-
         return missing;
     }
 
