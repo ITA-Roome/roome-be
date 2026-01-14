@@ -104,15 +104,6 @@ public class BoardService {
 
         String title = generateDefaultTitle("맞춤 제품 추천");
 
-        String summaryDescription = result.products().stream()
-                .findFirst()
-                .map(p -> {
-                    String productName = (p.name() != null) ? p.name() : "제품";
-                    String reason = (p.reason() != null) ? p.reason() : "추천 사유가 있습니다.";
-                    return "메인 추천: " + productName + "\n\n[AI 추천 사유]\n" + reason;
-                })
-                .orElse("고객님의 취향에 맞는 가구들을 찾아보았습니다.");
-
         String keywords = result.products().stream()
                 .map(ProductSummaryResponse::recommendedPlace)
                 .filter(place -> place != null && !place.isBlank())
