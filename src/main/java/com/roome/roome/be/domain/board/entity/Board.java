@@ -30,10 +30,6 @@ public class Board extends BaseEntity {
     @Column(nullable = false)
     private ChatMode category;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
     private String keywords;
 
     @Builder.Default

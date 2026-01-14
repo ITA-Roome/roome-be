@@ -65,7 +65,6 @@ public class BoardService {
                 ? result.title()
                 : generateDefaultTitle("인테리어 무드 추천");
 
-        String fullDescription = buildDescription(result.moodDescription(), result.summary());
 
         String keywords = (result.moodKeywords() != null)
                 ? String.join(", ", result.moodKeywords())
@@ -75,7 +74,6 @@ public class BoardService {
                 .userId(session.userId())
                 .title(title)
                 .category(ChatMode.REFERENCE)
-                .description(fullDescription)
                 .keywords(keywords)
                 .build();
 
@@ -97,7 +95,6 @@ public class BoardService {
         return boardRepository.save(board).getId();
     }
 
-    // 제품 추천 저장 로직
     private Long saveProductBoard(ChatSession session) {
         ChatProductScenarioResponse result = session.lastProductResult();
 
@@ -132,7 +129,6 @@ public class BoardService {
                 .userId(session.userId())
                 .title(title)
                 .category(ChatMode.PRODUCT)
-                .description(summaryDescription)
                 .keywords(keywords)
                 .build();
 
@@ -140,6 +136,7 @@ public class BoardService {
             BoardProduct product = BoardProduct.builder()
                     .productId(p.productId())
                     .name(p.name())
+                    .price(p.price())
                     .imageUrl(p.imageUrl())
                     .reason(p.reason())
                     .advantage(p.advantage())
@@ -150,17 +147,6 @@ public class BoardService {
         }
 
         return boardRepository.save(board).getId();
-    }
-
-    private String buildDescription(String moodDesc, String summary) {
-        StringBuilder sb = new StringBuilder();
-        if (moodDesc != null && !moodDesc.isBlank()) {
-            sb.append(moodDesc).append("\n\n");
-        }
-        if (summary != null && !summary.isBlank()) {
-            sb.append("[AI 요약]\n").append(summary);
-        }
-        return sb.toString();
     }
 
     private String generateDefaultTitle(String suffix) {
