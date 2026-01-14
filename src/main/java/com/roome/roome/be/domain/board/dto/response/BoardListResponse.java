@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public record BoardListResponse(
         Long boardId,
@@ -17,37 +16,61 @@ public record BoardListResponse(
         String title,
         String description,
         List<String> keywords,
-        List<String> imageUrls,
-        List<String> productNames, // [추가] 제품명 리스트
         ChatMode category,
+        List<ProductItem> products,
+        List<ReferenceItem> references,
         LocalDateTime createdAt
 ) {
+
+    public record ProductItem(
+            Long productId,
+            String name,
+            Integer price,
+            String imageUrl,
+            String reason,
+            String advantage,
+            String mood,
+            String recommendedPlace
+    ) {
+        public static ProductItem from(BoardProduct bp) {
+            return new ProductItem(
+                    bp.getProductId(),
+                    bp.getName(),
+                    bp.getPrice(),
+                    bp.getImageUrl(),
+                    bp.getReason(),
+                    bp.getAdvantage(),
+                    bp.getMood(),
+                    bp.getRecommendedPlace()
+            );
+        }
+    }
+
+    public record ReferenceItem(
+            Long referenceId,
+            String imageUrl
+    ) {
+        public static ReferenceItem from(BoardReference br) {
+            return new ReferenceItem(br.getReferenceId(), br.getImageUrl());
+        }
+    }
+
     public static BoardListResponse from(Board board) {
         List<String> parsedKeywords = (board.getKeywords() != null && !board.getKeywords().isBlank())
                 ? Arrays.asList(board.getKeywords().split(", "))
                 : Collections.emptyList();
 
-        List<String> images;
-        List<String> names;
+        List<ProductItem> productList = Collections.emptyList();
+        List<ReferenceItem> referenceList = Collections.emptyList();
 
         if (board.getCategory() == ChatMode.PRODUCT) {
-            images = board.getBoardProducts().stream()
-                    .map(BoardProduct::getImageUrl)
-                    .limit(4)
-                    .collect(Collectors.toList());
-
-            names = board.getBoardProducts().stream()
-                    .map(BoardProduct::getName)
-                    .limit(4)
-                    .collect(Collectors.toList());
-
+            productList = board.getBoardProducts().stream()
+                    .map(ProductItem::from)
+                    .toList();
         } else {
-            images = board.getBoardReferences().stream()
-                    .map(BoardReference::getImageUrl)
-                    .limit(4)
-                    .collect(Collectors.toList());
-
-            names = Collections.emptyList();
+            referenceList = board.getBoardReferences().stream()
+                    .map(ReferenceItem::from)
+                    .toList();
         }
 
         return new BoardListResponse(
@@ -56,9 +79,9 @@ public record BoardListResponse(
                 board.getTitle(),
                 board.getDescription(),
                 parsedKeywords,
-                images,
-                names,
                 board.getCategory(),
+                productList,
+                referenceList,
                 board.getCreatedAt()
         );
     }

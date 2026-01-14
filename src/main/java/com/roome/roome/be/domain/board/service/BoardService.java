@@ -36,7 +36,6 @@ public class BoardService {
     private final BoardRepository boardRepository;
 
     public Long saveBoardFromSession(String sessionId, Long currentUserId) {
-
         ChatSession session = chatSessionRepository.find(sessionId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.SESSION_NOT_FOUND));
 
@@ -53,7 +52,7 @@ public class BoardService {
         }
     }
 
-    //  인테리어 레퍼런스 저장 로직
+    // 인테리어 레퍼런스 저장 로직
     private Long saveReferenceBoard(ChatSession session) {
         ChatReferenceScenarioResponse result = session.lastReferenceResult();
 
@@ -65,7 +64,7 @@ public class BoardService {
                 ? result.title()
                 : generateDefaultTitle("인테리어 무드 추천");
 
-        String fullDescription = buildDescription(result.moodDescription(), result.summary());
+        String fullDescription = buildReferenceDescription(result);
 
         String keywords = (result.moodKeywords() != null)
                 ? String.join(", ", result.moodKeywords())
@@ -97,7 +96,6 @@ public class BoardService {
         return boardRepository.save(board).getId();
     }
 
-    // 제품 추천 저장 로직
     private Long saveProductBoard(ChatSession session) {
         ChatProductScenarioResponse result = session.lastProductResult();
 
@@ -106,15 +104,6 @@ public class BoardService {
         }
 
         String title = generateDefaultTitle("맞춤 제품 추천");
-
-        String summaryDescription = result.products().stream()
-                .findFirst()
-                .map(p -> {
-                    String productName = (p.name() != null) ? p.name() : "제품";
-                    String reason = (p.reason() != null) ? p.reason() : "추천 사유가 있습니다.";
-                    return "메인 추천: " + productName + "\n\n[AI 추천 사유]\n" + reason;
-                })
-                .orElse("고객님의 취향에 맞는 가구들을 찾아보았습니다.");
 
         String keywords = result.products().stream()
                 .map(ProductSummaryResponse::recommendedPlace)
@@ -132,7 +121,7 @@ public class BoardService {
                 .userId(session.userId())
                 .title(title)
                 .category(ChatMode.PRODUCT)
-                .description(summaryDescription)
+                .description("AI가 추천한 맞춤 가구 리스트입니다.")
                 .keywords(keywords)
                 .build();
 
@@ -140,6 +129,7 @@ public class BoardService {
             BoardProduct product = BoardProduct.builder()
                     .productId(p.productId())
                     .name(p.name())
+                    .price(p.price())
                     .imageUrl(p.imageUrl())
                     .reason(p.reason())
                     .advantage(p.advantage())
@@ -152,13 +142,14 @@ public class BoardService {
         return boardRepository.save(board).getId();
     }
 
-    private String buildDescription(String moodDesc, String summary) {
+    //  레퍼런스 설명 조합 헬퍼 메서드
+    private String buildReferenceDescription(ChatReferenceScenarioResponse result) {
         StringBuilder sb = new StringBuilder();
-        if (moodDesc != null && !moodDesc.isBlank()) {
-            sb.append(moodDesc).append("\n\n");
+        if (result.moodDescription() != null && !result.moodDescription().isBlank()) {
+            sb.append(result.moodDescription()).append("\n\n");
         }
-        if (summary != null && !summary.isBlank()) {
-            sb.append("[AI 요약]\n").append(summary);
+        if (result.summary() != null && !result.summary().isBlank()) {
+            sb.append(result.summary());
         }
         return sb.toString();
     }
@@ -169,7 +160,6 @@ public class BoardService {
 
     public Page<BoardListResponse> getBoardList(Long userId, Pageable pageable) {
         Page<Board> boardPage = boardRepository.findAllByUserId(userId, pageable);
-
         return boardPage.map(BoardListResponse::from);
     }
 }
