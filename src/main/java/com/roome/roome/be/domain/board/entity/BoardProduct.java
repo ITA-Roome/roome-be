@@ -25,7 +25,6 @@ public class BoardProduct {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private Integer price;
 
     @Column(nullable = false, length = 2048)
