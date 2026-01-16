@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.roome.roome.be.domain.chat.enums.MissingField.PRODUCT_TYPE;
 
 
 @Service
@@ -147,7 +146,7 @@ public class ChatService {
             case PRODUCT_BUDGET -> ChatMessageResponse.question(
                     sessionId,
                     "가격대는 어느 정도면 좋을까요?\n(예: 20만원 이하, 조금 비싸도 괜찮아요)",
-                    List.of("가성비", "중간 가격대", "상관없어요")
+                    List.of("가성비", "중간 가격대", "가격 무관")
             );
 
             //  컬러/분위기 질문
@@ -187,13 +186,13 @@ public class ChatService {
             case REFERENCE_MOOD -> ChatMessageResponse.question(
                     sessionId,
                     "어떤 느낌의 공간을 원하시나요?",
-                    List.of("차분한", "아늑한", "모던한", "잘 모르겠어요")
+                    List.of("차분한", "아늑한", "모던한", "무드 추천받기")
             );
 
             case REFERENCE_STYLE -> ChatMessageResponse.question(
                     sessionId,
                     "선호하는 스타일이 있나요?",
-                    List.of("클래식" ,"모던", "내추럴", "추천해주세요")
+                    List.of("클래식" ,"모던", "내추럴", "스타일 추천받기")
             );
 
             case REFERENCE_COLOR -> ChatMessageResponse.question(

@@ -12,6 +12,7 @@ import com.roome.roome.be.domain.chat.dto.response.ChatReferenceScenarioResponse
 import com.roome.roome.be.domain.chat.dto.response.ProductSummaryResponse;
 import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.ProductType;
 import com.roome.roome.be.domain.product.enums.ProductTypeMapper;
 import com.roome.roome.be.domain.product.service.ProductService;
 import com.roome.roome.be.domain.reference.dto.response.CandidateReferenceInfo;
@@ -79,24 +80,34 @@ public class ChatRecommendService {
 
     public ChatProductScenarioResponse processChatProductScenario(ChatProductScenarioRequest request) {
         Long userId = request.userId();
-        List<ProductCategory> categories =
-                ProductTypeMapper.getProductCategoryList(request.productTypes());
 
-        List<CandidateProductInfo> candidateProductList =
+       ProductType mainProductType = (request.productTypes() != null && !request.productTypes().isEmpty())
+                ? request.productTypes().get(0)
+                : null;
+
+        List<ProductCategory> detailedCategories = request.productCategories();
+  List<CandidateProductInfo> candidateProductList =
                 productService.getCandidateProductList(
-                        request.maxBudget(),
+                        mainProductType,
+                        detailedCategories,
                         request.minBudget(),
+                        request.maxBudget(),
                         request.preferredColors()
                 );
 
         if (candidateProductList.isEmpty()) {
-            log.warn("후보 상품 없음");
+            log.warn("후보 상품 없음 - Type: {}, Cats: {}, Colors: {}",
+                    mainProductType, detailedCategories, request.preferredColors());
             return ChatProductScenarioResponse.from(List.of());
         }
 
+        List<ProductCategory> categoriesForAi = (detailedCategories != null && !detailedCategories.isEmpty())
+                ? detailedCategories
+                : ProductTypeMapper.getProductCategoryList(request.productTypes());
+
         List<AiProductResponse> aiResult =
                 aiService.recommendProductList(
-                        AiProductRequest.from(request, candidateProductList, categories )
+                        AiProductRequest.from(request, candidateProductList, categoriesForAi)
                 );
 
         Map<Long, CandidateProductInfo> map =
@@ -118,7 +129,6 @@ public class ChatRecommendService {
                         .toList();
 
         ChatProductScenarioResponse response = ChatProductScenarioResponse.from(result);
-//        redisService.save(ChatSession.from(userId,ChatMode.PRODUCT, request,response));
         return response;
     }
 }

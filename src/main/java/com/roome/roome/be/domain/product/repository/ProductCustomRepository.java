@@ -4,6 +4,7 @@ import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
 import com.roome.roome.be.domain.product.entity.Product;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.ProductType;
 import com.roome.roome.be.domain.product.enums.TagType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,8 @@ public interface ProductCustomRepository {
      */
     List<RelatedProductResponse> findRelatedProductList(Long excludeProductId, ProductCategory productCategory, List<Long> tagIdList);
     List<CandidateProductInfo> findCandidateProductList(
+            ProductType productType,
+            List<ProductCategory> categories,
             Integer maxBudget,
             Integer minBudget,
             List<String> preferredColors
