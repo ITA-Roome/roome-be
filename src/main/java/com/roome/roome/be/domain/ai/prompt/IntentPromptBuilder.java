@@ -297,35 +297,36 @@ public class IntentPromptBuilder {
         """;
 
     private static final String REFERENCE_TYPE_GUIDE = """
-            --------------------------------------------------
-            [공간 종류(ReferenceType) 매핑 가이드]
-            --------------------------------------------------
-            사용자가 언급한 공간이 아래 항목에 해당하면
-            반드시 해당 Enum 이름(대문자)으로 매핑하라.
+        --------------------------------------------------
+        [공간 종류(ReferenceType) 매핑 가이드]
+        --------------------------------------------------
+        사용자 발화 또는 선택지를 분석하여
+        반드시 아래 **제공된 Enum 리스트** 중 하나로만 매핑하라.
 
-            1. LIVING_ROOM (거실)
-               - "거실", "리빙룸", "마루", "메인 공간"
+        1. LIVING_ROOM (거실)
+           - "거실", "리빙룸", "마루", "메인 공간"
 
-            2. BEDROOM (침실)
-               - "침실", "안방", "잠자는 방", "침대방"
+        2. BEDROOM (침실)
+           - "침실", "안방", "잠자는 방", "침대방"
 
-            3. STUDY (서재/작업실)
-               - "서재", "공부방", "작업실", "홈오피스", "책상 있는 방", "컴퓨터방"
+        3. STUDY_ROOM (서재/작업실)  <- *주의: STUDY 아님*
+           - "서재", "공부방", "작업실", "홈오피스", "책상방"
 
-            4. KITCHEN (주방/다이닝)
-               - "주방", "부엌", "식당", "다이닝룸", "아일랜드 식탁 쪽"
+        4. KITCHEN (주방)
+           - "주방", "부엌", "식당", "다이닝룸"
 
-            5. BATHROOM (욕실)
-               - "욕실", "화장실", "파우더룸"
+        5. KIDS_ROOM (아이방)
+           - "아이방", "자녀방", "키즈룸", "놀이방"
 
-            6. KIDS_ROOM (아이방)
-               - "아이방", "애기방", "자녀방", "키즈룸", "놀이방"
-               
-            7. ETC (기타)
-               - "현관", "복도", "베란다", "드레스룸", "다용도실"
-               - 위 분류에 속하지 않는 모든 공간
-            --------------------------------------------------
-            """;
+        6. ENTRANCE (현관)
+           - "현관", "입구", "전실", "복도"
+
+        7. OTHER_SPACE (기타 공간)
+           - "기타 공간", "기타", "그 외" (UI 버튼 선택 시)
+           - "욕실", "화장실", "드레스룸", "베란다", "다용도실"
+           - 위 1~6번에 해당하지 않는 모든 공간
+        --------------------------------------------------
+        """;
 
 
     private static final String COMMON_COLOR_GUIDE = """
@@ -416,7 +417,7 @@ public class IntentPromptBuilder {
         sb.append("\n");
 
         sb.append("사용자가 '무드 추천받기' 라고만 요청한 경우:\n");
-        sb.append("reference.moods: [\"CALM\", \"COMFORTABLE\", \"COOL\", \"COZY\", \"DECORATIVE\"]\n");
+        sb.append("reference.moods: [ \"COZY\",\n");
 
         sb.append("2. 스타일 (reference.styles)\n");
         for (ReferenceStyleMapping mapping : ReferenceStyleMapping.values()) {
@@ -426,7 +427,7 @@ public class IntentPromptBuilder {
         }
 
         sb.append("사용자가 '스타일 추천받기' 라고만 요청한 경우:\n");
-        sb.append("reference.styles: [\"NATURAL\", \"MODERN\"]\n");
+        sb.append("reference.styles: [ \"MODERN\"]\n");
 
 
         sb.append("\n[주의]\n");

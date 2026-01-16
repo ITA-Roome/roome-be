@@ -174,7 +174,7 @@ public class ChatService {
             case REFERENCE_TYPE -> ChatMessageResponse.question(
                     sessionId,
                     "어떤 공간을 꾸미고 싶으신가요?",
-                    List.of("거실", "침실", "기타 공간")
+                    List.of("거실", "침실", "주방")
             );
 
             case REFERENCE_SIZE -> ChatMessageResponse.question(
