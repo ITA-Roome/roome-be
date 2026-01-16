@@ -196,12 +196,26 @@ public class IntentPromptBuilder {
             - 감탄사, 망설임, 의미 없는 발화
 
             --------------------------------------------------
-            [다중 정보 입력 처리]
-            --------------------------------------------------
-            한 문장에 여러 정보가 있어도 모두 추출한다.
-            질문 순서나 단계는 고려하지 않는다.
-
-            --------------------------------------------------
+            [정보 입력 범위 제한 (Strict)]
+             --------------------------------------------------
+             기본적으로 한 문장에 여러 정보가 있으면 모두 추출하는 것이 원칙이다.
+             하지만, **'추천 요청'이나 '잘 모르겠어요'**와 같은 발화에서는
+            **현재 문맥(Trigger)**에 맞는 필드만 제한적으로 수정해야 한다.
+            
+            1. "분위기 추천", "분위기 잘 몰라" 등 **무드(Mood)** 관련 발화 시:
+                       - reference.moods 필드만 업데이트한다.
+                       - reference.styles 등 다른 필드는 절대 건드리지 마라(null 유지).
+            
+                    2. "스타일 추천", "스타일 잘 몰라" 등 **스타일(Style)** 관련 발화 시:
+                       - reference.styles 필드만 업데이트한다.
+                       - reference.moods 필드는 절대 건드리지 마라.
+            
+                    3. 일반적인 정보 입력 (예: "모던하고 따뜻하게 해줘"):
+                       - 이때는 여러 필드(Style, Mood)를 동시에 채워도 된다.
+            
+                    요약: "추천해주세요" 같은 수동적 요청 시에는,
+                    사용자가 **명시적으로 언급한 카테고리 하나만** 처리하고 나머지는 비워라.
+            
             최종 제약:
             - JSON 외 출력 금지
             - 추측 금지
@@ -261,13 +275,13 @@ public class IntentPromptBuilder {
            - 스탠드: FLOOR_LAMP(장스탠드), TABLE_LAMP(단스탠드/탁상조명), WORK_LAMP(작업등/데스크램프), READING_LAMP(독서등)
            - 기타: DECORATIVE_LIGHT(장식조명/무드등), LED_BULB(전구)
 
-        3. 패브릭 & 데코 (Fabric & Decor)
+        3. 패브릭 & 데코 (FABRIC_DECOR)
            - 러그: RUG(일반 러그), FLAT_WOVEN_RUG(평직 러그), LONG_PILE_RUG(장모 러그/샤기카페트), SHORT_PILE_RUG(단모 러그), DOOR_MAT(도어매트/발매트)
            - 쿠션/소품: CUSHION(쿠션 솜포함), CUSHION_COVER(쿠션 커버)
            - 액자/장식: ART_PRINT(그림/포스터), CANVAS_PRINT(캔버스 그림), FRAME(액자 프레임)
            - 식탁 패브릭: TABLE_CLOTH(식탁보), TABLE_MAT(식탁 매트), TABLE_RUNNER(러너)
 
-        4. 침구 & 욕실 (Bedding & Bath)
+        4. 침구 & 욕실 (BEDDING_BATH)
            - 이불/담요: BEDSPREAD(침대보/스프레드), BLANKET(담요/블랭킷), DUVET_COVER(이불 커버)
            - 시트/커버: FITTED_SHEET(매트리스 고무줄시트), MATTRESS_COVER(매트리스 커버), PILLOW_CASE(베개 커버)
            - 타월/매트: TOWEL(일반 수건), BATH_TOWEL(바스 타월/목욕수건), HAND_TOWEL(핸드 타월), BATH_MAT(욕실 매트)
@@ -376,7 +390,7 @@ public class IntentPromptBuilder {
            → maxBudget: 300000 (30만원 이하)
            (minBudget: null)
 
-        3. "상관없어요", "가격 무관", "아무거나", "비싸도 됨"
+        3. "가격 무관", "아무거나", "비싸도 됨"
            → maxBudget: 1000000 (100만원 이하)
            (minBudget: null)
 
@@ -401,12 +415,19 @@ public class IntentPromptBuilder {
         }
         sb.append("\n");
 
+        sb.append("사용자가 '무드 추천받기' 라고만 요청한 경우:\n");
+        sb.append("reference.moods: [\"CALM\", \"COMFORTABLE\", \"COOL\", \"COZY\", \"DECORATIVE\"]\n");
+
         sb.append("2. 스타일 (reference.styles)\n");
         for (ReferenceStyleMapping mapping : ReferenceStyleMapping.values()) {
             sb.append(String.format("   - \"%s\" 관련 표현 → %s\n",
                     mapping.getDescription(),
                     mapping.getStyles().toString()));
         }
+
+        sb.append("사용자가 '스타일 추천받기' 라고만 요청한 경우:\n");
+        sb.append("reference.styles: [\\\"NATURAL\\\", \\\"MODERN\\\"]\n");
+
 
         sb.append("\n[주의]\n");
         sb.append("- 위 목록에 없는 태그는 절대 창조하지 마라.\n");
@@ -453,10 +474,10 @@ public class IntentPromptBuilder {
                     + FLOW_TRIGGER_PROMPT
                     + REFERENCE_TYPE_GUIDE
                     + PRODUCT_CATEGORY_GUIDE
-                    + COMMON_COLOR_GUIDE
-                    + PRODUCT_BUDGET_GUIDE
                     + REFERENCE_SIZE_GUIDE
                     + generateReferenceTagGuide()
+                    + COMMON_COLOR_GUIDE
+                    + PRODUCT_BUDGET_GUIDE
                     + "\n\n[현재 ChatSession]\n"
                     + om.writerWithDefaultPrettyPrinter().writeValueAsString(session)
                     + "\n\n[사용자 발화]\n"

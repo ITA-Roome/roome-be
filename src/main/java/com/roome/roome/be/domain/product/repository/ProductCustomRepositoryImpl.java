@@ -14,7 +14,10 @@ import com.roome.roome.be.domain.product.dto.response.CandidateProductInfo;
 import com.roome.roome.be.domain.product.dto.response.ProductTagInfo;
 import com.roome.roome.be.domain.product.dto.response.RelatedProductResponse;
 import com.roome.roome.be.domain.product.entity.Product;
+import com.roome.roome.be.domain.product.entity.QProductTag;
+import com.roome.roome.be.domain.product.entity.QTag;
 import com.roome.roome.be.domain.product.enums.ProductCategory;
+import com.roome.roome.be.domain.product.enums.ProductType;
 import com.roome.roome.be.domain.product.enums.TagType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -382,15 +386,25 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         }
     }
 
-    @Override
-    public List<CandidateProductInfo> findCandidateProductList(Integer maxBudget, Integer minBudget, List<String> preferredColors) {
+
+    public List<CandidateProductInfo> findCandidateProductList(
+            ProductType productType,
+            List<ProductCategory> categories,
+            Integer maxBudget,
+            Integer minBudget,
+            List<String> preferredColors
+    ) {
+
         return jpaQueryFactory
                 .from(product)
                 .leftJoin(product.productImageList, productImage)
                 .leftJoin(product.productTagList, productTag)
                 .leftJoin(productTag.tag, tag)
                 .where(
+                        categoryOrTypeEq(categories, productType),
+
                         priceBetween(minBudget, maxBudget),
+
                         colorIn(preferredColors)
                 )
                 .limit(50)
@@ -410,41 +424,81 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                                                         tag.type
                                                 )
                                         )
-
                                 )
                         )
                 );
-
-
     }
 
-    private BooleanExpression priceBetween(Integer minBudget, Integer maxBudget) {
-        if(minBudget !=null && maxBudget !=null) {
-            return product.price.between(minBudget, maxBudget);
+// --------------------------------------------------
+// [동적 쿼리 조건 메서드 - 서브쿼리 사용]
+// --------------------------------------------------
+
+    /**
+     * 상품이 해당 카테고리(또는 타입) 태그를 가지고 있는지 검사
+     */
+    private BooleanExpression categoryOrTypeEq(List<ProductCategory> categories, ProductType type) {
+        // 검색 대상이 없으면 조건 패스
+        if ((categories == null || categories.isEmpty()) && type == null) {
+            return null;
         }
 
-        if(minBudget!=null)
-            return product.price.goe(minBudget);
+        QProductTag subPt = new QProductTag("subPt_cat");
+        QTag subTag = new QTag("subTag_cat");
 
-        if(maxBudget!=null)
-            return product.price.loe(maxBudget);
+        List<String> targetTagNames = new ArrayList<>();
 
-        return null;
+        if (categories != null && !categories.isEmpty()) {
+            // 카테고리가 있으면 카테고리 이름들로 검색 (예: "CUSHION", "RUG")
+            targetTagNames = categories.stream()
+                    .map(Enum::name)
+                    .toList();
+        } else {
+            // 카테고리가 없으면 대분류 이름으로 검색 (예: "FABRIC_DECOR")
+            targetTagNames.add(type.name());
+        }
+
+        // 2. 서브쿼리: "해당 이름을 가진 PRODUCT_TYPE 태그를 보유한 Product ID 찾기"
+        return product.id.in(
+                JPAExpressions
+                        .select(subPt.product.id)
+                        .from(subPt)
+                        .join(subPt.tag, subTag)
+                        .where(
+                                subTag.type.eq(TagType.PRODUCT_TYPE), // 태그 타입이 PRODUCT_TYPE이고
+                                subTag.name.in(targetTagNames)       // 이름이 매칭되는 것
+                        )
+        );
     }
 
+    /**
+     * 상품이 해당 컬러 태그를 가지고 있는지 검사
+     */
     private BooleanExpression colorIn(List<String> colors) {
         if (colors == null || colors.isEmpty()) {
             return null;
         }
 
-        if (colors.contains("ALL")) {
-            return null;
-        }
+        QProductTag subPt = new QProductTag("subPt_color");
+        QTag subTag = new QTag("subTag_color");
 
-        return tag.type.eq(TagType.COLOR)
-                .and(tag.name.in(colors));
+        return product.id.in(
+                JPAExpressions
+                        .select(subPt.product.id)
+                        .from(subPt)
+                        .join(subPt.tag, subTag)
+                        .where(
+                                subTag.type.eq(TagType.COLOR),
+                                subTag.name.in(colors)
+                        )
+        );
     }
 
+    private BooleanExpression priceBetween(Integer min, Integer max) {
+        if (min == null && max == null) return null;
+        if (min != null && max != null) return product.price.between(min, max);
+        if (min != null) return product.price.goe(min);
+        return product.price.loe(max);
+    }
     private BooleanExpression hasAnyTags(List<Long> tagIds) {
         if (tagIds == null || tagIds.isEmpty()) return null;
 

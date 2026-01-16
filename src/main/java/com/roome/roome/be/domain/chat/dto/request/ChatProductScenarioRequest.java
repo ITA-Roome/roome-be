@@ -1,6 +1,7 @@
 package com.roome.roome.be.domain.chat.dto.request;
 
 import com.roome.roome.be.domain.chat.model.ChatSession;
+import com.roome.roome.be.domain.product.enums.ProductCategory;
 import com.roome.roome.be.domain.product.enums.ProductType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,9 +19,10 @@ public record ChatProductScenarioRequest(
         Integer maxBudget,
         Integer minBudget,
 
-        // ===== 제품 모드 =====
         @Size(max = 3)
-        List<ProductType> productTypes
+        List<ProductType> productTypes,
+
+        List<ProductCategory> productCategories
 ) {
         public static ChatProductScenarioRequest create(ChatSession chatSession){
                 return new ChatProductScenarioRequest(
@@ -31,7 +33,9 @@ public record ChatProductScenarioRequest(
 
                         chatSession.productType() != null
                                 ? List.of(chatSession.productType())
-                                : null
+                                : null,
+
+                        chatSession.productCategories()
                 );
         }
 }

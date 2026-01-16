@@ -333,46 +333,20 @@ public class ProductService {
     }
 
     public List<CandidateProductInfo> getCandidateProductList(
-            Integer maxBudget,
-            Integer minBudget,
-            List<String> preferredColors
-    ) {
-        return productRepository.findCandidateProductList(maxBudget,minBudget,preferredColors);
-    }
-
-    @Transactional(readOnly = true)
-    public List<CandidateProductInfo> getCandidateProductList(
-            ProductType productType,            // 대분류 (가구)
-            List<ProductCategory> detailedCategories, // 소분류 (책상, 의자...)
+            ProductType productType,
+            List<ProductCategory> detailedCategories,
             Integer minBudget,
             Integer maxBudget,
             List<String> preferredColors
     ) {
-        List<String> searchTagNames;
 
-        if (detailedCategories != null && !detailedCategories.isEmpty()) {
-            searchTagNames = detailedCategories.stream()
-                    .map(Enum::name)
-                    .toList();
-        } else {
-            searchTagNames = ProductTypeMapper.getProductCategoryList(List.of(productType))
-                    .stream()
-                    .map(Enum::name)
-                    .toList();
-        }
-
-        int effectiveMin = (minBudget == null) ? 0 : minBudget;
-        int effectiveMax = (maxBudget == null) ? Integer.MAX_VALUE : maxBudget;
-
-        List<Product> products = productRepository.findByCategoryTagsAndBudget(
-                TagType.PRODUCT_TYPE,
-                searchTagNames,
-                effectiveMin,
-                effectiveMax
+        return productRepository.findCandidateProductList(
+                productType,
+                detailedCategories,
+                maxBudget,
+                minBudget,
+                preferredColors
         );
-
-        return products.stream()
-                .map(CandidateProductInfo::from)
-                .toList();
     }
 }
+
