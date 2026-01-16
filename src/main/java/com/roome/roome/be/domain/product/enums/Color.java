@@ -26,7 +26,8 @@ public enum Color {
 	GOLD("골드"),
 	SILVER("실버"),
 	TRANSPARENT("투명"),
-	MULTICOLOR("여러 색");
+	MULTICOLOR("여러 색"),
+	ALL("상관없음");
 
 	private final String description;
 }
