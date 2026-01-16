@@ -243,31 +243,75 @@ public class IntentPromptBuilder {
             - 정보가 없으면 반드시 질문 단계로 이어져야 한다
             --------------------------------------------------
             """;
+
     private static final String PRODUCT_CATEGORY_GUIDE = """
         --------------------------------------------------
-        [상품 카테고리 매핑 가이드]
+        [상품 카테고리 매핑 가이드 (ProductCategory)]
         --------------------------------------------------
         사용자의 발화가 아래 상세 품목 중 하나에 해당하면
         반드시 해당 Enum 이름(대문자)으로 매핑하라.
         
-        [FURNITURE]
-        - DESK (책상)
-        - HEIGHT_ADJUSTABLE_DESK (높이 조절 책상, 모션데스크)
-        - CHAIR (의자)
-        - STOOL (스툴)
-        ... (나머지 Enum들)
-        
-        [LIGHTING]
-        - CEILING_LAMP (천장등)
-        - READING_LAMP (독서등)
-        ...
-        
-        [FABRIC_DECOR]
-        - RUG (러그)
-        - CUSHION (쿠션)
-        ...
+        1. 가구 (Furniture)
+           - 책상류: DESK(일반 책상), HEIGHT_ADJUSTABLE_DESK(모션데스크/높이조절), MEETING_TABLE(회의탁자)
+           - 테이블류: TABLE(식탁/테이블), OUTDOOR_TABLE(야외 테이블), TABLE_FRAME(테이블 다리/프레임), TABLE_TOP(상판)
+           - 의자류: CHAIR(의자), STOOL(스툴), BAR_STOOL(바스툴/아일랜드식탁의자), STEP_STOOL(사다리 스툴)
+
+        2. 조명 (Lighting)
+           - 천장/벽: CEILING_LAMP(천장등/방등), PENDANT_LAMP(펜던트/식탁등), WALL_LAMP(벽부등), SPOTLIGHT(스포트라이트), SYSTEM_LIGHTING(레일조명/시스템조명)
+           - 스탠드: FLOOR_LAMP(장스탠드), TABLE_LAMP(단스탠드/탁상조명), WORK_LAMP(작업등/데스크램프), READING_LAMP(독서등)
+           - 기타: DECORATIVE_LIGHT(장식조명/무드등), LED_BULB(전구)
+
+        3. 패브릭 & 데코 (Fabric & Decor)
+           - 러그: RUG(일반 러그), FLAT_WOVEN_RUG(평직 러그), LONG_PILE_RUG(장모 러그/샤기카페트), SHORT_PILE_RUG(단모 러그), DOOR_MAT(도어매트/발매트)
+           - 쿠션/소품: CUSHION(쿠션 솜포함), CUSHION_COVER(쿠션 커버)
+           - 액자/장식: ART_PRINT(그림/포스터), CANVAS_PRINT(캔버스 그림), FRAME(액자 프레임)
+           - 식탁 패브릭: TABLE_CLOTH(식탁보), TABLE_MAT(식탁 매트), TABLE_RUNNER(러너)
+
+        4. 침구 & 욕실 (Bedding & Bath)
+           - 이불/담요: BEDSPREAD(침대보/스프레드), BLANKET(담요/블랭킷), DUVET_COVER(이불 커버)
+           - 시트/커버: FITTED_SHEET(매트리스 고무줄시트), MATTRESS_COVER(매트리스 커버), PILLOW_CASE(베개 커버)
+           - 타월/매트: TOWEL(일반 수건), BATH_TOWEL(바스 타월/목욕수건), HAND_TOWEL(핸드 타월), BATH_MAT(욕실 매트)
+
+        5. 창문 (Window)
+           - 커튼: CURTAIN(일반 커튼), SHEER_CURTAIN(속커튼/쉬폰/레이스), BLACKOUT_CURTAIN(암막 커튼)
+           - 블라인드: BLACKOUT_BLIND(암막 블라인드), PLEATED_BLIND(주름 블라인드), ROLLER_BLIND(롤스크린), ROMAN_BLIND(로만셰이드), VENETIAN_BLIND(베네치안/알루미늄 블라인드)
+
+        [주의]
+        - 사용자가 "책상"이라고 하면 DESK, "높이 조절 되는 거"라고 하면 HEIGHT_ADJUSTABLE_DESK로 구분할 것.
+        - "스탠드 조명"처럼 애매하면 FLOOR_LAMP 또는 TABLE_LAMP 중 문맥에 맞는 것을 선택하되, 모르면 TABLE_LAMP를 기본으로 함.
         --------------------------------------------------
         """;
+
+    private static final String REFERENCE_TYPE_GUIDE = """
+            --------------------------------------------------
+            [공간 종류(ReferenceType) 매핑 가이드]
+            --------------------------------------------------
+            사용자가 언급한 공간이 아래 항목에 해당하면
+            반드시 해당 Enum 이름(대문자)으로 매핑하라.
+
+            1. LIVING_ROOM (거실)
+               - "거실", "리빙룸", "마루", "메인 공간"
+
+            2. BEDROOM (침실)
+               - "침실", "안방", "잠자는 방", "침대방"
+
+            3. STUDY (서재/작업실)
+               - "서재", "공부방", "작업실", "홈오피스", "책상 있는 방", "컴퓨터방"
+
+            4. KITCHEN (주방/다이닝)
+               - "주방", "부엌", "식당", "다이닝룸", "아일랜드 식탁 쪽"
+
+            5. BATHROOM (욕실)
+               - "욕실", "화장실", "파우더룸"
+
+            6. KIDS_ROOM (아이방)
+               - "아이방", "애기방", "자녀방", "키즈룸", "놀이방"
+               
+            7. ETC (기타)
+               - "현관", "복도", "베란다", "드레스룸", "다용도실"
+               - 위 분류에 속하지 않는 모든 공간
+            --------------------------------------------------
+            """;
 
 
     private static final String COMMON_COLOR_GUIDE = """
@@ -275,6 +319,10 @@ public class IntentPromptBuilder {
         [색상/톤(Color & Tone) 공통 매핑 가이드]
         --------------------------------------------------
         사용자의 발화에 따라 'reference.colorTone'과 'product.productColors'를 채워라.
+        
+        이때 사용자가 "추천해주세요" , "상관없어요" 발화 시,
+            - reference.colorTone: "WARM_TONE"
+            - product.productColors: ["WOOD", "BROWN", "BEIGE", "ORANGE"]
         
         [중요] 'reference.colorTone'은 반드시 아래 명시된 **태그 이름(Tag Name)** 중 하나여야 한다.
         (허용 값: BRIGHT_TONE, DARK_TONE, WARM_TONE, GRAY_TONE, COLORFUL, CALM_TONE, NEUTRAL)
@@ -308,6 +356,7 @@ public class IntentPromptBuilder {
            - reference.colorTone: "NEUTRAL"
            - product.productColors: ["BEIGE", "IVORY", "GRAY", "BROWN"]
            (예: "무난한", "뉴트럴한", "질리지 않는")
+          
         --------------------------------------------------
         """;
 
@@ -328,8 +377,8 @@ public class IntentPromptBuilder {
            (minBudget: null)
 
         3. "상관없어요", "가격 무관", "아무거나", "비싸도 됨"
-           → minBudget: null
-           → maxBudget: null
+           → maxBudget: 1000000 (100만원 이하)
+           (minBudget: null)
 
         [주의]
         - 사용자가 "50만원 이하", "10만원~20만원" 처럼 구체적인 숫자를 말하면 그 숫자를 최우선으로 적용하라.
@@ -348,7 +397,7 @@ public class IntentPromptBuilder {
         for (ReferenceMoodMapping mapping : ReferenceMoodMapping.values()) {
             sb.append(String.format("   - \"%s\" 관련 표현 → %s\n",
                     mapping.getDescription(),
-                    mapping.getMoods().toString())); // Enum Set을 문자열로 변환
+                    mapping.getMoods().toString()));
         }
         sb.append("\n");
 
@@ -367,14 +416,46 @@ public class IntentPromptBuilder {
         return sb.toString();
     }
 
+    private static final String REFERENCE_SIZE_GUIDE = """
+            --------------------------------------------------
+            [Reference Size (평수) 매핑 가이드]
+            --------------------------------------------------
+            사용자의 발화를 보고 가장 적절한 'ReferenceSize'를 선택하라.
+
+            1. SMALL (10평 미만 / 좁은 공간)
+               - "원룸", "좁은 방", "오피스텔", "작은 방"
+               - "10평 이하", "5평", "8평"
+
+            2. MEDIUM (10평 ~ 20평 / 적당한 공간)
+               - "투룸", "아파트", "거실", "안방", "적당한 크기"
+               - "10평대", "20평대", "24평", "15평"
+
+            3. LARGE (20평 이상 / 넓은 공간)
+               - "넓은 집", "큰 평수", "대형 평수"
+               - "30평", "40평", "50평 이상"
+               
+            4. UNKNOWN (모르겠음 / 확실하지 않음)
+               - "잘 모르겠어", "평수는 몰라", "기억 안 나"
+               
+            ⭐⭐[강력 규칙]⭐⭐
+            사용자가 "잘 모르겠어"라고 말하면, 
+            1. "reference": { "spaceSize": "UNKNOWN" } 값을 채운다.
+            2. intent는 무조건 "SET_INFO"로 결정한다.
+            (절대 intent를 UNKNOWN으로 출력하지 마라. '모른다'는 답변도 유효한 정보 입력이다.)
+            --------------------------------------------------
+            """;
+
+
     public static String build(ChatSession session, String userMessage) {
         try {
             return SYSTEM_PROMPT
                     + TASK_AWARE_PROMPT
                     + FLOW_TRIGGER_PROMPT
+                    + REFERENCE_TYPE_GUIDE
                     + PRODUCT_CATEGORY_GUIDE
                     + COMMON_COLOR_GUIDE
                     + PRODUCT_BUDGET_GUIDE
+                    + REFERENCE_SIZE_GUIDE
                     + generateReferenceTagGuide()
                     + "\n\n[현재 ChatSession]\n"
                     + om.writerWithDefaultPrettyPrinter().writeValueAsString(session)

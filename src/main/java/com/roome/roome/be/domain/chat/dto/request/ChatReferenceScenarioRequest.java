@@ -1,6 +1,7 @@
 package com.roome.roome.be.domain.chat.dto.request;
 
 import com.roome.roome.be.domain.chat.model.ChatSession;
+import com.roome.roome.be.domain.reference.enums.ReferenceColor; // Import 추가
 import com.roome.roome.be.domain.reference.enums.ReferenceMood;
 import com.roome.roome.be.domain.reference.enums.ReferenceSize;
 import com.roome.roome.be.domain.reference.enums.ReferenceStyle;
@@ -12,17 +13,14 @@ import java.util.List;
 public record ChatReferenceScenarioRequest(
         @NotNull
         Long userId,
-        // ===== 인테리어 모드 =====
-        @NotNull
+
         ReferenceType referenceType,
-        @NotNull
         ReferenceSize referenceSize,
-        @NotNull
         List<ReferenceMood> referenceMood,
-        @NotNull
         List<ReferenceStyle> referenceStyle,
 
-        @NotNull
+        ReferenceColor referenceColor,
+
         Integer maxBudget,
         Integer minBudget
 ) {
@@ -33,6 +31,7 @@ public record ChatReferenceScenarioRequest(
                         chatSession.referenceSize(),
                         chatSession.referenceMoods(),
                         chatSession.referenceStyles(),
+                        chatSession.referenceColor() != null ? chatSession.referenceColor() : ReferenceColor.NO_PREFERENCE,
                         chatSession.referenceMaxBudget(),
                         chatSession.referenceMinBudget()
                 );
