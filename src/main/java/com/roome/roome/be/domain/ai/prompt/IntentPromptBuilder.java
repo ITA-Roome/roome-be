@@ -417,7 +417,7 @@ public class IntentPromptBuilder {
         sb.append("\n");
 
         sb.append("사용자가 '무드 추천받기' 라고만 요청한 경우:\n");
-        sb.append("reference.moods: [ \"COZY\",\n");
+        sb.append("reference.moods: [ \"COZY\" ]\n");
 
         sb.append("2. 스타일 (reference.styles)\n");
         for (ReferenceStyleMapping mapping : ReferenceStyleMapping.values()) {
