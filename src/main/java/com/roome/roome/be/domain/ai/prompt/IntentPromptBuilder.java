@@ -426,7 +426,7 @@ public class IntentPromptBuilder {
         }
 
         sb.append("사용자가 '스타일 추천받기' 라고만 요청한 경우:\n");
-        sb.append("reference.styles: [\\\"NATURAL\\\", \\\"MODERN\\\"]\n");
+        sb.append("reference.styles: [\"NATURAL\", \"MODERN\"]\n");
 
 
         sb.append("\n[주의]\n");
