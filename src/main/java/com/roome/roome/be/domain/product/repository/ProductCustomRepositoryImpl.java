@@ -49,32 +49,27 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
             Pageable pageable
     ) {
 
-        // 1. 기본 쿼리 (SELECT p FROM Product p ...)
         JPAQuery<Product> query = jpaQueryFactory
                 .selectFrom(product)
-                .leftJoin(product.shop, shop).fetchJoin() // N+1 방지
+                .leftJoin(product.shop, shop).fetchJoin()
                 .distinct();
 
-        // 2. 동적 WHERE 조건 조립
         query.where(
                 shopIdEq(shopId),
                 categoryEq(category),
                 nameContains(keyWord),
                 priceGoe(minPrice),
                 priceLoe(maxPrice),
-                tagFilter(tagFilters, match) // ★ 모든 태그 필터를 이 메서드가 처리
+                tagFilter(tagFilters, match)
         );
 
-        // 3. 페이징 및 정렬 적용
         applySort(query, pageable);
 
         query.offset(pageable.getOffset())
             .limit(pageable.getPageSize());
 
-        // 4. 쿼리 실행 (Content)
         List<Product> content = query.fetch();
 
-        // 5. Count 쿼리 실행 (페이징을 위해)
         JPAQuery<Long> countQuery = jpaQueryFactory
                 .select(product.countDistinct())
                 .from(product)
@@ -439,6 +434,10 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
 
     private BooleanExpression colorIn(List<String> colors) {
         if (colors == null || colors.isEmpty()) {
+            return null;
+        }
+
+        if (colors.contains("ALL")) {
             return null;
         }
 

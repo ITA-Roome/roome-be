@@ -69,7 +69,6 @@ public class ChatRecommendService {
             return ChatReferenceScenarioResponse.empty();
         }
 
-        // 4. AI에게 추천 멘트 생성 요청 (Reranking or Captioning)
         AiReferenceResponse aiResult =
                 aiService.recommendReferenceList(
                         AiReferenceRequest.from(user.getNickname(), request, candidateReferenceList)
