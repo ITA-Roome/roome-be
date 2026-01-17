@@ -286,7 +286,7 @@ public class IntentPromptBuilder {
            - 시트/커버: FITTED_SHEET(매트리스 고무줄시트), MATTRESS_COVER(매트리스 커버), PILLOW_CASE(베개 커버)
            - 타월/매트: TOWEL(일반 수건), BATH_TOWEL(바스 타월/목욕수건), HAND_TOWEL(핸드 타월), BATH_MAT(욕실 매트)
 
-        5. 창문 (Window)
+        5. 커튼 & 블라인드 (window)
            - 커튼: CURTAIN(일반 커튼), SHEER_CURTAIN(속커튼/쉬폰/레이스), BLACKOUT_CURTAIN(암막 커튼)
            - 블라인드: BLACKOUT_BLIND(암막 블라인드), PLEATED_BLIND(주름 블라인드), ROLLER_BLIND(롤스크린), ROMAN_BLIND(로만셰이드), VENETIAN_BLIND(베네치안/알루미늄 블라인드)
 
